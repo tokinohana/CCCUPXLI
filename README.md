@@ -5,3 +5,7 @@ This project is built using "Modular Monorepo" architecture. It contains several
 - `regis`: Handles registration of teams and participants.
 - `ticketing`: Handles ticketing and QR code generation.
 - `ccpay`: Handles payment processing for teams and participants.
+
+### Collaborators
+1. Lead Developer - Benedict Halim (https://github.com/tokinohana)
+2. Ticketing Developer - Mark Bern Widjaja (https://github.com/superproplayer1234)
