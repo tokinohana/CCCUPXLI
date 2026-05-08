@@ -1,0 +1,70 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+
+# === Virtual Environments ===
+venv/
+env/
+.venv/
+.virtualenv/
+
+# === Django ===
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Migrations (optional: comment out if you want to track them)
+# */migrations/
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# === Environment Variables ===
+.env
+.env.*
+*.env
+
+# === Static Files ===
+staticfiles/
+static/
+
+# === IDEs / Editors ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS Files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Testing / Coverage ===
+htmlcov/
+.coverage
+.coverage.*
+.tox/
+.pytest_cache/
+
+# === Build / Distribution ===
+build/
+dist/
+*.egg-info/
+
+# === Logs ===
+logs/
+*.log
+
+# === Celery / Redis (if used) ===
+celerybeat-schedule
+celerybeat.pid
+
+# === Cache ===
+.cache/
+
+# === Backup Files ===
+*.bak
+*.orig
+*.tmp
