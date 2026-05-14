@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#201f20",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-lowest": "#0e0e0f",
+                        "on-tertiary-fixed": "#00210b",
+                        "on-primary-fixed-variant": "#00429b",
+                        "surface-tint": "#b0c6ff",
+                        "secondary-fixed-dim": "#ffb874",
+                        "tertiary-fixed": "#62ff96",
+                        "tertiary": "#00e475",
+                        "surface-variant": "#353436",
+                        "primary-container": "#558dff",
+                        "on-secondary-container": "#633700",
+                        "background": "#131314",
+                        "on-secondary-fixed-variant": "#6a3b00",
+                        "primary-fixed-dim": "#b0c6ff",
+                        "on-secondary-fixed": "#2d1600",
+                        "on-background": "#e5e2e3",
+                        "surface-container-low": "#1c1b1c",
+                        "on-tertiary-container": "#003114",
+                        "inverse-surface": "#e5e2e3",
+                        "on-error": "#690005",
+                        "surface-dim": "#131314",
+                        "surface-container-highest": "#353436",
+                        "secondary-fixed": "#ffdcbf",
+                        "error": "#ffb4ab",
+                        "on-tertiary-fixed-variant": "#005226",
+                        "secondary": "#ffbc7c",
+                        "inverse-primary": "#0058ca",
+                        "error-container": "#93000a",
+                        "on-primary-fixed": "#001945",
+                        "on-primary-container": "#002661",
+                        "secondary-container": "#fe9400",
+                        "on-tertiary": "#003918",
+                        "primary-fixed": "#d9e2ff",
+                        "on-primary": "#002d6e",
+                        "surface": "#131314",
+                        "outline-variant": "#424655",
+                        "outline": "#8c90a0",
+                        "inverse-on-surface": "#313031",
+                        "on-surface": "#e5e2e3",
+                        "tertiary-fixed-dim": "#00e475",
+                        "on-surface-variant": "#c2c6d7",
+                        "tertiary-container": "#00a754",
+                        "surface-bright": "#3a393a",
+                        "on-secondary": "#4b2800",
+                        "surface-container-high": "#2a2a2b",
+                        "primary": "#b0c6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "max-width": "1440px",
+                        "gutter": "16px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "grid-columns": "12"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Space Grotesk"],
+                        "label-bold": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Space Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "data-point": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"],
+                        "status-indicator": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-bold": ["14px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "data-point": ["16px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "status-indicator": ["12px", {"lineHeight": "1.0", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .frozen-camera-overlay {
+            background: linear-gradient(rgba(19,19,20,0.4), rgba(19,19,20,0.8));
+        }
+        .scan-line {
+            height: 2px;
+            background: #fe9400;
+            box-shadow: 0 0 15px #fe9400;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface text-primary font-headline-lg text-headline-lg-mobile md:text-headline-lg docked full-width top-0 border-b border-outline-variant flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 z-50">
+<div class="font-headline-lg text-headline-lg tracking-tighter text-primary uppercase">SCAN_OPS v2.4</div>
+<div class="flex items-center gap-4">
+<button class="hover:bg-surface-container-highest transition-colors active:scale-95 duration-75 p-2 rounded">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:bg-surface-container-highest transition-colors active:scale-95 duration-75 p-2 rounded">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="System Operator Profile" class="w-8 h-8 rounded-full border border-outline" data-alt="A close-up professional headshot of a system operator in a dimly lit industrial control room environment. The lighting is cool-toned with subtle blue highlights reflecting off technical gear. The style is sharp, high-contrast, and focused, echoing a modern mission-critical atmosphere. The aesthetic is gritty yet high-tech, fitting for a brutalist corporate interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAN5D7ECBs9LnMGFukKvIbUwNhECR_TX2luOVlaqm1FskRSrEeIGkGFaHxpm1ze7024LLYz2XIlNO-bhLweOJboITH5QIWUdERssa6CGFCNxPd8ybxx_ExVTQxiyxcaL81h7QDzlx3lGgfhH8YQD80NrwsbLREJ6SHQ3ClXOeO3HEoWnENJEEc0Aea6paIIEs2qMV5OqurLHCH4eUnxTuShhMjwwld4MUw98QLNHSScy2UMaWSjatlnDvo5ZEigb12vrB50CXIev3N"/>
+</div>
+</header>
+<!-- Main Content Area: Camera Preview -->
+<main class="relative flex-grow flex flex-col overflow-hidden">
+<!-- Frozen Camera Background -->
+<div class="absolute inset-0 z-0">
+<img alt="Frozen Scanner View" class="w-full h-full object-cover grayscale brightness-50" data-alt="A static, frozen frame from a high-resolution industrial security camera. It shows a slightly blurred close-up of a printed QR code on a crumpled paper ticket being held by a hand. The image is processed with a heavy dark grayscale filter, featuring high-contrast grain and digital noise. The background consists of industrial textures like brushed metal and dim utility lighting, creating a high-pressure mission-critical mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtshU1YkgPiSx-Fininn3z0T6pRI7IoLbVSZqpVTKlujQpe0kPhjlRWudOKlIFS2ijyvBn5m8L5NPIa1SqwCVRjbl2IimChRhBw5srUQbgM5ypBFqM9QeGUW6QCJOE1m3L3EgxOOL6HNtjJgdOz0-kEmABzj9fsZQL54qYknoOvdj32e6iE5_Y6-W02GVxe9djg0V8k224whi0xIENfUGTpl05oaAWvV8L7KKh1YGARxfOMiIRnciGLtYp-eRjUb4Bp4nwdD5YiA_e"/>
+<div class="absolute inset-0 frozen-camera-overlay"></div>
+<!-- Scanning Frame UI -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-64 h-64 border-2 border-secondary-container opacity-50 relative">
+<div class="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-secondary"></div>
+<div class="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-secondary"></div>
+<div class="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-secondary"></div>
+<div class="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-secondary"></div>
+<div class="scan-line absolute w-full top-1/2 opacity-80"></div>
+</div>
+</div>
+</div>
+<!-- Warning Overlay/Panel -->
+<div class="mt-auto z-10 w-full animate-in fade-in slide-in-from-bottom-4 duration-300">
+<!-- Warning Header -->
+<div class="bg-secondary-container text-on-secondary-container p-6 border-t-4 border-secondary flex flex-col gap-unit shadow-2xl">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+<h2 class="font-headline-lg text-headline-lg-mobile uppercase tracking-tight">Ticket Already Used</h2>
+</div>
+<!-- Data Points Grid -->
+<div class="grid grid-cols-2 gap-gutter mt-4 py-4 border-y border-on-secondary-container/20">
+<div class="flex flex-col">
+<span class="font-label-bold text-status-indicator uppercase opacity-80">Redeemed At</span>
+<span class="font-data-point text-data-point">19:04:32 PST</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-status-indicator uppercase opacity-80">Scanned By</span>
+<span class="font-data-point text-data-point">KEVIN_OP_04</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-status-indicator uppercase opacity-80">Terminal</span>
+<span class="font-data-point text-data-point">ZONE_B_G3</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-status-indicator uppercase opacity-80">Ticket ID</span>
+<span class="font-data-point text-data-point">TX-8849-QR</span>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-3 mt-6">
+<button class="w-full bg-on-secondary-container text-secondary-container font-label-bold py-4 uppercase flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">refresh</span>
+                        Resume Scan
+                    </button>
+<button class="w-full border-2 border-on-secondary-container text-on-secondary-container font-label-bold py-4 uppercase active:scale-[0.98] transition-transform">
+                        Dismiss
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe bg-surface border-t-2 border-outline">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 active:bg-surface-container-highest active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary p-2 active:bg-surface-container-highest active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined">barcode_scanner</span>
+<span class="font-label-bold text-label-bold">Scanner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 active:bg-surface-container-highest active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="font-label-bold text-label-bold">Ticket</span>
+</a>
+</nav>
+<!-- Floating UI Info (Optional Context) -->
+<div class="fixed top-20 right-4 z-20 flex flex-col gap-2">
+<div class="bg-surface-container-highest border border-outline px-3 py-1 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+<span class="font-status-indicator text-status-indicator text-on-surface uppercase">Conflict Detected</span>
+</div>
+</div>
+</body></html>

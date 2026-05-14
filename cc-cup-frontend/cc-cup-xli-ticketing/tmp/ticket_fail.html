@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SCAN_OPS v2.4 - Ticket Success</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Hanken+Grotesk:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        body {
+            background-color: #131314;
+            color: #e5e2e3;
+            -webkit-font-smoothing: antialiased;
+        }
+        .stutter-step {
+            border-left: 4px solid #00e475;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#ffdcbf",
+                        "primary-container": "#558dff",
+                        "error": "#ffb4ab",
+                        "on-primary-container": "#002661",
+                        "on-tertiary-fixed-variant": "#005226",
+                        "on-surface-variant": "#c2c6d7",
+                        "tertiary-fixed": "#62ff96",
+                        "on-tertiary-container": "#003114",
+                        "surface-dim": "#131314",
+                        "on-primary": "#002d6e",
+                        "surface-container-lowest": "#0e0e0f",
+                        "primary": "#b0c6ff",
+                        "surface-variant": "#353436",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-highest": "#353436",
+                        "inverse-primary": "#0058ca",
+                        "on-tertiary-fixed": "#00210b",
+                        "on-secondary": "#4b2800",
+                        "outline": "#8c90a0",
+                        "on-surface": "#e5e2e3",
+                        "on-primary-fixed": "#001945",
+                        "surface-container": "#201f20",
+                        "secondary": "#ffbc7c",
+                        "surface-bright": "#3a393a",
+                        "on-secondary-container": "#633700",
+                        "error-container": "#93000a",
+                        "background": "#131314",
+                        "tertiary": "#00e475",
+                        "inverse-surface": "#e5e2e3",
+                        "on-secondary-fixed-variant": "#6a3b00",
+                        "secondary-container": "#fe9400",
+                        "surface-tint": "#b0c6ff",
+                        "surface-container-low": "#1c1b1c",
+                        "surface-container-high": "#2a2a2b",
+                        "primary-fixed-dim": "#b0c6ff",
+                        "primary-fixed": "#d9e2ff",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#00429b",
+                        "surface": "#131314",
+                        "tertiary-fixed-dim": "#00e475",
+                        "secondary-fixed-dim": "#ffb874",
+                        "on-secondary-fixed": "#2d1600",
+                        "outline-variant": "#424655",
+                        "on-tertiary": "#003918",
+                        "inverse-on-surface": "#313031",
+                        "on-background": "#e5e2e3",
+                        "tertiary-container": "#00a754"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "grid-columns": "12",
+                        "unit": "4px",
+                        "max-width": "1440px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Space Grotesk"],
+                        "label-bold": ["JetBrains Mono"],
+                        "headline-lg": ["Space Grotesk"],
+                        "data-point": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"],
+                        "status-indicator": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-bold": ["14px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "data-point": ["16px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "status-indicator": ["12px", {"lineHeight": "1.0", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Side Navigation Shell -->
+<nav class="bg-surface-container-low dark:bg-surface-container-low border-r-2 border-outline hidden md:flex flex-col h-full w-64 shrink-0 transition-all duration-100 ease-in-out">
+<div class="p-margin-desktop space-y-4">
+<div class="font-headline-lg text-headline-lg text-primary uppercase">OP_CENTER</div>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-surface-container-highest flex items-center justify-center border border-outline">
+<span class="material-symbols-outlined text-primary text-sm">person</span>
+</div>
+<div>
+<div class="font-label-bold text-label-bold text-on-surface">Operator 01</div>
+<div class="font-data-point text-[10px] text-on-surface-variant uppercase tracking-widest">Terminal 4 - Zone B</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-unit mt-4 px-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all" href="#">
+<span class="material-symbols-outlined">barcode_scanner</span>
+<span class="font-label-bold text-label-bold">Scanner</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-on-primary border-l-4 border-tertiary transition-all" href="#">
+<span class="material-symbols-outlined">confirmation_number</span>
+<span class="font-label-bold text-label-bold">Create Ticket</span>
+</a>
+</div>
+<div class="mt-auto p-4">
+<button class="w-full py-4 border-2 border-primary text-primary font-label-bold text-label-bold uppercase hover:bg-primary hover:text-on-primary transition-colors">
+                    System Check
+                </button>
+</div>
+</nav>
+<div class="flex flex-col flex-1 relative overflow-hidden">
+<!-- Top App Bar Shell -->
+<header class="bg-surface dark:bg-surface border-b border-outline-variant flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 shrink-0">
+<div class="font-headline-lg text-headline-lg-mobile md:text-headline-lg tracking-tighter text-primary dark:text-primary uppercase">SCAN_OPS v2.4</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest p-2 transition-colors">notifications</button>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest p-2 transition-colors">settings</button>
+</div>
+</header>
+<!-- Main Canvas / Success Overlay Content -->
+<main class="flex-1 flex items-center justify-center bg-surface-container-lowest p-margin-mobile md:p-margin-desktop overflow-y-auto">
+<!-- Success Module -->
+<div class="max-w-xl w-full border-2 bg-surface-container p-8 md:p-12 relative shadow-[0_0_40px_rgba(0,228,117,0.1)] border-error" style="box-shadow: 0 0 40px rgba(255, 180, 171, 0.1);">
+<!-- Decorative Corner Accents -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 -mt-1 -ml-1 border-error"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 -mb-1 -mr-1 border-error"></div>
+<div class="flex flex-col items-center text-center space-y-8">
+<!-- Success Hero Section -->
+<div class="flex flex-col items-center">
+<div class="w-24 h-24 flex items-center justify-center mb-6 bg-error"><span class="material-symbols-outlined text-[64px] text-on-error" style="font-variation-settings: 'FILL' 1;">report</span></div>
+<h1 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg uppercase tracking-tight text-error">TICKET GENERATION FAILED</h1>
+</div>
+<!-- Info Module -->
+<div class="w-full bg-surface-container-high border border-outline-variant p-6 space-y-4">
+<div class="flex flex-col gap-2">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest text-xs">Confirmation Status</span>
+<div class="flex items-center justify-center gap-3 text-on-surface"><span class="material-symbols-outlined text-error">warning</span><span class="font-data-point text-data-point">ERROR: System was unable to process this request. Please check connection and try again.</span></div>
+</div>
+<div class="h-px bg-outline-variant w-full"></div>
+<div class="flex justify-between items-center px-2">
+<div class="flex flex-col items-start">
+<span class="font-label-bold text-[10px] text-on-surface-variant uppercase">Operator ID</span>
+<span class="font-data-point text-label-bold">OP-01-4B</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-bold text-[10px] text-on-surface-variant uppercase">Auth Token</span>
+<span class="font-data-point text-label-bold">#882-QX-90</span>
+</div>
+</div>
+</div>
+<!-- Visual Reinforcement / Ticket Mockup -->
+<div class="relative w-full h-32 overflow-hidden border border-outline border-dashed">
+<img alt="Confirmation Graphic" class="w-full h-full object-cover opacity-30 grayscale contrast-150" data-alt="A macro photography shot of an industrial QR code being scanned on a high-contrast digital terminal. The lighting is cold and fluorescent with vibrant green neon accents reflecting off a brushed metal surface. The composition is brutalist and precise, featuring sharp edges and high information density with data overlays in a deep charcoal and bright green color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCewSWJ-moMqmGTyE4k_8_UrEOEzAGL9AdQkVNu9PYnwjAkI_22P7f5uq7uzHjWL1yCFesGozTD8XQoj1_trvqkO8TC9i9XbYx0LApvrT-DZn8R1LWdC6qzW1ipBxttnkkASZ24nZ7Vga3VSqat7OzF-0rqd6T6tykaGUFWUhcYMHjZN8hSqtM_5EwtYFJaJBYxFbB2nl5BIErib0t1H-QsZWEJGeVg_tzkQB9uQyw1ds_M1Pk_wkJP4Zsz1Dtqq9_O0vfuSOggx0KQ"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="font-label-bold text-label-bold uppercase tracking-[0.4em] bg-background px-4 py-2 border border-error">ACTION REQUIRED</span>
+</div>
+</div>
+<!-- Action Zone -->
+<div class="w-full flex flex-col gap-4">
+<button class="w-full py-6 bg-primary text-on-primary font-headline-lg text-headline-lg-mobile uppercase tracking-tighter flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all"><span class="material-symbols-outlined text-3xl">refresh</span>RETRY TICKET CREATION</button>
+<div class="flex gap-4">
+<button class="flex-1 py-4 border-2 border-outline text-on-surface font-label-bold text-label-bold uppercase hover:bg-surface-container-highest transition-colors">
+                                    Return to Dashboard
+                                </button>
+<button class="flex-1 py-4 border-2 border-outline text-on-surface font-label-bold text-label-bold uppercase hover:bg-surface-container-highest transition-colors">
+                                    Print Log
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Nav Bar Shell (Mobile) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe bg-surface dark:bg-surface border-t-2 border-outline md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined">barcode_scanner</span>
+<span class="font-label-bold text-label-bold">Scanner</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary p-2 active:scale-95 transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">confirmation_number</span>
+<span class="font-label-bold text-label-bold">Ticket</span>
+</a>
+</footer>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SCAN_OPS v2.4 | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Hanken+Grotesk:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #0A0A0B; 
+            color: #e5e2e3;
+            overflow-x: hidden;
+        }
+        .radar-grid {
+            background-image: radial-gradient(circle, #424655 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .stutter-pulse {
+            animation: pulse-stutter 2s steps(4) infinite;
+        }
+        @keyframes pulse-stutter {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .dot-pulse {
+            animation: dot-pulse-anim 2s infinite;
+        }
+        @keyframes dot-pulse-anim {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 228, 117, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 228, 117, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 228, 117, 0); }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#fe9400",
+                        "on-secondary-fixed-variant": "#6a3b00",
+                        "error-container": "#93000a",
+                        "error": "#ffb4ab",
+                        "primary-container": "#558dff",
+                        "on-surface": "#e5e2e3",
+                        "on-primary-fixed-variant": "#00429b",
+                        "on-primary": "#002d6e",
+                        "on-secondary-container": "#633700",
+                        "tertiary-fixed": "#62ff96",
+                        "secondary-fixed-dim": "#ffb874",
+                        "on-secondary": "#4b2800",
+                        "on-background": "#e5e2e3",
+                        "inverse-primary": "#0058ca",
+                        "on-tertiary-container": "#003114",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#005226",
+                        "tertiary-fixed-dim": "#00e475",
+                        "surface-dim": "#131314",
+                        "background": "#131314",
+                        "on-primary-fixed": "#001945",
+                        "on-error": "#690005",
+                        "surface-tint": "#b0c6ff",
+                        "surface-container-highest": "#353436",
+                        "secondary": "#ffbc7c",
+                        "on-tertiary-fixed": "#00210b",
+                        "primary-fixed": "#d9e2ff",
+                        "tertiary-container": "#00a754",
+                        "outline": "#8c90a0",
+                        "surface-variant": "#353436",
+                        "primary-fixed-dim": "#b0c6ff",
+                        "inverse-surface": "#e5e2e3",
+                        "surface-container-high": "#2a2a2b",
+                        "tertiary": "#00e475",
+                        "surface-container-low": "#1c1b1c",
+                        "on-secondary-fixed": "#2d1600",
+                        "surface-bright": "#3a393a",
+                        "on-primary-container": "#002661",
+                        "surface-container": "#201f20",
+                        "secondary-fixed": "#ffdcbf",
+                        "surface": "#131314",
+                        "on-surface-variant": "#c2c6d7",
+                        "surface-container-lowest": "#0e0e0f",
+                        "outline-variant": "#424655",
+                        "on-tertiary": "#003918",
+                        "inverse-on-surface": "#313031",
+                        "primary": "#b0c6ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "gutter": "16px",
+                        "max-width": "1440px",
+                        "unit": "4px",
+                        "grid-columns": "12",
+                        "margin-desktop": "32px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["JetBrains Mono"],
+                        "display-xl": ["Space Grotesk"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Space Grotesk"],
+                        "status-indicator": ["JetBrains Mono"],
+                        "data-point": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Space Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["14px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "display-xl": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "status-indicator": ["12px", {"lineHeight": "1.0", "fontWeight": "700"}],
+                        "data-point": ["16px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Desktop Only) -->
+<aside class="flex flex-col h-full gap-unit bg-surface-container-low dark:bg-surface-container-low border-r-2 border-outline h-screen w-64 hidden md:flex fixed left-0 top-0 z-40">
+<div class="p-6 flex flex-col gap-4">
+<div class="font-headline-lg text-headline-lg text-primary">OP_CENTER</div>
+<div class="flex items-center gap-3 py-4 border-b border-outline-variant">
+<img alt="Operator 01" class="w-10 h-10 rounded-none border border-outline" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqD0YHNWWWXDnzucjpgLg0iWn2wyPy49tTwdGmYfMCeLKEL2fK89QTnb_LcN_A_vaOlDJT9pw2pxWOziNNDwLlnlo3qpYT-rFX79kiJR8rdakJ0ag2W_O3cLZhxBCGWZGgqzhK-hvJBBLkc9YYvdTIf-vvy0vOznYuvTY3K0PyBNXndLcuJq8XTsiMqnx8DK3ZWT16qs0EXutCmMsbRys30TejVUIGRJ3ZvGkzqePrcEJU_jV1D_zJcskAvS1IdPFmg1Nv4al5E2-N"/>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface">Operator 01</p>
+<p class="font-data-point text-xs text-on-surface-variant">Terminal 4 - Zone B</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-on-primary border-l-4 border-tertiary transition-all duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-label-bold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="barcode_scanner">barcode_scanner</span>
+<span class="font-label-bold text-label-bold">Scanner</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-container-high transition-all duration-100 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-label-bold text-label-bold">Create Ticket</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<button class="w-full py-4 bg-tertiary text-on-tertiary font-label-bold text-label-bold uppercase tracking-widest active:scale-95 duration-75">
+                System Check
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-64 min-h-screen pb-20 md:pb-0">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-16 bg-surface dark:bg-surface border-b border-outline-variant sticky top-0 z-30">
+<div class="flex items-center gap-6">
+<div class="font-headline-lg text-headline-lg tracking-tighter text-primary dark:text-primary uppercase">SCAN_OPS v2.4</div>
+<div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-container-high border border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-tertiary dot-pulse"></div>
+<span class="font-status-indicator text-status-indicator text-tertiary uppercase">Scanner Online</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="hidden md:flex items-center gap-2 mr-4">
+<button class="px-4 py-2 bg-primary text-on-primary font-label-bold text-xs uppercase tracking-wider hover:opacity-90 active:scale-95 transition-all">
+                + Create Ticket
+            </button>
+<button class="px-4 py-2 border border-primary text-primary font-label-bold text-xs uppercase tracking-wider hover:bg-primary/10 active:scale-95 transition-all">
+                Open Scanner
+            </button>
+</div>
+<button class="p-2 hover:bg-surface-container-highest transition-colors active:scale-95 duration-75 text-primary">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-2 hover:bg-surface-container-highest transition-colors active:scale-95 duration-75 text-primary">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+<div class="w-8 h-8 bg-surface-container-highest border border-outline ml-2">
+<img alt="System Operator Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRxw_EPCsaukZrriVqR4VDnn33mGjION44amJU-iNcWnyFTHWlkM7PcyK2p13j8RNfBGj8JZ5bJuico6MXMRFWIQMjRi422zPDCvs-hAW9PZY6aPUiUHx3Uf7YOpjHZXdMUJqdxuQnpgbwkrdZ5waJr__JM0G89ri0WLeMwAL2gToPwtyqNXc7xXShCV7M7IvCiPkhAsIYDsyz809CSn_fWMkrj7BFSaUa5TWVvih6tseij20n8-EJIZO05axLFSK5AcUsdl2geu89"/>
+</div>
+</div>
+</header>
+<!-- Dashboard Canvas -->
+<div class="p-4 md:p-8 grid grid-cols-12 gap-gutter max-w-screen-2xl mx-auto w-full">
+<!-- Prominent Search Bar Section -->
+<div class="col-span-12 mb-4">
+<div class="relative">
+<span class="absolute inset-y-0 left-0 pl-4 flex items-center text-outline">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full bg-surface-container border-2 border-outline-variant focus:border-primary focus:ring-0 text-on-surface font-body-md py-4 pl-12 pr-4 placeholder:text-on-surface-variant/50" placeholder="Search users by Name, NIK, or Email..." type="text"/>
+<div class="absolute inset-y-0 right-0 pr-4 flex items-center gap-2">
+<span class="text-[10px] font-label-bold text-on-surface-variant border border-outline-variant px-2 py-0.5 uppercase">Cmd + K</span>
+</div>
+</div>
+</div>
+<!-- Aggregated Metrics Row (Tickets) -->
+<div class="col-span-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-gutter">
+<!-- Metric 1: Tickets Sold -->
+<div class="bg-surface-container border-l-4 border-primary p-6 flex justify-between items-end">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest">Tickets Sold</p>
+<h2 class="font-display-xl text-display-xl text-primary mt-2">742</h2>
+</div>
+<div class="text-primary opacity-50 pb-2">
+<span class="material-symbols-outlined text-4xl" data-icon="confirmation_number">confirmation_number</span>
+</div>
+</div>
+<!-- Metric 2: Redeemed -->
+<div class="bg-surface-container border-l-4 border-tertiary p-6 flex justify-between items-end">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest">Redeemed</p>
+<h2 class="font-display-xl text-display-xl text-tertiary mt-2">381</h2>
+</div>
+<div class="text-tertiary opacity-50 pb-2">
+<span class="material-symbols-outlined text-4xl" data-icon="check_circle">check_circle</span>
+</div>
+</div>
+<!-- Metric 3: Remaining -->
+<div class="bg-surface-container border-l-4 border-primary-container p-6 flex justify-between items-end">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest">Remaining</p>
+<h2 class="font-display-xl text-display-xl text-primary-container mt-2">361</h2>
+</div>
+<div class="text-primary-container opacity-50 pb-2">
+<span class="material-symbols-outlined text-4xl" data-icon="pending">pending</span>
+</div>
+</div>
+<!-- Metric 4: Duplicate Attempts -->
+<div class="bg-surface-container border-l-4 border-secondary-container p-6 flex justify-between items-end">
+<div>
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase tracking-widest">Duplicates</p>
+<h2 class="font-display-xl text-display-xl text-secondary-container mt-2">12</h2>
+</div>
+<div class="text-secondary-container opacity-50 pb-2">
+<span class="material-symbols-outlined text-4xl" data-icon="content_copy">content_copy</span>
+</div>
+</div>
+</div>
+<!-- Layout without Scanner Viz -->
+<div class="col-span-12 lg:col-span-8 flex flex-col gap-gutter">
+<!-- Ticket Redemption Graph (Replacing Radar) -->
+<div class="bg-surface-container-high border border-outline p-6 relative overflow-hidden flex-1">
+<div class="z-10 relative flex flex-col h-full">
+<div class="flex justify-between items-center mb-6">
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase">Redemption Velocity (24H)</p>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-primary"></div>
+<span class="text-[10px] font-label-bold uppercase">Sold</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-tertiary"></div>
+<span class="text-[10px] font-label-bold uppercase">Redeemed</span>
+</div>
+</div>
+</div>
+<div class="flex-1 w-full flex items-end gap-1 min-h-[300px]">
+<!-- Simulated Chart -->
+<div class="bg-primary/20 border-t border-primary w-full h-[30%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[40%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[35%]"></div>
+<div class="bg-tertiary/60 border-t border-tertiary w-full h-[45%]"></div>
+<div class="bg-tertiary/60 border-t border-tertiary w-full h-[65%]"></div>
+<div class="bg-tertiary/60 border-t border-tertiary w-full h-[85%]"></div>
+<div class="bg-tertiary/60 border-t border-tertiary w-full h-[95%]"></div>
+<div class="bg-tertiary/60 border-t border-tertiary w-full h-[80%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[60%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[50%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[45%]"></div>
+<div class="bg-primary/20 border-t border-primary w-full h-[40%]"></div>
+</div>
+<div class="mt-4 flex justify-between font-data-point text-[10px] text-on-surface-variant uppercase">
+<span>00:00</span>
+<span>06:00</span>
+<span>12:00</span>
+<span>18:00</span>
+<span>23:59</span>
+</div>
+</div>
+</div>
+<!-- System Health Section -->
+<div class="bg-surface-container border border-outline p-6">
+<h3 class="font-label-bold text-label-bold text-on-surface uppercase mb-4 border-b border-outline-variant pb-2">Node Performance</h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- CPU -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-data-point text-xs uppercase text-on-surface-variant">CPU LOAD</span>
+<span class="font-data-point text-xs text-tertiary">34%</span>
+</div>
+<div class="h-2 bg-surface-container-lowest border border-outline-variant overflow-hidden">
+<div class="h-full bg-tertiary w-[34%]"></div>
+</div>
+</div>
+<!-- Network -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-data-point text-xs uppercase text-on-surface-variant">LINK LATENCY</span>
+<span class="font-data-point text-xs text-primary">4MS</span>
+</div>
+<div class="h-2 bg-surface-container-lowest border border-outline-variant overflow-hidden">
+<div class="h-full bg-primary w-[88%]"></div>
+</div>
+</div>
+<!-- Memory -->
+<div class="space-y-2">
+<div class="flex justify-between items-center">
+<span class="font-data-point text-xs uppercase text-on-surface-variant">MEM USAGE</span>
+<span class="font-data-point text-xs text-secondary-container">62%</span>
+</div>
+<div class="h-2 bg-surface-container-lowest border border-outline-variant overflow-hidden">
+<div class="h-full bg-secondary-container w-[62%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Logs -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Recent Events Table -->
+<div class="bg-surface-container border border-outline h-full overflow-hidden flex flex-col">
+<div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-high">
+<h3 class="font-label-bold text-label-bold text-on-surface uppercase">Recent Activity Feed</h3>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer text-sm" data-icon="filter_list">filter_list</span>
+</div>
+<div class="overflow-y-auto flex-1">
+<table class="w-full text-left font-data-point text-sm border-collapse">
+<thead>
+<tr class="bg-surface-container-lowest text-on-surface-variant uppercase text-[10px] tracking-tighter">
+<th class="px-4 py-3 font-medium">Timestamp</th>
+<th class="px-4 py-3 font-medium">Event</th>
+<th class="px-4 py-3 font-medium text-right">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">19:04:00</td>
+<td class="px-4 py-3 text-xs">Benedict scanned by Kevin</td>
+<td class="px-4 py-3 text-right"><span class="bg-tertiary text-black px-1.5 py-0.5 text-[10px] font-bold">OK</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">19:03:00</td>
+<td class="px-4 py-3 text-xs">Invalid ticket attempt</td>
+<td class="px-4 py-3 text-right"><span class="bg-error text-black px-1.5 py-0.5 text-[10px] font-bold">FAIL</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">19:01:00</td>
+<td class="px-4 py-3 text-xs">Duplicate redemption attempt</td>
+<td class="px-4 py-3 text-right"><span class="bg-error text-black px-1.5 py-0.5 text-[10px] font-bold">FAIL</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">18:58:12</td>
+<td class="px-4 py-3 text-xs">Sarah J. scanned by Sarah</td>
+<td class="px-4 py-3 text-right"><span class="bg-tertiary text-black px-1.5 py-0.5 text-[10px] font-bold">OK</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">18:55:04</td>
+<td class="px-4 py-3 text-xs">Gate 4 scanner calibration</td>
+<td class="px-4 py-3 text-right"><span class="bg-primary text-black px-1.5 py-0.5 text-[10px] font-bold">INFO</span></td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-4 py-3 font-mono text-[11px]">18:52:19</td>
+<td class="px-4 py-3 text-xs">Mark T. scanned by Kevin</td>
+<td class="px-4 py-3 text-right"><span class="bg-tertiary text-black px-1.5 py-0.5 text-[10px] font-bold">OK</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 border-t border-outline-variant text-center">
+<button class="text-[10px] font-label-bold uppercase text-primary hover:underline">View Full Audit Log</button>
+</div>
+</div>
+</div>
+<!-- Technical Detail Bento Section -->
+<div class="col-span-12 grid grid-cols-1 md:grid-cols-4 gap-gutter mt-4">
+<div class="bg-surface-container border border-outline p-6 flex flex-col justify-between">
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase">Uptime</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-xl text-3xl text-tertiary">142:04</span>
+<span class="font-data-point text-xs">HRS</span>
+</div>
+<div class="text-[10px] text-tertiary opacity-80 uppercase tracking-widest font-bold">Stable Connection</div>
+</div>
+<div class="bg-surface-container border border-outline p-6 flex flex-col justify-between">
+<p class="font-label-bold text-label-bold text-on-surface-variant uppercase">Zone Status</p>
+<div class="space-y-1">
+<div class="flex justify-between items-center text-xs">
+<span class="font-data-point text-[10px]">ZONE A</span>
+<span class="text-tertiary font-bold">ACTIVE</span>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="font-data-point text-[10px]">ZONE B</span>
+<span class="text-tertiary font-bold">ACTIVE</span>
+</div>
+<div class="flex justify-between items-center text-xs opacity-50">
+<span class="font-data-point text-[10px]">ZONE C</span>
+<span class="font-bold">OFFLINE</span>
+</div>
+</div>
+</div>
+<div class="md:col-span-2 bg-surface-container-high border border-outline p-6 relative overflow-hidden flex flex-col justify-center">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-primary/10 border border-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+</div>
+<div>
+<p class="font-label-bold text-label-bold text-on-surface uppercase">Quick Lookup Engine</p>
+<p class="font-body-md text-xs text-on-surface-variant mt-1">Directly query the database for individual record verification.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 pb-safe bg-surface dark:bg-surface border-t-2 border-outline md:hidden">
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary p-2 flex-1 h-full active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-bold text-[10px] mt-1">Dashboard</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 flex-1 h-full active:bg-surface-container-highest active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="barcode_scanner">barcode_scanner</span>
+<span class="font-label-bold text-[10px] mt-1">Scanner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-2 flex-1 h-full active:bg-surface-container-highest active:scale-95 duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="confirmation_number">confirmation_number</span>
+<span class="font-label-bold text-[10px] mt-1">Ticket</span>
+</a>
+</nav>
+</body></html>
