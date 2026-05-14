@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { Html5Qrcode } from "html5-qrcode";
 import { RefreshCcw, Bell, Settings, AlertTriangle, CheckCircle2, XCircle, LayoutDashboard, ScanLine, Ticket } from "lucide-react";
 import { Button } from "@/components/button";
 import { Badge } from "@/components/badge";
@@ -12,36 +12,64 @@ type ScannerState = "SCANNING" | "SUCCESS" | "CLAIMED" | "INVALID";
 const Scanner = () => {
   const [state, setState] = useState<ScannerState>("SCANNING");
   const [result, setResult] = useState<TicketType | null>(null);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [isScannerStarted, setIsScannerStarted] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  const isStartingRef = useRef(false);
+
+  const startScanner = async () => {
+    if (isStartingRef.current || (scannerRef.current && scannerRef.current.isScanning)) return;
+    
+    isStartingRef.current = true;
+    if (!scannerRef.current) {
+      scannerRef.current = new Html5Qrcode("reader");
+    }
+
+    try {
+      const qrboxSize = Math.min(window.innerWidth * 0.7, 250);
+      await scannerRef.current.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: qrboxSize, height: qrboxSize },
+          aspectRatio: 1.0,
+        },
+        onScanSuccess,
+        onScanFailure
+      );
+      setIsScannerStarted(true);
+    } catch (err) {
+      console.error("Failed to start scanner:", err);
+    } finally {
+      isStartingRef.current = false;
+    }
+  };
+
+  const stopScanner = async () => {
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      try {
+        await scannerRef.current.stop();
+        setIsScannerStarted(false);
+      } catch (err) {
+        console.error("Failed to stop scanner:", err);
+      }
+    }
+  };
 
   useEffect(() => {
     if (state === "SCANNING") {
-      const scanner = new Html5QrcodeScanner(
-        "reader",
-        { 
-          fps: 10, 
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-          showTorchButtonIfSupported: true,
-        },
-        /* verbose= */ false
-      );
-
-      scanner.render(onScanSuccess, onScanFailure);
-      scannerRef.current = scanner;
+      startScanner();
+    } else {
+      stopScanner();
     }
 
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(error => console.error("Failed to clear scanner", error));
-      }
+      stopScanner();
     };
   }, [state]);
 
   const onScanSuccess = async (decodedText: string) => {
-    if (scannerRef.current) {
-      await scannerRef.current.clear();
-    }
+    await stopScanner();
     
     const scanResult = await apiService.scanTicket(decodedText);
     
@@ -56,8 +84,8 @@ const Scanner = () => {
     }
   };
 
-  const onScanFailure = (error: any) => {
-    // console.warn(`Code scan error = ${error}`);
+  const onScanFailure = () => {
+    // Silent fail for continuous scanning
   };
 
   const resetScanner = () => {
@@ -69,9 +97,12 @@ const Scanner = () => {
     <div className="relative flex-grow flex flex-col h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] overflow-hidden bg-black">
       {/* Camera Preview Area */}
       <div className="absolute inset-0 z-0 bg-[#131314]">
-        {state === "SCANNING" ? (
-          <div id="reader" className="w-full h-full border-none"></div>
-        ) : (
+        <div 
+          id="reader" 
+          className={cn("w-full h-full border-none", state !== "SCANNING" && "hidden")}
+        ></div>
+        
+        {state !== "SCANNING" && (
           <div className="w-full h-full relative">
             <img 
               src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1000&auto=format&fit=crop" 
@@ -160,9 +191,12 @@ const Scanner = () => {
           from { top: 0; }
           to { top: 100%; }
         }
+        #reader video {
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+        }
         #reader { border: none !important; }
-        #reader__scan_region { background: transparent !important; }
-        #reader__dashboard { display: none !important; }
       `}</style>
     </div>
   );

@@ -68,3 +68,6 @@ celerybeat.pid
 *.bak
 *.orig
 *.tmp
+
+# === Secrets ===
+secrets/

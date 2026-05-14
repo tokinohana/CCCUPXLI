@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Search, Ticket, CheckCircle, Clock, Copy, Filter, Terminal as TerminalIcon } from "lucide-react";
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
@@ -135,8 +136,8 @@ const Dashboard = () => {
               </table>
             </div>
             <div className="p-3 border-t border-[#424655] text-center">
-              <Button variant="link" className="text-[10px] font-bold uppercase text-[#b0c6ff] hover:underline">
-                View Full Audit Log
+              <Button asChild variant="link" className="text-[10px] font-bold uppercase text-[#b0c6ff] hover:underline">
+                <Link to="/registry">View Full Ticket Registry</Link>
               </Button>
             </div>
           </div>

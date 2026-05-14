@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Dashboard from "./pages/Dashboard";
 import Scanner from "./pages/Scanner";
 import TicketForm from "./pages/TicketForm";
+import TicketRegistry from "./pages/TicketRegistry";
 import Layout from "@/components/Layout";
 
 function App() {
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/scanner" element={<Scanner />} />
+          <Route path="/registry" element={<TicketRegistry />} />
           <Route path="/create-ticket" element={<TicketForm />} />
         </Route>
       </Routes>
