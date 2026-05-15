@@ -16,7 +16,17 @@ class User(AbstractUser):
 
     # 3. METADATA
     phone_number = models.CharField(max_length=15, blank=True, null=True)
+    nis = models.CharField(max_length=20, unique=True, blank=True, null=True)
     
+    # 4. CCPAY LOGIC
+    ROLE_CHOICES = (
+        ('HEAD', 'Head'),
+        ('MEMBER', 'Member'),
+    )
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='MEMBER')
+    current_saldo = models.BigIntegerField(default=0)
+    division = models.ForeignKey('ccpay.Division', on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+
     USERNAME_FIELD = 'email'  # This tells Django: "Login with email"
     REQUIRED_FIELDS = ['username']
 
