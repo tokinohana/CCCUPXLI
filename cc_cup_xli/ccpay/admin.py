@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Division, Shift, Transaction
+from .models import Division, Shift, Transaction, MerchantStand
 
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
@@ -16,3 +16,8 @@ class TransactionAdmin(admin.ModelAdmin):
     list_display = ('type', 'receiver', 'sender', 'amount', 'timestamp')
     list_filter = ('type', 'timestamp')
     search_fields = ('receiver__email', 'sender__email')
+
+@admin.register(MerchantStand)
+class MerchantStandAdmin(admin.ModelAdmin):
+    list_display = ('name', 'token', 'is_active')
+    search_fields = ('name',)

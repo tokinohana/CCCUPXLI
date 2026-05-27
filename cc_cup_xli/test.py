@@ -7,7 +7,7 @@ load_dotenv()
 
 client = vision.ImageAnnotatorClient()
 
-with open("ktp1.png", "rb") as f:
+with open("ktp2.png", "rb") as f:
     content = f.read()
 
 image = vision.Image(content=content)

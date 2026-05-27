@@ -89,8 +89,8 @@ Your `User` model handles the "Guardians." You will log in as the developer or a
 
 
 
-### Summary for your Plan:
-1.  **Keep `User` model for staff identity.**
-2.  **Create `Ticket` model for customer data and uniqueness.**
-3.  **Use UUIDs for QR codes** to stop "evil" students from guessing ticket IDs (e.g., they can't change `id=101` to `id=102`).
-4.  **Enforce `unique=True`** on the ID Card field in your database to automate the 1-ticket-per-person rule.
+### 4. Ticketing Ops: Hybrid Admin
+The ticketing system follows a "Hybrid" model:
+- **Master Admin (The Oracle)**: Use the standard Django `/admin/` for high-level tasks like checking the full list of tickets, manually voiding a ticket, or exporting sales data to CSV.
+- **Operational Tool (The Scanner)**: Since Django Admin is too slow for gate operations, a custom React-based scanner page hits the `/api/ticketing/validate/` endpoint. This page is only accessible to users in the `Ticketing_Staff` group.
+- **Security**: The custom scanner checks for a valid session and specifically looks for the `is_committee` flag before allowing any ticket redemption.

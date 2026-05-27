@@ -75,3 +75,11 @@ The system uses `RegisStatus` to control access and UI state:
 3. **REVIEWED**: Admin has seen the data but might need changes. User can "Unsubmit" to edit.
 4. **PENDINGTF**: Specifically used for payment/rekening info updates.
 5. **ACCEPTED**: Final state. No changes allowed.
+
+---
+
+## 5. Regis Staff in the Unified Admin
+The registration staff operates primarily within the main Django `/admin/` portal.
+- **Group: `Regis_Staff`**: Members of this group can view and edit `Team`, `Member`, and `File` models.
+- **Verification Flow**: Staff use the Admin panel to review uploaded PDFs and change a team's status from `SUBMITTED` to `REVIEWED` or `ACCEPTED`.
+- **Filtering**: The Admin list view is configured to allow quick filtering by "Competition Name" and "Status" for easy workload management.

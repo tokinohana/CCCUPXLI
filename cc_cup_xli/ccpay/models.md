@@ -81,4 +81,8 @@ Your script at 17:00 should do this in a **Transaction (ACID)**:
 
 This ensures that the "Lost" money is forever recorded in the `transactions` table, giving you the neat analytics you want.
 
-**Does this look solid enough to start building the backend migrations?**
+### 4. CCPAY in the Unified Admin
+All CCPAY data is managed via the main `/admin/` panel. 
+- **Heads** are placed in the `CCPAY_Heads` group, allowing them to verify their division's shifts and see their transaction history.
+- **Manual Overrides**: If the daily distribution script fails, a SuperAdmin can manually trigger it or adjust individual `current_saldo` values from the Admin panel.
+- **Analytics**: Use the Django Admin's "Filter" and "Search" features to quickly find transactions by type or date.

@@ -38,18 +38,33 @@ Since you trust your internal committee for ticketing, you can avoid the complex
 
 ---
 
-### Revised User App Architecture
-To make this work, your `User` model just needs two simple types:
+### 4. Unified Admin Strategy (The "Oracle" & "Tools" Model)
 
-| User Role | Auth Method | Destination |
+To keep the project manageable as it grows, we will follow a **Unified Backend but Split UI** strategy.
+
+#### A. The "Oracle" (Master Django Admin)
+We will use a single standard Django Admin panel (`/admin/`) as the single source of truth for all data management.
+- **Permissions**: We use **Django Groups** to separate concerns:
+    - **Group: `Regis_Staff`**: Can view/edit competition teams and participants.
+    - **Group: `CCPAY_Heads`**: Can view/edit shifts and transaction history for their divisions.
+    - **Group: `Ticketing_Admin`**: Can view ticket redemption status and run manual overrides.
+- **SuperAdmins**: Only you (the developer) have access to the full database, including the `User` table and raw CCPAY balances.
+
+#### B. The "Tools" (Specialized Operator Interfaces)
+For tasks that require speed or special hardware (like scanning), we build lightweight custom interfaces that hit our API:
+- **Ticketing Scanner**: A custom, mobile-optimized page for fast camera scanning at the gate.
+- **Merchant Dashboard**: A token-based "Scan & Pay" interface for canteen stands.
+
+| Tool | Audience | Goal |
 | :--- | :--- | :--- |
-| **You (Dev)** | Google OAuth | CCPAY Admin + Django Admin |
-| **Committee** | Traditional/Google | Regis Admin (Django Admin) + Ticketing |
-| **Student** | Traditional | Registration Dashboard (`/dashboard`) |
+| **Django Admin** | You / Managers | Data cleanup, manual overrides, CSV imports. |
+| **Scanner Page** | Gate Staff | High-speed entry validation (1-2 seconds per person). |
+| **Merchant App** | Food Stands | Quick balance deduction via QR scan. |
+
+---
 
 ### Final "Anti-Evil" Tip:
-Since you're worried about students messing with the bot and the forms:
-1.  **Session Hijacking:** In `settings.py`, set `SESSION_COOKIE_SECURE = True` (once you have HTTPS) and `SESSION_EXPIRE_AT_BROWSER_CLOSE = True`. 
-2.  **Audit Logs:** Even if you trust the committee, use a simple library like `django-simple-history`. If a "trusted" committee member accidentally deletes a team's registration, you can see exactly who did it and revert the change in one click.
+1.  **Audit Logs:** Even if you trust the committee, use a simple library like `django-simple-history`. If a "trusted" committee member accidentally deletes a team's registration, you can see exactly who did it and revert the change in one click.
+2.  **Session Security:** Set `SESSION_COOKIE_SECURE = True` and `SESSION_EXPIRE_AT_BROWSER_CLOSE = True` to prevent stale sessions on shared devices.
 
-This setup is perfect because it uses **Django's strengths** (Admin for Registration) while keeping **High-Risk areas** (CCPAY) locked down to just you.
+This setup gives you the **Master Control** of a unified system while giving your staff **simple, focused tools** for their specific jobs.

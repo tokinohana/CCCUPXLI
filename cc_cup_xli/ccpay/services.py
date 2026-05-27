@@ -55,7 +55,8 @@ def expire_daily_funds():
             
             # Record transaction
             Transaction.objects.create(
-                sender=user,
+                sender=None,  # System is the sender
+                receiver=user, # User is the receiver (losing balance)
                 amount=amount,
                 type='EXPIRATION',
                 description=f"End of Day Fund Expiration"

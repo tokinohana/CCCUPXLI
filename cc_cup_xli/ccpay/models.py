@@ -33,6 +33,8 @@ class Transaction(models.Model):
     
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_transactions')
     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='received_transactions')
+    merchant_stand = models.ForeignKey('MerchantStand', on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
+    reference_id = models.UUIDField(null=True, blank=True, unique=True, help_text="Unique reference for payment idempotency")
     amount = models.BigIntegerField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -40,3 +42,11 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.type} - {self.amount} - {self.timestamp}"
+
+class MerchantStand(models.Model):
+    name = models.CharField(max_length=100)
+    token = models.CharField(max_length=64, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
