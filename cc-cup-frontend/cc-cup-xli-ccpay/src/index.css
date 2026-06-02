@@ -39,28 +39,22 @@
   --on-secondary-fixed: #002108;
   --surface-container-high: #e6e8eb;
 
-  /* Global typography colors */
+  /* Global typography mapping targets */
   --text-main: #6b6375;
   --text-heading: #08060d;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
+    --background: #090a0b;
+    --foreground: #f4f5f6;
+    --card: #131619;
+    --card-foreground: #f4f5f6;
+    --border: #1e2226;
+    --input: #1e2226;
+    --text-heading: #ffffff;
+    --text-main: #8a939e;
     --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
   }
 }
 
@@ -68,65 +62,75 @@ body {
   margin: 0;
 }
 
+/* Fixed from raw desktop restriction to fluid premium mobile-first container */
 #root {
-  width: 1126px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 1126px;
   margin: 0 auto;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* Typography Defaults tethered tightly to Tailwind Theme Tokens */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text-heading);
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+  font-size: 3.5rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  margin: 2rem 0;
+}
+
+@media (max-width: 1024px) {
+  h1 {
+    font-size: 2.25rem;
+    margin: 1.25rem 0;
   }
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 1024px) {
+  h2 {
+    font-size: 1.25rem;
   }
 }
+
 p {
   margin: 0;
 }
 
 code,
 .counter {
-  font-family: var(--mono);
+  font-family: var(--font-mono);
   display: inline-flex;
   border-radius: 4px;
-  color: var(--text-h);
 }
 
 code {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 135%;
   padding: 4px 8px;
-  background: var(--code-bg);
+  background: var(--code-bg, #eceef1);
 }
 
 @theme inline {
-  --font-heading: 'Inter', var(--font-sans);
-  --font-sans: 'Inter', sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* Premium Font Pairings for Tailwind v4 engine */
+  --font-heading: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Geist Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-surface-tint: #5d5e61;
   --color-on-secondary-fixed-variant: #00531e;
@@ -203,37 +207,24 @@ code {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #090a0b;
+  --foreground: #f4f5f6;
+  --card: #131619;
+  --card-foreground: #f4f5f6;
+  --popover: #131619;
+  --popover-foreground: #f4f5f6;
+  --primary: #ffffff;
+  --primary-foreground: #090a0b;
+  --secondary: #122b1c;
+  --secondary-foreground: #69ff87;
+  --muted: #16191d;
+  --muted-foreground: #8a939e;
+  --accent: #16191d;
+  --accent-foreground: #ffffff;
+  --destructive: #ff6b6b;
+  --border: #1e2226;
+  --input: #1e2226;
+  --ring: #69ff87;
 }
 
 @layer base {
@@ -241,23 +232,18 @@ code {
     @apply border-[var(--border)] outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-    background-color: var(--background);
-    color: var(--foreground);
-  }
-  h1, h2, h3, h4, h5, h6 {
-    color: var(--text-heading);
+    @apply bg-background text-foreground font-sans antialiased;
   }
 }
 
 @layer utilities {
   .stitch-card {
-    background-color: #ffffff;
-    border: 1px solid #e0e3e6;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.05);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
   }
 
   .data-mono {
-    @apply font-mono;
+    @apply font-mono tracking-wider;
   }
 }

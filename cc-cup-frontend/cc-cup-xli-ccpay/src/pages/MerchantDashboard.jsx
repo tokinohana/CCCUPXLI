@@ -3,10 +3,11 @@ import {
   Bell,
   Calendar,
   HelpCircle,
-  LayoutDashboard,
-  ReceiptText,
-  Settings,
-  QrCode
+  QrCode,
+  CheckCircle2,
+  RefreshCw,
+  TrendingUp,
+  ChevronRight
 } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,7 +15,7 @@ const MerchantDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1200);
+    const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -30,124 +31,170 @@ const MerchantDashboard = () => {
   ];
 
   return (
-    <div className="bg-[#f7f9fc] font-['Inter',_sans-serif] text-[#191c1e] min-h-screen pb-24 selection:bg-[#006e2a]/10 antialiased">
-      {/* TopAppBar */}
-      <header className="bg-[#1A1C1E] text-white font-bold tracking-tight fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#e6e8eb] rounded-lg overflow-hidden flex-shrink-0">
-            <img
-              alt="Merchant Profile"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkOr3CMerm5SU43GNCY6B6iULuT5BFVOKJn9Yw-rl75vXuAO5y_ejxMnHPzNboMJGTL7lwcA4H69EsgH3Qh23b-98ky7as3rbt-3-0d0Dj44QvKhIBb-F04stbHXa0JOEer9PwPnEw9wRGDtOtq0dZ9-huDJcr09Tui7V1U0LWROFih5kV-FhUhZb8L0wAgTLdziHUvmXRZKGBGn0LpnsXk2Q5zxPhs78rG-1zagYQWAs3mqIHraXu8EqdnP0dRVvb3jCsmr8cRsU"
-            />
+    <div className="bg-[#090a0b] font-sans text-[#8a939e] min-h-screen pb-32 selection:bg-[#69ff87]/30 select-none antialiased w-full max-w-md mx-auto border-x border-[#16191d]/40 relative">
+      
+      {/* 1. Premium Glassmorphic Navigation Header Bar */}
+      <header className="bg-[#090a0b]/80 backdrop-blur-md border-b border-[#16191d] sticky top-0 left-0 right-0 z-50 px-4 py-3.5">
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-b from-[#1e2226] to-[#131619] border border-[#2a2f35] p-0.5 shadow-md">
+              <img
+                alt="Merchant Profile"
+                className="w-full h-full object-cover rounded-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkOr3CMerm5SU43GNCY6B6iULuT5BFVOKJn9Yw-rl75vXuAO5y_ejxMnHPzNboMJGTL7lwcA4H69EsgH3Qh23b-98ky7as3rbt-3-0d0Dj44QvKhIBb-F04stbHXa0JOEer9PwPnEw9wRGDtOtq0dZ9-huDJcr09Tui7V1U0LWROFih5kV-FhUhZb8L0wAgTLdziHUvmXRZKGBGn0LpnsXk2Q5zxPhs78rG-1zagYQWAs3mqIHraXu8EqdnP0dRVvb3jCsmr8cRsU"
+              />
+            </div>
+            <div>
+              <h1 className="text-sm font-black text-white tracking-tight leading-none">Stand 04</h1>
+              <p className="text-[10px] font-bold text-[#69ff87] uppercase tracking-widest mt-1 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#69ff87] animate-pulse" /> Live Terminal
+              </p>
+            </div>
           </div>
-          <span className="text-xl font-bold tracking-tighter text-white">[Merchant Name]</span>
+          <button className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#131619] border border-[#1e2226] text-[#8a939e] active:scale-95 transition-all relative hover:text-white">
+            <Bell className="h-4 w-4" />
+            <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#69ff87] rounded-full" />
+          </button>
         </div>
-        <button className="hover:opacity-90 active:scale-95 transition-all outline-none">
-          <Bell className="h-6 w-6 text-white" />
-        </button>
       </header>
 
-      <main className="pt-24 px-4 space-y-6 max-w-md mx-auto">
-        {/* Revenue Summary */}
-        <section className="space-y-1 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100 fill-mode-both">
-          <h1 className="text-[#44474a] text-sm font-semibold uppercase tracking-wider">Pendapatan Hari Ini</h1>
+      {/* Main Structural Layout Content Sheet */}
+      <main className="px-4 pt-6 space-y-6">
+        
+        {/* 2. Today's Revenue Master Board */}
+        <section className="bg-gradient-to-b from-[#131619] to-[#0d0f11] border border-[#1e2226] rounded-2xl p-5 shadow-xl relative overflow-hidden">
+          <div className="absolute -top-4 -right-4 opacity-[0.02] pointer-events-none">
+            <TrendingUp className="w-32 h-32 text-white" />
+          </div>
+          <p className="text-[9px] font-black text-[#535c66] uppercase tracking-widest mb-1">TOTAL PENDAPATAN HARI INI</p>
           <div className="flex flex-col">
             {isLoading ? (
-              <div className="space-y-2 mt-1">
-                <Skeleton className="h-10 w-48 bg-[#e0e3e6]" />
-                <Skeleton className="h-4 w-32 bg-[#e0e3e6]" />
+              <div className="space-y-2 mt-2">
+                <Skeleton className="h-10 w-56 bg-[#1e2226]" />
+                <Skeleton className="h-4 w-32 bg-[#1e2226]" />
               </div>
             ) : (
               <>
-                <span className="text-4xl font-extrabold tracking-tight text-[#006e2a] leading-none">Rp 1.450.000</span>
-                <span className="text-[#44474a] text-sm mt-1">Total: 42 Pembayaran</span>
+                <span className="text-[40px] font-black tracking-tight text-[#69ff87] tabular-nums leading-none my-1">
+                  Rp 1.450.000
+                </span>
+                <div className="flex justify-between items-center mt-4 pt-3.5 border-t border-[#1e2226]/50">
+                  <span className="text-white text-xs font-bold bg-[#1a1d21] border border-[#2a2f35]/60 px-2.5 py-1 rounded-lg">
+                    42 Transaksi Sukses
+                  </span>
+                  <span className="text-[10px] text-[#535c66] font-semibold flex items-center gap-1.5">
+                    <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '8s' }} /> Updated
+                  </span>
+                </div>
               </>
             )}
           </div>
         </section>
 
-        {/* Verification Card (Latest Transaction) */}
-        <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both">
+        {/* 3. High-Priority "Boomer Verification" Hero Card */}
+        <section className="space-y-2.5">
+          <p className="text-[9px] font-black text-[#535c66] uppercase tracking-widest px-0.5">DANA TERAKHIR MASUK</p>
           {isLoading ? (
-            <Skeleton className="h-[120px] w-full rounded-xl" />
+            <Skeleton className="h-28 w-full rounded-2xl bg-[#131619]" />
           ) : (
-            <div className="bg-white rounded-xl p-4 border border-[#e0e3e6] border-l-4 border-l-[#006e2a] shadow-[0px_4px_6px_rgba(0,0,0,0.05)]">
-              <div className="flex justify-between items-start mb-3">
-                <span className="text-xs font-bold text-[#006e2a] uppercase tracking-widest bg-[#5cfd80] px-2 py-1 rounded">Terverifikasi</span>
-                <span className="text-[#44474a] text-xs font-mono">2 menit lalu</span>
+            <div className="bg-gradient-to-b from-[#131619] to-[#131619]/90 rounded-2xl p-5 border border-[#1e2226] shadow-xl relative overflow-hidden">
+              {/* Left Accent Bar to give instant spatial verification feedback */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#69ff87]" />
+              
+              <div className="flex justify-between items-center mb-3.5">
+                <span className="text-[10px] font-black text-[#090a0b] uppercase tracking-wider bg-[#69ff87] px-2.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm shadow-[#69ff87]/10">
+                  <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />LUNAS
+                </span>
+                <span className="text-[#8a939e] text-[11px] font-bold font-mono">
+                  2 Menit Lalu
+                </span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-lg font-bold text-[#191c1e]">Budi Santoso</span>
-                <span className="text-2xl font-black text-[#1a1c1e] tracking-tight mt-1">Rp 15.000</span>
+              
+              <div className="flex justify-between items-end">
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-[#535c66] uppercase tracking-wider mb-0.5">Pelanggan/Siswa</p>
+                  <h3 className="text-lg font-black text-white tracking-tight truncate">Budi Santoso</h3>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <span className="text-2xl font-black text-[#69ff87] tracking-tight tabular-nums">
+                    +Rp 15.000
+                  </span>
+                </div>
               </div>
             </div>
           )}
         </section>
 
-        {/* Live Feed Section */}
-        <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
-          <div className="flex justify-between items-end">
-            <h2 className="text-xl font-bold tracking-tight text-[#000101]">Live Transaksi</h2>
-            <span className="text-xs text-[#006e2a] font-bold uppercase tracking-wider flex items-center gap-1">
-              <span className="w-2 h-2 bg-[#006e2a] rounded-full animate-pulse"></span> Live
-            </span>
+        {/* 4. Streamlined Real-time Transaction Log */}
+        <section className="space-y-3">
+          <div className="flex justify-between items-center px-0.5">
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-[#535c66]">Aliran Transaksi Live</h2>
+            <span className="w-2 h-2 rounded-full bg-[#69ff87] animate-ping mb-4" />
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {isLoading ? (
-              [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
+              [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#131619]" />)
             ) : (
               liveTransactions.map((txn) => (
-                <div key={txn.id} className="bg-white p-4 rounded-lg flex justify-between items-center border border-[#e0e3e6] active:scale-[0.98] transition-transform cursor-pointer">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-[#000101]">{txn.name}</span>
-                    <span className="text-xs text-[#44474a] font-mono">{txn.time} • {txn.id}</span>
+                <div key={txn.id} className="bg-[#131619]/40 border border-[#1e2226] p-3.5 rounded-xl flex justify-between items-center hover:border-[#2a2f35] transition-all cursor-pointer group">
+                  <div className="min-w-0 text-left">
+                    <span className="text-xs font-bold text-white tracking-tight block truncate group-hover:text-[#69ff87] transition-colors">{txn.name}</span>
+                    <span className="text-[10px] text-[#535c66] font-mono mt-0.5 block">{txn.time} • ID: {txn.id}</span>
                   </div>
-                  <span className="text-md font-bold text-[#006e2a] font-mono">Rp {txn.amount.toLocaleString('id-ID')}</span>
+                  <div className="flex items-center space-x-2 flex-shrink-0 ml-3">
+                    <span className="text-sm font-bold text-white font-mono">
+                      Rp {txn.amount.toLocaleString('id-ID')}
+                    </span>
+                  </div>
                 </div>
               ))
             )}
           </div>
         </section>
 
-        {/* Daily Analytics */}
-        <section className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 fill-mode-both">
-          <h2 className="text-xl font-bold tracking-tight text-[#000101]">Riwayat Harian</h2>
-          <div className="grid grid-cols-1 gap-3">
+        {/* 5. Historical Daily Settlements splits */}
+        <section className="space-y-3">
+          <h2 className="text-[10px] font-black uppercase tracking-widest text-[#535c66] px-0.5">Buku Riwayat Harian</h2>
+          <div className="grid grid-cols-1 gap-2">
             {isLoading ? (
-              [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)
+              [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#131619]" />)
             ) : (
               dailyHistory.map((item, idx) => (
-                <div key={idx} className="bg-[#f2f4f7] p-4 rounded-lg flex justify-between items-center active:scale-[0.98] transition-transform cursor-pointer">
+                <div key={idx} className="bg-[#131619]/20 border border-[#1e2226]/60 p-3.5 rounded-xl flex justify-between items-center">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#e0e3e6] rounded flex items-center justify-center">
-                      <Calendar className="h-5 w-5 text-[#000101]" />
+                    <div className="w-8 h-8 bg-[#131619] border border-[#1e2226] rounded-lg flex items-center justify-center flex-shrink-0 text-[#535c66]">
+                      <Calendar className="h-3.5 w-3.5" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-[#000101]">{item.day}</span>
-                      <span className="text-xs text-[#44474a]">{item.count} Transaksi</span>
+                    <div className="text-left">
+                      <span className="text-xs font-bold text-white block">{item.day}</span>
+                      <span className="text-[10px] text-[#535c66] block font-medium mt-0.5">{item.count} Pembayaran</span>
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-[#191c1e] font-mono">Rp {item.amount.toLocaleString('id-ID')}</span>
+                  <span className="text-xs font-bold text-[#8a939e] font-mono">
+                    Rp {item.amount.toLocaleString('id-ID')}
+                  </span>
                 </div>
               ))
             )}
           </div>
         </section>
 
-        {/* Footer Action */}
-        <footer className="py-8 animate-in fade-in duration-1000 delay-500 fill-mode-both">
-          <button className="group w-full py-4 border-2 border-[#1a1c1e] text-[#1a1c1e] font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#1a1c1e] hover:text-white transition-all active:scale-95 outline-none">
-            <HelpCircle className="h-5 w-5" />
-            Butuh Bantuan?
+        {/* Support Help Action Row */}
+        <footer className="pt-4 pb-24">
+          <button className="w-full py-3 bg-[#131619]/40 border border-[#1e2226] text-[#535c66] hover:text-white font-bold text-[10px] uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+            <HelpCircle className="h-3.5 w-3.5" />
+            Bantuan & Pengaduan Stand
           </button>
         </footer>
       </main>
 
-      {/* Floating Action Button */}
-      <button className="fixed right-6 bottom-24 w-14 h-14 bg-[#000101] text-white rounded-xl shadow-xl flex items-center justify-center active:scale-90 hover:scale-105 transition-all duration-150 z-40 outline-none">
-        <QrCode className="h-8 w-8" />
-      </button>
+      {/* 6. Static Floating Overlay Bottom Block Mask */}
+      <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-gradient-to-t from-[#090a0b] via-[#090a0b]/95 to-transparent z-40 pointer-events-none flex justify-end">
+        <button className="pointer-events-auto w-14 h-14 bg-[#69ff87] hover:bg-[#5ade78] text-[#090a0b] rounded-2xl shadow-xl shadow-[#69ff87]/10 flex items-center justify-center active:scale-95 transition-all border-none outline-none">
+          <QrCode className="h-6 w-6 stroke-[2.5]" />
+        </button>
+      </div>
+
     </div>
   );
 };

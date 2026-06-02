@@ -1,116 +1,195 @@
-import React from 'react';
-import { Store, ChevronRight, Image, Keyboard, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Store, Image, Keyboard, ArrowLeft } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const Scanner = () => {
   const navigate = useNavigate();
+  const scannerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
-  const handleScanSuccess = () => {
+  // Core callback when a QR Code is decoded successfully
+  const handleScanSuccess = (decodedText) => {
     if ("vibrate" in navigator) {
       navigator.vibrate(200);
     }
-    navigate('/input');
+    
+    // Stop the camera engine cleanly before navigating
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      scannerRef.current.stop().then(() => {
+        // Pass the scanned QR data directly to your payment inputs view state
+        navigate('/input', { state: { qrData: decodedText } });
+      }).catch((err) => console.error("Failed to stop scanner smoothly", err));
+    } else {
+      navigate('/input', { state: { qrData: decodedText } });
+    }
   };
-  return (
-    <div className="relative min-h-screen bg-[#000101] overflow-hidden font-sans text-[#191c1e]">
-      {/* Live Camera Simulation Background */}
-      <div 
-        className="fixed inset-0 z-0 bg-cover bg-center grayscale opacity-40 blur-[2px]"
-        style={{ 
-          backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCQcmHwaUa6xKLHQ2sPJjS-wx-srpSPqTzWX5OPzL0oeq20QF-AABz0V3IsEZh29DCwRCY3aLN6CxYosj4NrGpKTQ82K6zxLI6laEcoIkl1QaUOpPlyUuJVGk9qOOqUj5PzgmIbKEEi0g2-ghiIEjZfapr4HVGlSXSMjm49jq-jqRXgm0T4Kki3RlhjZ2vHr5nnsSR32aZ1WJCK49iMXy5S5SHKyEBcTaupnFcnaAQDUxJkcJw_UyWW_K109sSUiuyGhwvekvuUoyA')" 
-        }}
-      />
 
-      {/* Styled Animations via CSS-in-JS or Tailwind layer (Inline here for simplicity) */}
+  // Mount/Unmount lifecycle orchestration for the camera hardware
+  useEffect(() => {
+    // Create an instance targeting our camera canvas id wrapper
+    const html5Qrcode = new Html5Qrcode("camera-canvas-engine");
+    scannerRef.current = html5Qrcode;
+
+    const startScanner = async () => {
+      try {
+        await html5Qrcode.start(
+          { facingMode: "environment" }, // Prioritize back-facing physical camera lenses
+          {
+            fps: 24,                  // High frame-rate sampling for fast lock-ons
+            qrbox: { width: 240, height: 240 }, // Match exact bounding layout bounds
+          },
+          (decodedText) => {
+            handleScanSuccess(decodedText);
+          },
+          () => {
+            // Optional continuous scan frame failure callback.
+          }
+        );
+        setIsCameraReady(true);
+      } catch (error) {
+        console.error("Camera access failed or denied: ", error);
+      }
+    };
+
+    startScanner();
+
+    // Clean teardown component removal phase
+    return () => {
+      if (html5Qrcode && html5Qrcode.isScanning) {
+        html5Qrcode.stop().catch((err) => console.error("Teardown crash prevented: ", err));
+      }
+    };
+  }, []);
+
+  // Handler for uploading an image instead of direct camera framing
+  // const handleLocalFileChoose = async (event) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file || !scannerRef.current) return;
+
+  //   try {
+  //     // Decode QR code directly from local file blob array mapping memory
+  //     const decodedText = await scannerRef.current.scanFile(file, true);
+  //     handleScanSuccess(decodedText);
+  //   } catch (err) {
+  //     alert("No valid merchant QR found in this picture. Try aligning again.");
+  //   }
+  // };
+
+  return (
+    <div className="relative min-h-screen bg-[#090a0b] text-[#f4f5f6] font-sans antialiased overflow-hidden select-none">
+      
+      {/* Native Camera Feed Pipeline Layer Container */}
+      <div className="absolute inset-0 z-0 bg-black flex items-center justify-center">
+        {/* Added nested overrides to explicitly strip internal html5-qrcode container boxes */}
+        <div 
+          id="camera-canvas-engine" 
+          className="w-full h-full object-cover [&_video]:object-cover [&_video]:w-full [&_video]:h-full [&_div]:!border-none [&_div]:!bg-transparent"
+        />
+        
+        {/* Soft aesthetic fallback background while the camera system is mounting */}
+        {!isCameraReady && (
+          <div className="absolute inset-0 bg-[#090a0b] animate-pulse flex items-center justify-center">
+            <span className="text-xs text-[#8a939e] tracking-widest uppercase font-bold">Initializing Camera Lens...</span>
+          </div>
+        )}
+      </div>
+
+      {/* Styled Scanning Linear Sweep CSS Core Injection */}
       <style>{`
-        @keyframes scan {
-          0% { top: 0; opacity: 0; }
-          5% { opacity: 1; }
-          95% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
+        @keyframes scanline {
+          0% { transform: translateY(0); opacity: 0.1; }
+          50% { opacity: 0.7; }
+          100% { transform: translateY(240px); opacity: 0.1; }
         }
-        .scan-animation {
-          animation: scan 3s linear infinite;
+        .scanner-sweep {
+          animation: scanline 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
       `}</style>
 
-      {/* Scanner Overlay Content */}
-      <main className="relative z-10 flex flex-col items-center justify-center h-screen pb-40 animate-in fade-in duration-1000">
-        <header className="absolute top-0 left-0 w-full p-6 flex items-center animate-in fade-in slide-in-from-left-4 duration-500 delay-200 fill-mode-both">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white active:scale-95 transition-all outline-none"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-        </header>
+      {/* Matte Global Top Action Navigation Header */}
+      <header className="absolute top-0 left-0 right-0 z-30 p-4 flex items-center justify-between bg-gradient-to-b from-[#090a0b]/90 to-transparent">
+        <button 
+          onClick={() => navigate(-1)}
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#131619]/80 border border-[#1e2226] text-[#8a939e] hover:text-white transition-all active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <span className="text-[11px] font-bold tracking-widest text-[#8a939e] uppercase bg-[#131619]/90 px-3 py-1.5 rounded-lg border border-[#1e2226]">
+          QR Scanner
+        </span>
+        <div className="w-10 h-10 pointer-events-none opacity-0" />
+      </header>
 
-        <div className="text-center mb-8 px-8 animate-in zoom-in-95 duration-700">
-          <p className="text-white/70 text-sm font-medium tracking-wide uppercase mb-2">Align QR Code</p>
-          <p className="text-white/40 text-xs">Position the code within the frame for automatic detection</p>
+      {/* Primary HUD Viewfinder Frame Overlay System */}
+      <main className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 pb-24 pointer-events-none">
+        
+        <div className="text-center mb-8 max-w-xs space-y-1">
+          <h2 className="text-sm font-bold text-white tracking-wide uppercase shadow-sm">Align QR Code</h2>
+          <p className="text-xs text-white">Position the transaction code inside the target indicators</p>
         </div>
 
-        {/* Scanning Frame */}
-        <div className="relative w-[280px] h-[280px] rounded-lg bg-black/20 border-2 border-white/10 animate-in zoom-in-90 duration-700 delay-100 fill-mode-both shadow-[0_0_50px_rgba(0,200,83,0.1)]">
-          {/* Corners */}
-          <div className="absolute top-[-4px] left-[-4px] w-8 h-8 border-t-4 border-l-4 border-[#00C853] rounded-tl-lg" />
-          <div className="absolute top-[-4px] right-[-4px] w-8 h-8 border-t-4 border-r-4 border-[#00C853] rounded-tr-lg" />
-          <div className="absolute bottom-[-4px] left-[-4px] w-8 h-8 border-b-4 border-l-4 border-[#00C853] rounded-bl-lg" />
-          <div className="absolute bottom-[-4px] right-[-4px] w-8 h-8 border-b-4 border-r-4 border-[#00C853] rounded-br-lg" />
+        {/* Framing Viewport Box Structure */}
+        <div className="relative w-[240px] h-[240px] rounded-2xl bg-transparent border border-white/5 shadow-[0_0_0_9999px_rgba(9,10,11,0.65)]">
           
-          {/* Scan Line */}
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#00C853] to-transparent shadow-[0_0_15px_#00C853] scan-animation" />
-
-          {/* Technical Data Pulse */}
-          <div className="absolute -bottom-12 left-0 w-full flex justify-center animate-in fade-in slide-in-from-top-2 duration-500 delay-500 fill-mode-both">
-            <div className="bg-black/60 backdrop-blur-sm px-3 py-1 rounded border border-white/10 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#00C853] animate-pulse" />
-              <span className="font-mono text-[10px] text-white/60 tracking-tighter uppercase">AF_MODE: AUTO_DETECT</span>
-            </div>
-          </div>
+          {/* Neon Corner Targeting Bounds Reticles */}
+          <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-[#69ff87] rounded-tl-2xl -mt-[1px] -ml-[1px]" />
+          <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-[#69ff87] rounded-tr-2xl -mt-[1px] -mr-[1px]" />
+          <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-[#69ff87] rounded-bl-2xl -mb-[1px] -ml-[1px]" />
+          <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-[#69ff87] rounded-br-2xl -mb-[1px] -mr-[1px]" />
+          
+          {/* Micro Precision Pass Laser Sweep Line */}
+          <div className="absolute top-0 left-3 right-3 h-[1.5px] bg-gradient-to-r from-transparent via-[#69ff87] to-transparent shadow-[0_0_8px_#69ff87] scanner-sweep" />
         </div>
+
       </main>
 
-      {/* Bottom Action Sheet / Drawer */}
-      <div className="fixed bottom-0 left-0 w-full z-40 bg-[#1A1C1E] border-t border-white/10 rounded-t-[2rem] shadow-2xl p-8 pb-12 transition-transform animate-in slide-in-from-bottom-full duration-700 ease-out fill-mode-both">
-        {/* Handle */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded-full" />
-        
-        <div className="flex flex-col gap-4 mt-2">
-          {/* Primary Action */}
+      {/* Fixed Streamlined Utility Controller Base Dock */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 p-5 bg-gradient-to-t from-[#090a0b] via-[#090a0b]/95 to-transparent pb-safe">
+        <div className="max-w-md mx-auto space-y-3">
+          
+          {/* Manual Alternative Selector Routing Entry Button */}
           <Button 
             onClick={() => navigate('/select-merchant')}
-            className="w-full bg-[#00C853] hover:bg-[#00C853]/90 active:scale-[0.98] transition-all py-8 px-6 rounded-xl flex items-center justify-between text-black border-none"
+            className="w-full bg-[#131619] border border-[#1e2226] hover:bg-[#1a1d21] text-white py-6 rounded-xl flex items-center justify-between px-4 transition-all group active:scale-[0.99]"
           >
             <div className="flex items-center gap-3">
-              <Store className="h-6 w-6" />
-              <span className="font-bold text-lg tracking-tight">Pilih Merchant Manual</span>
+              <div className="w-8 h-8 rounded-lg bg-[#1a1d21] border border-[#2a2f35] flex items-center justify-center group-hover:text-[#69ff87] transition-colors">
+                <Store className="h-4 w-4" />
+              </div>
+              <div className="text-left">
+                <p className="text-xs font-bold tracking-tight">Pilih Merchant Manual</p>
+                <p className="text-[10px] text-[#535c66]">If the terminal QR code is unreadable</p>
+              </div>
             </div>
-            <ChevronRight className="h-6 w-6" />
+            <Keyboard className="h-4 w-4 text-[#535c66] group-hover:text-white transition-colors" />
           </Button>
 
-          {/* Secondary Actions Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <button className="bg-white/5 hover:bg-white/10 active:scale-[0.98] transition-all py-5 px-4 rounded-xl flex flex-col items-center gap-2 text-slate-300 border border-white/5">
-              <Image className="h-6 w-6 text-[#00C853]" />
-              <span className="text-[12px] uppercase tracking-wider font-bold">Gallery</span>
-            </button>
-            <button 
-              onClick={() => navigate('/select-merchant')}
-              className="bg-white/5 hover:bg-white/10 active:scale-[0.98] transition-all py-5 px-4 rounded-xl flex flex-col items-center gap-2 text-slate-300 border border-white/5"
-            >
-              <Keyboard className="h-6 w-6 text-[#00C853]" />
-              <span className="text-[12px] uppercase tracking-wider font-bold">Manual</span>
-            </button>
-          </div>
-        </div>
+          {/* Hidden Image input bridge layer channel hook */}
+          {/* <input 
+            type="file"
+            ref={fileInputRef}
+            onChange={handleLocalFileChoose}
+            accept="image/*"
+            className="hidden"
+          /> */}
 
-        {/* Safety Disclaimer */}
-        <p className="text-center text-[10px] text-slate-500 mt-8 font-medium tracking-wide uppercase">
-          Institutional Grade Encryption Active
-        </p>
+          {/* Core System Gallery Auxiliary Trigger Callout */}
+          {/* <div className="flex items-center justify-center">
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2 text-[#8a939e] hover:text-white text-xs font-semibold transition-colors rounded-lg hover:bg-[#131619]/50"
+            >
+              <Image className="h-3.5 w-3.5 text-[#69ff87]" />
+              <span>Upload from Gallery</span>
+            </button>
+          </div> */}
+
+        </div>
       </div>
+
     </div>
   );
 };

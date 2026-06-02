@@ -1,115 +1,164 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, HelpCircle, Delete, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Delete } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PaymentInput = () => {
   const navigate = useNavigate();
-  const [amount, setAmount] = useState('50.000');
-  
-  // Haptic feedback on mount (simulating landing after successful scan)
+  const location = useLocation();
+  const [rawInput, setRawInput] = useState('50000');
+
+  const merchant = location.state?.merchant || {
+    name: "Kantin Sehat - Stand 04",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB2UrTe5Q8I3XSMDwRq4ckiK5PWvzJb85WkpS2CeEviLtAB7uDqeFDdGlrnOZEpVVplfxsyDjugwW0DjCvt4TDfNtCdTfLAtI28kkeNw22Vna0ZfHxc2KD7UJL0VWlIdGptIl0vH_lw_TqWG-IasGRcwwqoA97sYOejI6WTOivA_OE14-Gsa6qFX85jX6hA7qRncDYA4R77vu8McQOmr6EM0sta7oyMecGuVKqMuT0Jmj8Sz9nPEeQzwJQiCTMToSy-c6zT_o85VzY"
+  };
+
   useEffect(() => {
     if ("vibrate" in navigator) {
-      navigator.vibrate(200);
+      navigator.vibrate(100);
     }
   }, []);
 
-  const handleKeypad = (val) => {
-    // Mock logic for keypad
+  const formatDisplayAmount = (value) => {
+    if (!value || value === '0') return '0';
+    return parseInt(value, 10).toLocaleString('id-ID');
+  };
+
+  const handleKeypadPress = (val) => {
+    if ("vibrate" in navigator) navigator.vibrate(30);
+
     if (val === 'backspace') {
-      setAmount(amount.slice(0, -1) || '0');
-    } else if (val === 'check') {
-      // confirm logic
+      setRawInput(prev => prev.length <= 1 ? '0' : prev.slice(0, -1));
+    } else if (val === 'clear') {
+      setRawInput('0');
     } else {
-      setAmount(amount === '0' ? val : amount + val);
+      if (rawInput.length >= 9) return; 
+      setRawInput(prev => prev === '0' ? val.toString() : prev + val.toString());
     }
   };
 
+  const addShortcutAmount = (bonus) => {
+    if ("vibrate" in navigator) navigator.vibrate(40);
+    setRawInput(prev => {
+      const current = prev === '0' ? 0 : parseInt(prev, 10);
+      return Math.min(current + bonus, 99999999).toString();
+    });
+  };
+
+  const handleConfirmSubmission = () => {
+    const finalAmount = parseInt(rawInput, 10);
+    if (finalAmount <= 0) return;
+    navigate('/confirm-payment', { state: { merchant, amount: finalAmount } });
+  };
+
   return (
-    <div className="bg-[#121417] font-sans text-white min-h-screen flex flex-col overflow-hidden selection:bg-[#00C853]/30">
-      {/* Top Navigation Bar */}
-      <header className="fixed top-0 w-full z-50 bg-[#121417]/80 backdrop-blur-md text-white font-semibold tracking-wide uppercase text-[11px] flex items-center justify-between px-4 h-14">
-        <button 
-          onClick={() => navigate(-1)}
-          className="hover:bg-white/10 transition-colors p-2 rounded-full active:scale-95"
-        >
-          <ArrowLeft className="h-[22px] w-[22px]" />
-        </button>
-        <span className="opacity-80 tracking-[0.1em]">Transfer Funds</span>
-        <button className="hover:bg-white/10 transition-colors p-2 rounded-full active:scale-95">
-          <HelpCircle className="h-[22px] w-[22px]" />
-        </button>
-      </header>
+    <div className="bg-[#090a0b] font-sans text-[#8a939e] min-h-screen flex flex-col antialiased selection:bg-[#69ff87]/30 select-none w-full max-w-md mx-auto relative justify-between overflow-hidden">
+      
+      {/* 1. Structural Native Header */}
+      <div className="w-full px-4 pt-6">
+        <header className="w-full flex items-center justify-between pb-4">
+          <button 
+            onClick={() => navigate(-1)}
+            className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#131619] border border-[#1e2226] text-[#8a939e] hover:text-white transition-all active:scale-95"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <span className="text-[10px] font-bold tracking-widest uppercase text-[#535c66]">Payment Terminal</span>
+          <div className="w-10 h-10 opacity-0 pointer-events-none" />
+        </header>
 
-      {/* Content Canvas */}
-      <main className="flex-1 flex flex-col items-center pt-20 pb-40 px-6 max-w-lg mx-auto w-full">
-        {/* Merchant Identity Section */}
-        <div className="flex flex-col items-center mb-10 w-full">
-          <div className="relative mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-zinc-800 p-0.5 overflow-hidden ring-1 ring-white/10 shadow-xl">
-              <img 
-                alt="Merchant Logo" 
-                className="w-full h-full object-cover rounded-[14px]"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2UrTe5Q8I3XSMDwRq4ckiK5PWvzJb85WkpS2CeEviLtAB7uDqeFDdGlrnOZEpVVplfxsyDjugwW0DjCvt4TDfNtCdTfLAtI28kkeNw22Vna0ZfHxc2KD7UJL0VWlIdGptIl0vH_lw_TqWG-IasGRcwwqoA97sYOejI6WTOivA_OE14-Gsa6qFX85jX6hA7qRncDYA4R77vu8McQOmr6EM0sta7oyMecGuVKqMuT0Jmj8Sz9nPEeQzwJQiCTMToSy-c6zT_o85VzY" 
-              />
-            </div>
+        {/* Integrated Merchant Stack (Matching image profile layout) */}
+        <div className="flex items-center space-x-3 bg-[#131619]/30 border border-[#1e2226]/40 rounded-xl p-3 mt-2">
+          <div className="w-9 h-9 rounded-lg overflow-hidden bg-[#1a1d21] border border-[#2a2f35] flex-shrink-0">
+            <img alt={merchant.name} className="w-full h-full object-cover" src={merchant.image} />
           </div>
-          <div className="text-center">
-            <p className="text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-bold mb-1">Membayar ke</p>
-            <h1 className="text-lg font-bold tracking-tight text-white/90">Kantin Sehat - Stand 04</h1>
+          <div className="text-left min-w-0">
+            <span className="text-[9px] font-bold text-[#535c66] uppercase tracking-wider block">Membayar Kepada</span>
+            <span className="text-xs font-bold text-white tracking-tight block truncate">{merchant.name}</span>
           </div>
         </div>
-
-        {/* Amount Display Section */}
-        <div className="w-full flex flex-col items-center justify-center flex-grow py-4">
-          <div className="flex items-center justify-center w-full space-x-2">
-            <span className="text-2xl font-bold text-zinc-600 mb-2">Rp</span>
-            <div className="relative inline-block">
-              <span className="text-6xl md:text-7xl font-bold tracking-tight text-white">{amount}</span>
-              {/* Glowing Green Pulsing Underline */}
-              <div className="absolute -bottom-1 left-0 w-full h-[3px] bg-[#00C853] rounded-full shadow-[0_4px_20px_-2px_rgba(0,200,83,0.6)]" />
-            </div>
-          </div>
-          <div className="mt-8 px-4 py-2 bg-white/5 rounded-full border border-white/5">
-            <p className="text-zinc-400 text-xs font-medium">
-              Saldo anda: <span className="text-white/90 font-semibold ml-1">Rp 1.250.000</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Custom Number Pad */}
-        <div className="w-full mt-auto select-none">
-          <div className="grid grid-cols-3 gap-y-1 gap-x-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-              <button 
-                key={num}
-                className="h-16 flex items-center justify-center text-3xl font-medium text-white active:scale-95 transition-all duration-75 rounded-2xl hover:bg-white/5"
-              >
-                {num}
-              </button>
-            ))}
-            <button className="h-16 flex items-center justify-center text-white active:scale-95 transition-all duration-75 rounded-2xl hover:bg-white/5 group">
-              <Delete className="h-6 w-6 group-active:scale-90 transition-transform" />
-            </button>
-            <button className="h-16 flex items-center justify-center text-3xl font-medium text-white active:scale-95 transition-all duration-75 rounded-2xl hover:bg-white/5">
-              0
-            </button>
-            <button className="h-16 flex items-center justify-center text-[#00C853] active:scale-95 transition-all duration-75 rounded-2xl hover:bg-white/5 group">
-              <CheckCircle2 className="h-8 w-8" />
-            </button>
-          </div>
-        </div>
-      </main>
-
-      {/* Bottom Action Area */}
-      <div className="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-[#121417] via-[#121417] to-transparent">
-        <Button 
-          className="w-full h-14 bg-[#00C853] text-[#121417] font-bold text-base rounded-lg active:scale-95 transition-all duration-150 shadow-lg shadow-[#00C853]/20 flex items-center justify-center space-x-2 border-none"
-        >
-          <span>Konfirmasi Pembayaran</span>
-          <ArrowRight className="h-5 w-5" />
-        </Button>
       </div>
+
+      {/* 2. Expansive Mid-Viewport Amount Stage */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 my-auto">
+        <div className="flex items-baseline justify-center space-x-2">
+          <span className="text-2xl font-black text-[#535c66] tracking-tight">Rp</span>
+          <span className="text-6xl font-black tracking-tighter text-white tabular-nums transition-all duration-150">
+            {formatDisplayAmount(rawInput)}
+          </span>
+        </div>
+      </div>
+
+      {/* 3. The Solid Grounded Interaction Sheet Block */}
+      <div className="w-full bg-[#131619] border-t border-[#1e2226] p-4 space-y-4 rounded-t-2xl shadow-2xl">
+        
+        {/* Dynamic Shortcut Token Utilities Row */}
+        <div className="grid grid-cols-3 gap-2">
+          {[10000, 20000, 35000].map((value) => (
+            <button
+              key={value}
+              onClick={() => addShortcutAmount(value)}
+              className="py-2.5 rounded-xl text-[11px] font-bold bg-[#1a1d21] border border-[#2a2f35] text-[#8a939e] hover:text-white active:scale-[0.97] transition-all"
+            >
+              +{value / 1000}K
+            </button>
+          ))}
+        </div>
+
+        {/* Integrated Embedded Balance Ledger Strip */}
+        <div className="flex justify-between items-center bg-[#1a1d21] border border-[#2a2f35]/60 rounded-xl px-4 py-2.5 text-xs">
+          <span className="text-[#535c66] font-semibold text-[10px] uppercase tracking-wider">Sisa Saldo Anda</span>
+          <span className="font-bold text-white tracking-tight">Rp 1.250.000</span>
+        </div>
+
+        {/* Clean Balanced Tactile Keypad Engine */}
+        <div className="grid grid-cols-3 gap-y-1.5 gap-x-4 pt-1">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            <button 
+              key={num}
+              onClick={() => handleKeypadPress(num)}
+              className="h-12 flex items-center justify-center text-2xl font-black text-white rounded-xl hover:bg-[#1a1d21] transition-all active:scale-90"
+            >
+              {num}
+            </button>
+          ))}
+          
+          <button 
+            onClick={() => handleKeypadPress('clear')}
+            className="h-12 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-[#535c66] hover:text-white rounded-xl active:scale-90 transition-all"
+          >
+            Clear
+          </button>
+          
+          <button 
+            onClick={() => handleKeypadPress(0)}
+            className="h-12 flex items-center justify-center text-2xl font-black text-white rounded-xl hover:bg-[#1a1d21] transition-all active:scale-90"
+          >
+            0
+          </button>
+          
+          <button 
+            onClick={() => handleKeypadPress('backspace')}
+            className="h-12 flex items-center justify-center text-[#535c66] hover:text-white rounded-xl active:scale-90 transition-all"
+          >
+            <Delete className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Full Anchor Continuous Main CTA Link */}
+        <div className="pt-2">
+          <Button 
+            disabled={parseInt(rawInput, 10) === 0}
+            onClick={handleConfirmSubmission}
+            className="w-full h-12 bg-[#69ff87] hover:bg-[#5ade78] disabled:opacity-20 disabled:pointer-events-none text-[#090a0b] font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 border-none"
+          >
+            <span>Bayar Sekarang</span>
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+
+      </div>
+
     </div>
   );
 };

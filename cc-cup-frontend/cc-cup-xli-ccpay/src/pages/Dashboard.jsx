@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Home, 
   CalendarDays, 
@@ -6,14 +6,16 @@ import {
   User, 
   Bell, 
   Eye, 
+  EyeOff,
   QrCode, 
   CalendarCheck, 
   Users, 
-  ArrowUp, 
-  ArrowDown, 
-  CreditCard, 
-  Timer, 
-  ChevronRight 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  ChevronRight,
+  TrendingUp,
+  HelpCircle,
+  Clock
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import BottomNavbar from '../components/BottomNavbar';
@@ -21,10 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [showBalance, setShowBalance] = useState(true);
+
   const transactions = [
     { id: 'TXN-49201', type: 'in', title: 'Coupon Distribution', amount: 35000, date: 'Today, 08:30 AM' },
     { id: 'TXN-49188', type: 'out', title: 'Green Canteen', amount: 15000, date: 'Yesterday, 13:15 PM' },
@@ -33,158 +36,176 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="bg-surface text-on-surface flex min-h-screen font-sans">
-      {/* SideNavBar (Desktop) */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-0 h-full py-8 w-64 bg-slate-50 border-r border-slate-200 z-50">
-        <div className="px-6 mb-8">
-          <h1 className="text-2xl font-black text-[#191c1e]">CC PAY</h1>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mt-1">Student Portal</p>
-        </div>
-        <nav className="flex-1 space-y-1 px-2">
-          <a className="flex items-center space-x-3 text-[#191c1e] bg-white border-l-4 border-[#191c1e] px-4 py-3 active:scale-[0.98] transition-all" href="#">
-            <Home className="h-5 w-5" />
-            <span className="text-sm font-medium">Home</span>
-          </a>
-          <a className="flex items-center space-x-3 text-slate-500 px-4 py-3 hover:text-[#191c1e] hover:bg-slate-100 transition-all" href="#">
-            <CalendarDays className="h-5 w-5" />
-            <span className="text-sm font-medium">Schedule</span>
-          </a>
-          <a className="flex items-center space-x-3 text-slate-500 px-4 py-3 hover:text-[#191c1e] hover:bg-slate-100 transition-all" href="#">
-            <History className="h-5 w-5" />
-            <span className="text-sm font-medium">History</span>
-          </a>
-          <a className="flex items-center space-x-3 text-slate-500 px-4 py-3 hover:text-[#191c1e] hover:bg-slate-100 transition-all" href="#">
-            <User className="h-5 w-5" />
-            <span className="text-sm font-medium">Profile</span>
-          </a>
-        </nav>
-        <div className="px-6 mt-auto">
-          <Button className="w-full py-6 bg-[#1a1c1e] text-white hover:bg-[#1a1c1e]/90 rounded-lg font-semibold text-sm border-none">
-            View Earnings
-          </Button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 md:ml-64 flex flex-col min-h-screen">
-        {/* TopAppBar */}
-        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm flex justify-between items-center w-full px-6 py-3">
+    <div className="bg-[#090a0b] text-[#f4f5f6] flex min-h-screen font-sans antialiased selection:bg-[#69ff87]/30 w-full overflow-x-hidden">
+      
+      {/* Main Container */}
+      <main className="flex-1 flex flex-col min-h-screen w-full relative">
+        
+        {/* TopAppBar Container */}
+        <header className="sticky top-0 z-40 bg-[#090a0b]/80 backdrop-blur-md border-b border-[#16191d] flex justify-between items-center w-full px-4 py-3.5 max-w-5xl mx-auto">
           <div className="flex items-center">
-            <span className="text-xl font-bold tracking-tighter text-[#191c1e]">CC PAY</span>
+            <span className="text-lg font-black tracking-tight text-white">CC<span className="text-[#69ff87]">.</span>PAY</span>
           </div>
-          <div className="flex items-center space-x-4">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors active:scale-95">
-              <Bell className="h-5 w-5" />
+          <div className="flex items-center space-x-3">
+            <button className="p-2 text-[#8a939e] hover:text-white bg-[#131619] rounded-full border border-[#1e2226] transition-all relative">
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#69ff87] rounded-full ring-2 ring-[#090a0b]" />
+              <Bell className="h-4 w-4" />
             </button>
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 ring-2 ring-[#1e2226]">
               <AvatarImage src="https://lh3.googleusercontent.com/aida-public/AB6AXuANDusR5ut9HNecEuaDpNg2LXepuy91GLHYsz0T_5gI8eDAlJCDODE2HlwesEa8n6HBhP-uAjGTtIC3sIZ1dSwzG-h-E326tMWg5bV5fzHIGJLf-K8CqEWG6gmAVOHm3efH2U8BEyHjmc9gnxPv77pyRv2pWDQCSlyTa4uCO87z0paXU-VuDpF8a_YkOgu6AN9GhL1ddpxamPu7NdgPXgBLgw2qlswPNtYSLHNrDVyMTcRKWakZ1xI5L6S8rXtS13X1z_H0O2Iruvs" alt="Student Profile" />
-              <AvatarFallback>ST</AvatarFallback>
+              <AvatarFallback className="bg-[#1a1d21] text-white font-bold text-xs">ST</AvatarFallback>
             </Avatar>
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <div className="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto w-full pb-28">
-          {/* Header Sections Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Dynamic Spacing Blueprint content field */}
+        <div className="px-4 py-5 flex flex-col space-y-5 max-w-5xl w-full mx-auto pb-32">
+          
+          {/* Main Financial / Schedule Hero Grid */}
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-4 items-stretch">
+            
             {/* Wallet Section */}
-            <section className="lg:col-span-7 bg-[#1a1c1e] text-white p-8 rounded-xl flex flex-col justify-between shadow-lg min-h-[220px] animate-in fade-in slide-in-from-left-4 duration-700 delay-100 fill-mode-both">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[#e0e3e6] font-medium tracking-wide text-sm">Main Balance</h2>
-                  <Badge className="bg-[#006e2a] px-3 py-1 rounded-full text-[10px] font-bold text-white uppercase tracking-tighter hover:bg-[#006e2a] border-none">
-                    Aktif hingga 17:00
+            <section className="lg:col-span-7 bg-[#131619] border border-[#1e2226] p-5 rounded-2xl flex flex-col justify-between shadow-xl relative overflow-hidden group min-h-[200px]">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#69ff87]/5 rounded-full blur-3xl" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  {/* Fixed Dot Layout Spacing */}
+                  <div className="flex items-center gap-2 relative">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#69ff87] animate-pulse flex-shrink-0 mb-2" />
+                    <h2 className="text-[#8a939e] font-bold tracking-wider text-[11px] uppercase leading-none">Balance</h2>
+                  </div>
+                  <Badge className="bg-[#122b1c] border border-[#1b4d2e] px-2 py-0.5 rounded text-[10px] font-bold text-[#69ff87] uppercase tracking-wider whitespace-nowrap">
+                    Active until 17:00
                   </Badge>
                 </div>
-                <div className="flex items-baseline space-x-4">
-                  <span className="text-4xl md:text-5xl font-black tracking-tighter text-white">Rp 35.000</span>
-                  <Eye className="h-6 w-6 text-[#838486] cursor-pointer hover:text-white transition-colors" />
+                
+                <div className="flex items-center space-x-2.5">
+                  <span className="text-3xl font-black tracking-tight text-white tabular-nums">
+                    {showBalance ? "Rp 35.000" : "••••••"}
+                  </span>
+                  <button 
+                    onClick={() => setShowBalance(!showBalance)} 
+                    className="p-1.5 text-[#535c66] hover:text-[#8a939e] transition-colors rounded-md"
+                  >
+                    {showBalance ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
-              <div className="mt-10 flex items-center gap-4">
+
+              <div className="mt-6 flex items-center gap-3">
                 <Button 
                   onClick={() => navigate('/scanner')}
-                  className="bg-[#69ff87] text-[#002108] hover:bg-[#69ff87]/90 px-8 py-4 rounded-lg flex items-center space-x-3 font-bold active:scale-95 transition-transform h-auto border-none"
+                  className="bg-[#69ff87] text-[#002108] hover:bg-[#52e070] px-5 py-4 h-auto rounded-xl flex items-center space-x-2 font-bold text-xs uppercase tracking-wide active:scale-[0.97] transition-all flex-1 justify-center"
                 >
-                  <QrCode className="h-5 w-5" />
+                  <QrCode className="h-4 w-4 stroke-[2.5]" />
                   <span>Pay Now</span>
                 </Button>
-                <Button variant="ghost" className="flex-1 bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-lg flex items-center justify-center font-semibold transition-colors h-auto border-none">
+                {/* <Button 
+                  variant="ghost" 
+                  className="bg-[#1a1d21] hover:bg-[#23272d] text-white border border-[#262b32] px-5 py-4 h-auto rounded-xl flex items-center justify-center font-bold text-xs uppercase tracking-wide transition-all flex-1"
+                >
                   Top Up
-                </Button>
+                </Button> */}
               </div>
             </section>
 
             {/* Shift Info Section */}
-            <section className="lg:col-span-5 bg-[#E3F2FD] border border-[#BBDEFB] p-8 rounded-xl flex flex-col justify-center animate-in fade-in slide-in-from-right-4 duration-700 delay-200 fill-mode-both">
-              <div className="flex items-center space-x-2 text-blue-700 mb-6">
-                <CalendarCheck className="h-5 w-5" />
-                <h3 className="font-bold tracking-tight text-sm uppercase">Your Shift Schedule</h3>
-              </div>
-              <div className="mb-6">
-                <p className="text-4xl font-black text-[#191c1e] tracking-tighter">12:00 - 15:00</p>
-                <p className="text-slate-600 font-medium mt-1">Divisi: <span className="text-[#191c1e]">Food Service</span></p>
-              </div>
-              <div className="flex items-center p-4 bg-white/50 rounded-lg">
-                <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                  <Users className="h-5 w-5 text-blue-600" />
+            <section className="lg:col-span-5 bg-[#131619] border border-[#1e2226] p-5 rounded-2xl flex flex-col justify-between shadow-xl gap-4">
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 text-[#8a939e]">
+                  <CalendarCheck className="h-4 w-4 text-[#69ff87]" />
+                  <h3 className="font-bold tracking-wider text-[11px] uppercase">Duty Schedule</h3>
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold leading-none">Penanggung Jawab</p>
-                  <p className="text-sm font-bold text-[#191c1e]">Capt. Sarah</p>
+                  <p className="text-3xl font-black text-white tracking-tight tabular-nums">12:00 - 15:00</p>
+                  <div className="flex items-center space-x-1.5 mt-1">
+                    <span className="text-[11px] text-[#8a939e]">Division:</span>
+                    <span className="text-[11px] font-bold text-white bg-[#1a1d21] px-2 py-0.5 rounded border border-[#22272d]">Food Service</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fixed Supervisor Block Typography Spacing */}
+              <div className="flex items-center p-3 bg-[#090a0b] border border-[#1e2226] rounded-xl">
+                <div className="h-8 w-8 rounded-lg bg-[#1a1d21] border border-[#2a2f35] flex items-center justify-center mr-3 flex-shrink-0">
+                  <Users className="h-4 w-4 text-[#69ff87]" />
+                </div>
+                <div className="min-w-0 flex flex-col space-y-0.5">
+                  <p className="text-[9px] uppercase tracking-wider text-[#535c66] font-bold leading-normal">Supervisor In Charge</p>
+                  <p className="text-xs font-bold text-white truncate leading-normal">Capt. Sarah</p>
                 </div>
               </div>
             </section>
           </div>
 
-          {/* Bento Layout Bottom */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Transaction History */}
-            <Card className="lg:col-span-2 stitch-card rounded-xl overflow-hidden border-none p-0 bg-white animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300 fill-mode-both">
-              <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-white">
-                <h3 className="text-lg font-bold tracking-tight text-[#000101]">Transaction History</h3>
-                <a className="text-sm font-semibold text-slate-500 hover:text-[#000101] transition-colors" href="#">View All</a>
+          {/* Bottom Bento Stack */}
+          <div className="flex flex-col gap-4">
+            
+            {/* Transaction Ledger Container */}
+            <Card className="rounded-2xl border border-[#1e2226] overflow-hidden p-0 bg-[#131619] shadow-xl">
+              <div className="px-4 py-3.5 border-b border-[#1e2226] flex justify-between items-center bg-[#131619]">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-4 w-4 text-[#69ff87]" />
+                  <h3 className="text-xs font-bold tracking-wider text-[#f4f5f6] uppercase">Transaction History</h3>
+                </div>
+                <a className="text-[11px] font-bold text-[#69ff87] bg-[#122b1c] border border-[#1b4d2e] px-2 py-1 rounded transition-colors hover:bg-[#1b4d2e]" href="#">
+                  View All
+                </a>
               </div>
-              <div className="divide-y divide-slate-50">
+              
+              <div className="divide-y divide-[#16191d]">
                 {transactions.map((txn, index) => (
-                  <div key={index} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${txn.type === 'in' ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                  <div key={index} className="px-4 py-3 flex items-center justify-between hover:bg-[#171b20] transition-colors group">
+                    <div className="flex items-center space-x-3 min-w-0">
+                      <div className={`h-8 w-8 rounded-lg flex items-center justify-center border flex-shrink-0 ${
+                        txn.type === 'in' 
+                          ? 'bg-[#122b1c] border-[#1b4d2e]' 
+                          : 'bg-[#2c1414] border-[#4a1d1d]'
+                      }`}>
                         {txn.type === 'in' ? (
-                          <ArrowUp className="h-5 w-5 text-emerald-600" />
+                          <ArrowDownLeft className="h-3.5 w-3.5 text-[#69ff87]" />
                         ) : (
-                          <ArrowDown className="h-5 w-5 text-red-600" />
+                          <ArrowUpRight className="h-3.5 w-3.5 text-[#ff6b6b]" />
                         )}
                       </div>
-                      <div>
-                        <p className="font-bold text-[#191c1e]">{txn.title}</p>
-                        <p className="text-xs text-slate-500">{txn.date}</p>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white tracking-tight truncate">{txn.title}</p>
+                        <div className="flex items-center space-x-1 mt-0.5 text-[#535c66]">
+                          <Clock className="h-3 w-3" />
+                          <p className="text-[10px] font-medium">{txn.date}</p>
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-bold text-sm ${txn.type === 'in' ? 'text-[#006e2a]' : 'text-[#ba1a1a]'}`}>
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <p className={`font-bold text-xs tracking-tight ${txn.type === 'in' ? 'text-[#69ff87]' : 'text-[#ff6b6b]'}`}>
                         {txn.type === 'in' ? '+' : '-'}Rp {txn.amount.toLocaleString('id-ID')}
                       </p>
-                      <p className="data-mono text-[10px] text-slate-400">{txn.id}</p>
+                      <p className="font-mono text-[9px] text-[#535c66] uppercase mt-0.5 tracking-wider">{txn.id}</p>
                     </div>
                   </div>
                 ))}
               </div>
             </Card>
 
-            {/* Stats Sidebar */}
-            <div className="flex flex-col gap-6">
-              <div className="bg-[#e6e8eb] p-6 rounded-xl border border-[#c5c6ca] flex items-center justify-between mb-2 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 fill-mode-both hover:bg-[#d8dadd] transition-colors cursor-pointer group">
-                <div>
-                  <p className="font-bold text-[#191c1e]">Need Help?</p>
-                  <p className="text-xs text-slate-600">Contact coordinator</p>
+            {/* Quick Actions/Support Card */}
+            <div className="bg-[#131619] border border-[#1e2226] p-4 rounded-2xl flex items-center justify-between shadow-md hover:bg-[#171b20] transition-all cursor-pointer group">
+              <div className="flex items-center space-x-3 min-w-0">
+                <div className="h-8 w-8 rounded-lg bg-[#1a1d21] border border-[#2a2f35] flex items-center justify-center flex-shrink-0">
+                  <HelpCircle className="h-4 w-4 text-[#8a939e] group-hover:text-[#69ff87] transition-colors" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
+                <div className="min-w-0">
+                  <p className="font-bold text-xs text-white">Need Support?</p>
+                  <p className="text-[11px] text-[#8a939e] mt-0.5 truncate">Contact center coordinator</p>
+                </div>
               </div>
+              <ChevronRight className="h-4 w-4 text-[#535c66] group-hover:text-white group-hover:translate-x-0.5 transition-all flex-shrink-0" />
             </div>
+
           </div>
         </div>
 
+        {/* Sticky Fixed Bottom Navigation Elements */}
         <BottomNavbar />
       </main>
     </div>
