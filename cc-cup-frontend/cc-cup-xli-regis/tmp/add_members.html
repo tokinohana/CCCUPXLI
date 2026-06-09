@@ -1,0 +1,354 @@
+<!-- note: focus on the add_members and edit_members function. DO NOT use this page as layout reference. -->
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kapten - CC CUP XLI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght=700&family=Inter:wght=400;500;600;700&display=swap');
+
+        .font-berserker {
+            font-family: 'Cinzel Decorative', serif;
+            letter-spacing: 0.05em;
+        }
+
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .file-dropzone:focus-within {
+            border-color: #000000;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+
+<body class="bg-white text-black font-inter min-h-screen flex flex-col justify-between antialiased">
+
+    <header
+        class="hidden md:flex items-center justify-between px-12 py-5 border-b-4 border-black sticky top-0 bg-white z-40">
+        <div class="font-berserker text-xl tracking-wider font-bold">CC CUP XLI</div>
+        <nav class="flex items-center space-x-8 text-sm font-bold uppercase tracking-wide">
+            <a href="/dashboard" class="text-black underline decoration-2 underline-offset-4">Dashboard</a>
+            <a href="#" class="text-gray-400 hover:text-black transition-colors">Peraturan</a>
+            <a href="#" class="text-gray-400 hover:text-black transition-colors">Panduan</a>
+            <a href="/logout" class="text-red-600 hover:text-red-700 transition-colors">Keluar →</a>
+        </nav>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 py-6 md:py-10 space-y-8">
+
+        <div
+            class="border-4 border-black p-6 rounded-xl bg-white space-y-4 md:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block w-3 h-3 bg-amber-500 rounded-full animate-pulse"></span>
+                        <span
+                            class="text-xs font-black text-amber-600 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded border border-amber-200">Tahap
+                            Pengisian Data</span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-black uppercase tracking-tight">BELUM DIKIRIM (PENDING)</h1>
+                    <p class="text-sm text-gray-600 font-medium max-w-xl">
+                        Data Anda **belum diterima** oleh panitia. Silakan lengkapi berkas tim wajib di sebelah kiri dan
+                        daftarkan anggota tim di sebelah kanan sebelum menekan tombol kirim.
+                    </p>
+                </div>
+
+                <div class="flex-shrink-0">
+                    <button type="button"
+                        onclick="confirm('Apakah Anda yakin seluruh berkas dan data anggota sudah benar? Setelah dikirim, data akan dikunci.')"
+                        class="w-full md:w-auto bg-black text-white font-bold text-base uppercase tracking-wider py-4 px-8 border-2 border-black rounded-lg hover:bg-gray-900 active:translate-y-0.5 transition-all shadow-[4px_4px_0px_0px_rgba(156,163,175,1)]">
+                        Kirim Pendaftaran Tim ✓
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border-2 border-black p-4 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Nama Kelompok / Tim</span>
+                <span class="text-lg font-black text-black uppercase mt-1">ELANG PERKASA</span>
+            </div>
+            <div class="border-2 border-black p-4 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Cabang Kompetisi</span>
+                <span class="text-lg font-black text-black uppercase mt-1">🏀 Basketball Putra</span>
+            </div>
+            <div class="border-2 border-black p-4 rounded-lg bg-gray-50 flex flex-col justify-between">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Asal Sekolah</span>
+                <span class="text-lg font-black text-black uppercase mt-1">SMP NEGERI 1 JAKARTA</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <section class="lg:col-span-5 space-y-4">
+                <div class="flex items-center justify-between border-b-2 border-black pb-2">
+                    <h2 class="font-berserker text-base font-bold uppercase tracking-tight">Upload Berkas Tim</h2>
+                    <span class="text-xs font-black uppercase text-gray-500">Format: PDF SAJA</span>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="border-2 border-black rounded-xl p-4 bg-white space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label for="file-pembayaran" class="text-sm font-bold text-black uppercase tracking-wide">1.
+                                Bukti Pembayaran</label>
+                            <span
+                                class="text-[10px] font-black uppercase text-red-600 bg-red-50 px-2 py-0.5 border border-red-200 rounded">Wajib
+                                Diisi</span>
+                        </div>
+                        <div
+                            class="file-dropzone relative border-2 border-dashed border-gray-300 rounded-lg p-3 hover:border-black transition-colors bg-gray-50/50">
+                            <input type="file" id="file-pembayaran" accept=".pdf" onchange="handleFileStatus(this)"
+                                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                            <div class="flex items-center space-x-3 pointer-events-none">
+                                <div class="p-2 bg-white border border-gray-200 rounded-md shadow-sm">
+                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div class="truncate">
+                                    <p id="label-pembayaran" class="text-xs font-bold text-gray-700">Pilih Berkas PDF...
+                                    </p>
+                                    <p class="text-[10px] text-gray-400 font-medium">Klik untuk mencari file kwitansi
+                                        transfer</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="lg:col-span-7 space-y-4">
+                <div class="flex items-center justify-between border-b-2 border-black pb-2">
+                    <h2 class="font-berserker text-base font-bold uppercase tracking-tight">Daftar Anggota Kelompok</h2>
+                    <span
+                        class="text-xs font-bold uppercase bg-gray-100 border border-black px-2 py-0.5 rounded text-gray-600">Kuota:
+                        5 - 12 Siswa</span>
+                </div>
+
+                <button type="button" onclick="openMemberModal('add')"
+                    class="w-full flex items-center justify-center space-x-2 py-4 border-2 border-dashed border-black bg-gray-50 hover:bg-black hover:text-white rounded-xl font-bold text-sm uppercase tracking-wide transition-all duration-150">
+                    <span>+ Tambah Anggota Baru</span>
+                </button>
+
+                <div class="space-y-3">
+
+                    <div onclick="openMemberModal('edit', {nama: 'Ahmad Fauzi', nisn: '0098765432', email: 'fauzi@school.sch.id', telp: '08123456789', lahir: '2009-05-14', gender: 'Laki-laki', kelas: '9'})"
+                        class="border-2 border-black p-4 rounded-xl bg-white flex items-center justify-between shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer hover:bg-gray-50 transition-colors">
+                        <div class="space-y-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-base font-black text-black">Ahmad Fauzi</span>
+                                <span
+                                    class="text-[9px] font-black uppercase bg-black text-white px-2 py-0.5 rounded tracking-wider">Kapten
+                                    Tim</span>
+                            </div>
+                            <p class="text-xs text-gray-500 font-medium tracking-wide">NISN: 0098765432 • Kelas 9 •
+                                Laki-laki</p>
+                        </div>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider pr-2">Ubah ✎</span>
+                    </div>
+
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div id="memberModal"
+        class="hidden fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-50 p-4 overflow-y-auto animate-fade-in">
+
+        <div
+            class="bg-white border-4 border-black w-full max-w-xl rounded-xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex flex-col my-auto max-h-[90vh]">
+
+            <div class="p-6 border-b-2 border-black flex items-center justify-between bg-gray-50 rounded-t-lg">
+                <div>
+                    <h3 id="modalTitle" class="font-berserker text-lg font-bold uppercase tracking-tight text-black">
+                        Tambah Anggota Baru</h3>
+                    <p class="text-xs text-gray-500 font-medium mt-0.5">Pastikan data identitas siswa sesuai dengan
+                        kartu pelajar aktif.</p>
+                </div>
+                <button type="button" onclick="closeMemberModal()"
+                    class="text-gray-400 hover:text-black transition-colors p-2 text-xl font-black">✕</button>
+            </div>
+
+            <form id="modalForm" method="POST" action="/add_member" class="overflow-y-auto p-6 space-y-5">
+
+                <div class="space-y-4">
+                    <div class="border-b-2 border-dashed border-gray-200 pb-1">
+                        <span class="text-xs font-black uppercase tracking-wider text-gray-400">Data Identitas
+                            Wajib</span>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label for="member-nama" class="text-xs font-bold uppercase tracking-wide text-black">Nama
+                            Lengkap Siswa</label>
+                        <input type="text" id="member-nama" name="nama" required placeholder="Contoh: Budi Santoso"
+                            class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-semibold placeholder-gray-300">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label for="member-nisn"
+                                class="text-xs font-bold uppercase tracking-wide text-black">NISN</label>
+                            <input type="number" id="member-nisn" name="nisn" required placeholder="10 Digit Angka"
+                                class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-semibold placeholder-gray-300">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="member-kelas"
+                                class="text-xs font-bold uppercase tracking-wide text-black">Kelas</label>
+                            <select id="member-kelas" name="kelas" required
+                                class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-bold">
+                                <option value="" disabled selected hidden>Pilih Kelas</option>
+                                <option value="7">Kelas 7 (SMP)</option>
+                                <option value="8">Kelas 8 (SMP)</option>
+                                <option value="9">Kelas 9 (SMP)</option>
+                                <option value="10">Kelas 10 (SMA)</option>
+                                <option value="11">Kelas 11 (SMA)</option>
+                                <option value="12">Kelas 12 (SMA)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label for="member-email" class="text-xs font-bold uppercase tracking-wide text-black">Email
+                                Aktif</label>
+                            <input type="email" id="member-email" name="email" required placeholder="budi@email.com"
+                                class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-semibold placeholder-gray-300">
+                        </div>
+                        <div class="space-y-1">
+                            <label for="member-telp" class="text-xs font-bold uppercase tracking-wide text-black">No.
+                                Telepon / WA</label>
+                            <input type="tel" id="member-telp" name="nomor_telepon" required
+                                placeholder="Contoh: 0812345678"
+                                class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-semibold placeholder-gray-300">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label for="member-lahir"
+                                class="text-xs font-bold uppercase tracking-wide text-black">Tanggal Lahir</label>
+                            <input type="date" id="member-lahir" name="tanggal_lahir" required
+                                class="w-full px-3 py-2.5 text-sm border-2 border-black rounded-lg bg-white focus:outline-none focus:bg-gray-50 font-bold">
+                        </div>
+                        <div class="space-y-1.5">
+                            <span class="text-xs font-bold uppercase tracking-wide text-black block">Jenis
+                                Kelamin</span>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <label
+                                    class="flex items-center justify-center p-3 border-2 border-black rounded-lg cursor-pointer bg-white text-sm font-bold uppercase tracking-wide transition-all select-none has-[:checked]:bg-black has-[:checked]:text-white">
+                                    <input type="radio" id="gender-l" name="gender" value="Laki-laki" required
+                                        class="sr-only">
+                                    <span>Laki-Laki</span>
+                                </label>
+
+                                <label
+                                    class="flex items-center justify-center p-3 border-2 border-black rounded-lg cursor-pointer bg-white text-sm font-bold uppercase tracking-wide transition-all select-none has-[:checked]:bg-black has-[:checked]:text-white">
+                                    <input type="radio" id="gender-p" name="gender" value="Perempuan" required
+                                        class="sr-only">
+                                    <span>Perempuan</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="dynamicFieldsContainer" class="hidden space-y-4 pt-2"></div>
+
+                <div class="pt-4 border-t-2 border-black flex flex-col sm:flex-row gap-3 bg-white">
+                    <button type="button" onclick="closeMemberModal()"
+                        class="w-full sm:w-1/3 py-3 border-2 border-black rounded-lg font-bold text-sm uppercase tracking-wider bg-white hover:bg-gray-50 text-black active:translate-y-0.5 transition-all">
+                        Batal
+                    </button>
+                    <button type="submit" id="modalSubmitBtn"
+                        class="w-full sm:w-2/3 py-3 border-2 border-black rounded-lg font-black text-sm uppercase tracking-wider bg-black hover:bg-gray-900 text-white active:translate-y-0.5 transition-all shadow-[2px_2px_0px_0px_rgba(156,163,175,1)]">
+                        Simpan Anggota ✓
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <nav
+        class="md:hidden sticky bottom-0 bg-white border-t-2 border-black w-full py-3 px-6 flex justify-around items-center z-40 shadow-md">
+        <a href="/dashboard" class="flex flex-col items-center space-y-1 text-black">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                    d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001.1 1h2a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z">
+                </path>
+            </svg>
+            <span class="text-[10px] font-black uppercase tracking-wider">Beranda</span>
+        </a>
+        <a href="/logout" class="flex flex-col items-center space-y-1 text-red-500">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                </path>
+            </svg>
+            <span class="text-[10px] font-black uppercase tracking-wider">Keluar</span>
+        </a>
+    </nav>
+
+    <script>
+        function handleFileStatus(inputElement) {
+            if (inputElement.files && inputElement.files.length > 0) {
+                const filename = inputElement.files[0].name;
+                const targetLabelId = "label-" + inputElement.id.split("-")[1];
+                const targetLabel = document.getElementById(targetLabelId);
+                if (targetLabel) {
+                    targetLabel.innerText = "✓ " + filename;
+                    targetLabel.classList.remove("text-gray-700");
+                    targetLabel.classList.add("text-green-600");
+                }
+            }
+        }
+
+        // Comprehensive State Switcher for Member Processing
+        function openMemberModal(mode, data = null) {
+            const modal = document.getElementById('memberModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('modalForm');
+            const submitBtn = document.getElementById('modalSubmitBtn');
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden'); // Block double scrolling artifacts
+
+            if (mode === 'add') {
+                title.innerText = "Tambah Anggota Baru";
+                submitBtn.innerText = "Simpan Anggota ✓";
+                form.action = "/add_member"; // Targets add payload route
+                form.reset();
+            } else if (mode === 'edit' && data) {
+                title.innerText = "Ubah Informasi Anggota";
+                submitBtn.innerText = "Simpan Perubahan ✓";
+                form.action = "/edit_member"; // Targets edit update route
+
+                // Populating the matching native parameters dynamically
+                document.getElementById('member-nama').value = data.nama || '';
+                document.getElementById('member-nisn').value = data.nisn || '';
+                document.getElementById('member-kelas').value = data.kelas || '';
+                document.getElementById('member-email').value = data.email || '';
+                document.getElementById('member-telp').value = data.telp || '';
+                document.getElementById('member-lahir').value = data.lahir || '';
+                document.getElementById('member-gender').value = data.gender || '';
+            }
+        }
+
+        function closeMemberModal() {
+            const modal = document.getElementById('memberModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+    </script>
+</body>
+
+</html>

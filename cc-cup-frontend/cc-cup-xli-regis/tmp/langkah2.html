@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrasi - Data Sekolah & Tim</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+
+    .font-berserker {
+      font-family: 'Cinzel Decorative', serif;
+      letter-spacing: 0.05em;
+    }
+
+    .font-inter {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Toggle state helper for active element feedback */
+    input:checked+.jenjang-card {
+      background-color: #000000 !important;
+      color: #ffffff !important;
+    }
+
+    input:checked+.jenjang-card p {
+      color: #e5e7eb !important;
+    }
+
+    /* Fixed body scroll when modal is active on mobile viewports */
+    body.dropdown-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body class="bg-white text-black font-inter min-h-screen flex flex-col justify-between antialiased">
+
+  <header class="hidden md:flex items-center justify-between px-12 py-6 border-b border-gray-200">
+    <div class="font-berserker text-2xl tracking-wider">REGISTRASI</div>
+    <div class="text-sm text-gray-500 font-bold tracking-wide uppercase">Langkah 2 dari 2: Data Sekolah & Tim</div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center px-4 py-8 md:py-12 relative z-10">
+    <div class="w-full max-w-xl bg-white border-4 border-black p-6 md:p-10 space-y-8 rounded-xl relative">
+
+      <div class="space-y-3 text-center md:text-left">
+        <h1 class="font-berserker text-3xl md:text-4xl font-bold uppercase tracking-tight">Data Sekolah & Tim</h1>
+        <p class="text-base text-gray-600 font-medium">Lengkapi informasi kelompok dan kategori kompetisi.</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-xs font-bold uppercase tracking-wider text-gray-500">
+          <span>Pembuatan Akun Kapten</span>
+          <span class="text-black font-bold">Langkah Terakhir</span>
+        </div>
+        <div class="w-full bg-gray-100 h-4 border-2 border-black rounded-full overflow-hidden p-0.5">
+          <div class="bg-black h-full rounded-full transition-all duration-500" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <form class="space-y-6" action="/register-step-2" method="POST">
+
+        <div class="space-y-6">
+
+          <div class="space-y-3">
+            <label class="block text-base font-bold text-black uppercase tracking-wide">Tingkat Sekolah
+              (Jenjang)</label>
+            <div class="grid grid-cols-2 gap-4">
+              <label class="relative cursor-pointer">
+                <input type="radio" name="jenjang" value="SMP" class="sr-only" checked>
+                <div
+                  class="jenjang-card flex flex-col p-4 border-2 border-black rounded-lg bg-white hover:bg-gray-50 transition-all text-center">
+                  <span class="text-xl font-bold uppercase block">SMP</span>
+                  <p class="text-xs text-gray-500 block mt-0.5">Sekolah Menengah Pertama</p>
+                </div>
+              </label>
+
+              <label class="relative cursor-pointer">
+                <input type="radio" name="jenjang" value="SMA" class="sr-only">
+                <div
+                  class="jenjang-card flex flex-col p-4 border-2 border-black rounded-lg bg-white hover:bg-gray-50 transition-all text-center">
+                  <span class="text-xl font-bold uppercase block">SMA</span>
+                  <p class="text-xs text-gray-500 block mt-0.5">Sekolah Menengah Atas</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label for="school" class="block text-base font-bold text-black uppercase tracking-wide">Nama Asal
+              Sekolah</label>
+            <input type="text" id="school" name="school" required placeholder="Contoh: SMP Negeri 1 Jakarta"
+              class="w-full px-4 py-3.5 text-lg border-2 border-black focus:bg-gray-50 focus:outline-none transition-colors rounded-lg font-medium placeholder-gray-400">
+          </div>
+
+          <div class="space-y-2">
+            <label for="team-name" class="block text-base font-bold text-black uppercase tracking-wide">Nama Tim /
+              Kelompok</label>
+            <input type="text" id="team-name" name="team-name" required placeholder="Contoh: Tim Elang Perkasa"
+              class="w-full px-4 py-3.5 text-lg border-2 border-black focus:bg-gray-50 focus:outline-none transition-colors rounded-lg font-medium placeholder-gray-400">
+          </div>
+
+          <div class="space-y-2 relative">
+            <label class="block text-base font-bold text-black uppercase tracking-wide">Pilih Cabang Lomba</label>
+
+            <button type="button" id="dropdown-trigger" onclick="toggleDropdown()"
+              class="w-full flex items-center justify-between px-4 py-4 text-left text-lg border-2 border-black rounded-lg bg-white font-medium focus:outline-none focus:bg-gray-50">
+              <span id="selected-sport-label" class="text-gray-400">-- Cari & Pilih Jenis Lomba --</span>
+
+              <input type="hidden" id="competition-value" name="competition" required>
+
+              <svg class="w-5 h-5 text-black transform transition-transform duration-200" id="dropdown-arrow"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <p class="text-xs text-gray-500 font-medium">Klik untuk mengetik kata kunci atau memilih dari daftar cabang
+              lomba.</p>
+
+            <div id="dropdown-backdrop" onclick="toggleDropdown()"
+              class="hidden fixed top-0 left-0 w-screen h-screen bg-black/60 z-[100] md:hidden backdrop-blur-sm transition-opacity">
+            </div>
+
+            <div id="dropdown-menu"
+              class="hidden fixed inset-x-4 top-6 bottom-24 m-auto max-h-[460px] bg-white border-4 border-black rounded-xl z-[110] overflow-hidden shadow-2xl flex flex-col md:absolute md:inset-x-0 md:top-full md:bottom-auto md:m-0 md:max-h-64 md:border-2 md:rounded-lg md:shadow-lg md:z-50">
+
+              <div
+                class="p-4 border-b-2 border-black bg-gray-50 flex items-center space-x-2 sticky top-0 md:p-3 md:border-b">
+                <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="sport-search" placeholder="Ketik kata kunci untuk mencari..."
+                  class="w-full bg-transparent text-lg font-medium focus:outline-none placeholder-gray-400 py-1 md:text-base"
+                  oninput="filterSports()">
+
+                <button type="button" onclick="toggleDropdown()" class="md:hidden p-1 text-gray-400 hover:text-black">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="overflow-y-auto divide-y divide-gray-200 flex-grow" id="sports-list">
+                <button type="button" onclick="selectSport('basket-putra', 'Basketball Putra')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Basketball
+                  Putra</button>
+                <button type="button" onclick="selectSport('basket-putri', 'Basketball Putri')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Basketball
+                  Putri</button>
+                <button type="button" onclick="selectSport('pencak-silat', 'Pencak Silat')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Pencak
+                  Silat</button>
+                <button type="button" onclick="selectSport('catur', 'Catur (Chess)')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Catur
+                  (Chess)</button>
+                <button type="button" onclick="selectSport('taekwondo', 'Taekwondo')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Taekwondo</button>
+                <button type="button" onclick="selectSport('short-movie', 'Short Movie')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Short
+                  Movie</button>
+                <button type="button" onclick="selectSport('cubing', 'Cubing')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Cubing</button>
+                <button type="button" onclick="selectSport('digital-painting', 'Digital Painting')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Digital
+                  Painting</button>
+                <button type="button" onclick="selectSport('karate-kyokushin', 'Karate Kyokushin')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Karate
+                  Kyokushin</button>
+                <button type="button" onclick="selectSport('mini-soccer', 'Mini Soccer')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Mini
+                  Soccer</button>
+                <button type="button" onclick="selectSport('voli', 'Voli')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Voli</button>
+                <button type="button" onclick="selectSport('bulu-tangkis', 'Bulu Tangkis')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Bulu
+                  Tangkis</button>
+                <button type="button" onclick="selectSport('modern-dance', 'Modern Dance')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Modern
+                  Dance</button>
+                <button type="button" onclick="selectSport('band', 'Band')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Band</button>
+                <button type="button" onclick="selectSport('fotografi', 'Fotografi')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Fotografi</button>
+                <button type="button" onclick="selectSport('english-debate', 'English Debate')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">English
+                  Debate</button>
+                <button type="button" onclick="selectSport('wallclimb', 'Wall Climbing')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Wall
+                  Climbing</button>
+                <button type="button" onclick="selectSport('paduan-suara', 'Paduan Suara')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Paduan
+                  Suara</button>
+                <button type="button" onclick="selectSport('cerdas-cermat', 'Cerdas Cermat')"
+                  class="sport-item w-full text-left px-5 py-4 text-base font-semibold hover:bg-black hover:text-white transition-colors md:px-4 md:py-3.5">Cerdas
+                  Cermat</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 space-y-3">
+          <button type="submit"
+            class="w-full bg-black text-white text-lg font-bold py-4 px-6 border-2 border-black hover:bg-gray-900 active:translate-y-0.5 transition-all uppercase tracking-wider rounded-lg">
+            Selesaikan Buat Akun ✓
+          </button>
+
+          <button type="button" onclick="window.history.back()"
+            class="w-full bg-transparent text-gray-500 text-sm font-bold py-2 px-6 hover:text-black transition-colors uppercase tracking-wide">
+            ← Kembali ke Langkah 1
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <nav
+    class="md:hidden sticky bottom-0 bg-white border-t-2 border-black w-full py-4 px-6 flex justify-between items-center z-30">
+    <div class="flex flex-col">
+      <span class="font-berserker text-lg tracking-wide leading-none">REGISTRASI</span>
+      <span class="text-xs text-gray-500 font-bold mt-1">Langkah 2/2</span>
+    </div>
+    <div class="text-xs font-bold uppercase border-2 border-black bg-gray-50 px-3 py-1.5 rounded-md">
+      Data Sekolah
+    </div>
+  </nav>
+
+  <script>
+    function toggleDropdown() {
+      const menu = document.getElementById('dropdown-menu');
+      const backdrop = document.getElementById('dropdown-backdrop');
+      const arrow = document.getElementById('dropdown-arrow');
+
+      menu.classList.toggle('hidden');
+      backdrop.classList.toggle('hidden');
+      document.body.classList.toggle('dropdown-open');
+
+      if (!menu.classList.contains('hidden')) {
+        arrow.classList.add('rotate-180');
+        document.getElementById('sport-search').focus();
+      } else {
+        arrow.classList.remove('rotate-180');
+      }
+    }
+
+    function selectSport(backendSlug, displayLabel) {
+      const labelSpan = document.getElementById('selected-sport-label');
+      const hiddenInput = document.getElementById('competition-value');
+
+      labelSpan.innerText = displayLabel;
+      labelSpan.classList.remove('text-gray-400');
+      labelSpan.classList.add('text-black');
+
+      hiddenInput.value = backendSlug;
+      toggleDropdown();
+    }
+
+    function filterSports() {
+      const query = document.getElementById('sport-search').value.toLowerCase();
+      const items = document.querySelectorAll('.sport-item');
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (text.includes(query)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // Close on click outside desktop boundaries only
+    window.addEventListener('click', function (e) {
+      const menu = document.getElementById('dropdown-menu');
+      const trigger = document.getElementById('dropdown-trigger');
+      if (window.innerWidth >= 768) {
+        if (menu && trigger && !trigger.contains(e.target) && !menu.contains(e.target)) {
+          menu.classList.add('hidden');
+          document.getElementById('dropdown-arrow').classList.remove('rotate-180');
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

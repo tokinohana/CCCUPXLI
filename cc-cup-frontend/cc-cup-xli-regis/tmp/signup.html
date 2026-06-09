@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrasi - Akun Kapten</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Simulating 'Berserker Regular' with a heavy, stylized fallback for headers */
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Inter:wght@400;500;600;700&display=swap');
+    
+    .font-berserker {
+      font-family: 'Cinzel Decorative', serif;
+      letter-spacing: 0.05em;
+    }
+    .font-inter {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-white text-black font-inter min-h-screen flex flex-col justify-between antialiased">
+
+  <header class="hidden md:flex items-center justify-between px-12 py-6 border-b border-gray-200">
+    <div class="font-berserker text-2xl tracking-wider">REGISTRASI</div>
+    <div class="text-sm text-gray-500 font-bold tracking-wide uppercase">Langkah 1 dari 2: Akun Kapten</div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center px-4 py-8 md:py-12">
+    <div class="w-full max-w-xl bg-white border-4 border-black p-6 md:p-10 space-y-8 rounded-xl">
+      
+      <div class="space-y-3 text-center md:text-left">
+        <h1 class="font-berserker text-3xl md:text-4xl font-bold uppercase tracking-tight">Daftar Akun</h1>
+        <p class="text-base text-gray-600 font-medium">Buat akun kapten untuk mulai mendaftarkan tim Anda.</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-xs font-bold uppercase tracking-wider text-gray-500">
+          <span>Progress Pendaftaran</span>
+          <span class="text-black">50% Selesai</span>
+        </div>
+        <div class="w-full bg-gray-100 h-4 border-2 border-black rounded-full overflow-hidden p-0.5">
+          <div class="bg-black h-full rounded-full transition-all duration-500" style="w-full max-w: 50%; width: 50%;"></div>
+        </div>
+      </div>
+
+      <form class="space-y-6">
+        
+        <div class="space-y-5">
+          
+          <div class="space-y-2">
+            <label for="email" class="block text-base font-bold text-black uppercase tracking-wide">Alamat Email</label>
+            <input type="email" id="email" name="email" required autocomplete="email"
+                   placeholder="contoh: nama@email.com" 
+                   class="w-full px-4 py-3.5 text-lg border-2 border-black focus:bg-gray-50 focus:outline-none transition-colors rounded-lg font-medium placeholder-gray-400">
+            <p class="text-xs text-gray-500 font-medium">Gunakan email aktif Anda untuk masuk kembali nanti.</p>
+          </div>
+
+          <div class="space-y-2">
+            <label for="password" class="block text-base font-bold text-black uppercase tracking-wide">Kata Sandi (Password)</label>
+            <input type="password" id="password" name="password" required autocomplete="new-password"
+                   placeholder="Masukkan minimal 8 angka atau huruf" 
+                   class="w-full px-4 py-3.5 text-lg border-2 border-black focus:bg-gray-50 focus:outline-none transition-colors rounded-lg font-medium placeholder-gray-400">
+          </div>
+
+          <div class="space-y-2">
+            <label for="phone" class="block text-base font-bold text-black uppercase tracking-wide">Nomor WhatsApp</label>
+            <input type="tel" id="phone" name="phone" required placeholder="Contoh: 08123456789" 
+                   class="w-full px-4 py-3.5 text-lg border-2 border-black focus:bg-gray-50 focus:outline-none transition-colors rounded-lg font-medium placeholder-gray-400">
+            <p class="text-xs text-gray-500 font-medium">Nomor wajib aktif untuk menerima informasi perlombaan.</p>
+          </div>
+
+        </div>
+
+        <div class="pt-4">
+          <button type="submit" 
+                  class="w-full bg-black text-white text-lg font-bold py-4 px-6 border-2 border-black hover:bg-gray-900 active:translate-y-0.5 transition-all uppercase tracking-wider rounded-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,0.2)]">
+            Lanjut ke Data Sekolah & Tim →
+          </button>
+        </div>
+
+        <div class="text-center pt-2">
+          <a href="#" class="text-sm font-bold text-gray-500 underline uppercase tracking-wide hover:text-black transition-colors">
+            Sudah punya akun? Masuk di sini
+          </a>
+        </div>
+
+      </form>
+    </div>
+  </main>
+
+  <nav class="md:hidden sticky bottom-0 bg-white border-t-2 border-black w-full py-4 px-6 flex justify-between items-center z-50">
+    <div class="flex flex-col">
+      <span class="font-berserker text-lg tracking-wide leading-none">REGISTRASI</span>
+      <span class="text-xs text-gray-500 font-bold mt-1">Langkah 1/2</span>
+    </div>
+    <div class="text-xs font-bold uppercase border-2 border-black bg-gray-50 px-3 py-1.5 rounded-md">
+      Akun Kapten
+    </div>
+  </nav>
+
+</body>
+</html>
