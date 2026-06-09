@@ -1,27 +1,13 @@
 from django.db import models
-from django.conf import settings
 
-class Division(models.Model):
+class MerchantStand(models.Model):
     name = models.CharField(max_length=100)
-    # The Head/Captain of the division
-    head = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='led_division')
+    token = models.CharField(max_length=64, unique=True, help_text="Secret token assigned to the merchant terminal")
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
-class Shift(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='shifts')
-    date = models.DateField()
-    start_time = models.TimeField(default='14:00')
-    end_time = models.TimeField(default='17:00')
-    is_distributed = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('user', 'date')
-
-    def __str__(self):
-        return f"{self.user.email} - {self.date}"
 
 class Transaction(models.Model):
     TYPE_CHOICES = (
@@ -31,22 +17,41 @@ class Transaction(models.Model):
         ('ADJUSTMENT', 'Adjustment'),
     )
     
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_transactions')
-    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='received_transactions')
-    merchant_stand = models.ForeignKey('MerchantStand', on_delete=models.SET_NULL, null=True, blank=True, related_name='transactions')
-    reference_id = models.UUIDField(null=True, blank=True, unique=True, help_text="Unique reference for payment idempotency")
+    # Changed from ForeignKeys to standalone CharFields to isolate the CCPAY app.
+    # You can store the user's Email or NIS string directly in these fields.
+    sender = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True,
+        help_text="Identifier (Email/NIS) of the sender. Null for system distributions."
+    )
+    receiver = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True,
+        help_text="Identifier (Email/NIS) of the receiver. Null for terminal checkout payments."
+    )
+    
+    # Kept as a localized ForeignKey since MerchantStand belongs strictly inside the CCPAY app ecosystem.
+    merchant_stand = models.ForeignKey(
+        MerchantStand, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='transactions'
+    )
+    
+    reference_id = models.CharField(
+        max_length=255, 
+        null=True, 
+        blank=True, 
+        unique=True, 
+        help_text="Unique client token (idempotency key) to prevent double-deduction"
+    )
     amount = models.BigIntegerField()
     type = models.CharField(max_length=20, choices=TYPE_CHOICES)
     timestamp = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.type} - {self.amount} - {self.timestamp}"
-
-class MerchantStand(models.Model):
-    name = models.CharField(max_length=100)
-    token = models.CharField(max_length=64, unique=True)
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
+        return f"[{self.type}] {self.amount} ID: {self.id}"

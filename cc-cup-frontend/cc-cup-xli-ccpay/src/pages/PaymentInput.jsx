@@ -6,18 +6,60 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const PaymentInput = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [rawInput, setRawInput] = useState('50000');
+  const [rawInput, setRawInput] = useState('0');
+  const [userBalance, setUserBalance] = useState(0);
 
   const merchant = location.state?.merchant || {
     name: "Kantin Sehat - Stand 04",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB2UrTe5Q8I3XSMDwRq4ckiK5PWvzJb85WkpS2CeEviLtAB7uDqeFDdGlrnOZEpVVplfxsyDjugwW0DjCvt4TDfNtCdTfLAtI28kkeNw22Vna0ZfHxc2KD7UJL0VWlIdGptIl0vH_lw_TqWG-IasGRcwwqoA97sYOejI6WTOivA_OE14-Gsa6qFX85jX6hA7qRncDYA4R77vu8McQOmr6EM0sta7oyMecGuVKqMuT0Jmj8Sz9nPEeQzwJQiCTMToSy-c6zT_o85VzY"
   };
 
+  // 🌟 1. AUTHENTICATED FETCH: Send JWT token to access data securely
+  const fetchUserBalance = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      
+      const response = await fetch('/api/ccpay/balance/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // 🔗 Added token pass-through
+        }
+      });
+      
+      // If backend says the session token is expired or altered, kick to login
+      if (response.status === 401) {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        navigate('/login');
+        return;
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserBalance(data.current_saldo || 0);
+      }
+    } catch (error) {
+      console.error("Failed to sync live operational user ledger context:", error);
+    }
+  };
+
+  // 🌟 2. GUEST ROUTING GUARD: Check local token state on mount immediately
   useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    
+    if (!token) {
+      // User is not logged in. Boot them back to the login gateway.
+      navigate('/login');
+      return;
+    }
+
     if ("vibrate" in navigator) {
       navigator.vibrate(100);
     }
-  }, []);
+    
+    fetchUserBalance();
+  }, [navigate]);
 
   const formatDisplayAmount = (value) => {
     if (!value || value === '0') return '0';
@@ -48,7 +90,13 @@ const PaymentInput = () => {
   const handleConfirmSubmission = () => {
     const finalAmount = parseInt(rawInput, 10);
     if (finalAmount <= 0) return;
-    navigate('/confirm-payment', { state: { merchant, amount: finalAmount } });
+    
+    navigate('/confirm-payment', { 
+      state: { 
+        merchant, 
+        amount: finalAmount 
+      } 
+    });
   };
 
   return (
@@ -67,7 +115,7 @@ const PaymentInput = () => {
           <div className="w-10 h-10 opacity-0 pointer-events-none" />
         </header>
 
-        {/* Integrated Merchant Stack (Matching image profile layout) */}
+        {/* Integrated Merchant Stack */}
         <div className="flex items-center space-x-3 bg-[#131619]/30 border border-[#1e2226]/40 rounded-xl p-3 mt-2">
           <div className="w-9 h-9 rounded-lg overflow-hidden bg-[#1a1d21] border border-[#2a2f35] flex-shrink-0">
             <img alt={merchant.name} className="w-full h-full object-cover" src={merchant.image} />
@@ -108,7 +156,9 @@ const PaymentInput = () => {
         {/* Integrated Embedded Balance Ledger Strip */}
         <div className="flex justify-between items-center bg-[#1a1d21] border border-[#2a2f35]/60 rounded-xl px-4 py-2.5 text-xs">
           <span className="text-[#535c66] font-semibold text-[10px] uppercase tracking-wider">Sisa Saldo Anda</span>
-          <span className="font-bold text-white tracking-tight">Rp 1.250.000</span>
+          <span className="font-bold text-white tracking-tight">
+            Rp {userBalance.toLocaleString('id-ID')}
+          </span>
         </div>
 
         {/* Clean Balanced Tactile Keypad Engine */}

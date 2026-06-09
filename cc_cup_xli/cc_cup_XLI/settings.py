@@ -14,6 +14,8 @@ import os
 import dj_database_url
 from pathlib import Path
 from dotenv import load_dotenv
+from celery.schedules import crontab
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,7 +46,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Third party apps
+    'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt', # Installed explicit token verification dependency
     
     # Local apps
     'user',
@@ -56,6 +60,7 @@ INSTALLED_APPS = [
 AUTH_USER_MODEL = 'user.User'
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +69,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'cc_cup_XLI.urls'
 
@@ -147,18 +161,28 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'Asia/Jakarta'
 
-# Celery Beat Schedule
-from celery.schedules import crontab
-
+# Celery Beat Schedule Configuration
 CELERY_BEAT_SCHEDULE = {
     'distribute-daily-funds': {
         'task': 'ccpay.tasks.distribute_funds_task',
-        'schedule': crontab(hour=14, minute=0), # Run daily at 14:00 Jakarta time
+        # Fires precisely at 12:00 WIB
+        'schedule': crontab(hour=12, minute=0), 
     },
     'expire-daily-funds': {
         'task': 'ccpay.tasks.expire_funds_task',
-        'schedule': crontab(hour=17, minute=0), # Run daily at 17:00 Jakarta time
+        # Fires precisely at 17:00 WIB
+        'schedule': crontab(hour=17, minute=0), 
     },
 }
 
-
+SIMPLE_JWT = {
+    # Match this with the frontend limit to reject tokens after they expire
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=30),
+    
+    # Standard settings for token generation
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+}

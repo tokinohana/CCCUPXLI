@@ -1,68 +1,70 @@
+import zoneinfo
 from django.db import transaction
 from django.utils import timezone
-from .models import Shift, Transaction
+from .models import Transaction
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 def distribute_daily_funds():
     """
-    Finds all shifts for today that haven't been distributed yet,
-    adds 35,000 to their saldo, and records the transaction.
+    Finds all active committee users eligible for CC PAY,
+    adds 35,000 to their saldo, and records a system DISTRIBUTION ledger.
+    Targeted to execute at 12:00 WIB.
     """
-    today = timezone.localdate()
+    wib_tz = zoneinfo.ZoneInfo("Asia/Jakarta")
+    today_wib = timezone.now().astimezone(wib_tz).date()
     amount = 35000
     
     with transaction.atomic():
-        shifts_to_pay = Shift.objects.select_for_update().filter(
-            date=today,
-            is_distributed=False
+        # Fetching core committee users from the global shared monolith table
+        eligible_users = User.objects.select_for_update().filter(
+            is_committee=True,
+            is_active=True
         )
         
         count = 0
-        for shift in shifts_to_pay:
-            user = shift.user
-            # Update user saldo
+        for user in eligible_users:
             user.current_saldo += amount
             user.save()
             
-            # Record transaction
             Transaction.objects.create(
-                receiver=user,
+                sender=None,        
+                receiver=user,      
                 amount=amount,
                 type='DISTRIBUTION',
-                description=f"Daily Shift Fund - {today}"
+                description=f"Daily Committee Allowance - {today_wib} WIB"
             )
-            
-            # Mark shift as paid
-            shift.is_distributed = True
-            shift.save()
             count += 1
             
     return count
 
+
 def expire_daily_funds():
     """
-    Resets all users' saldo to 0 and records the expiration transaction.
-    Usually run at 17:00.
+    Resets all users' current_saldo to 0 and records an EXPIRATION ledger.
+    Targeted to execute at 17:00 WIB.
     """
     with transaction.atomic():
-        users_with_saldo = User.objects.select_for_update().filter(current_saldo__gt=0)
+        # Only target active records that possess an unspent balance allocation
+        users_with_saldo = User.objects.select_for_update().filter(
+            is_committee=True,
+            current_saldo__gt=0
+        )
         
         count = 0
         for user in users_with_saldo:
-            amount = user.current_saldo
+            expired_amount = user.current_saldo
             
-            # Record transaction
+            # FIXED: sender=user (Relational Object relinquishing funds), receiver=None
             Transaction.objects.create(
-                sender=None,  # System is the sender
-                receiver=user, # User is the receiver (losing balance)
-                amount=amount,
+                sender=user,        
+                receiver=None,      
+                amount=expired_amount,
                 type='EXPIRATION',
-                description=f"End of Day Fund Expiration"
+                description="End of Day Allowance Expiration (17:00 WIB)"
             )
             
-            # Reset saldo
             user.current_saldo = 0
             user.save()
             count += 1

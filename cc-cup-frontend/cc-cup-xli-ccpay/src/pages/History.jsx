@@ -10,25 +10,89 @@ const History = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+  const [transactions, setTransactions] = useState([]);
+  const [stats, setStats] = useState({ totalOut: 0, totalIn: 0 });
 
-  const transactionsData = {
-    today: [
-      { id: 'TXN-49201', type: 'in', title: 'Coupon Distribution', amount: 35000, time: '08:30 AM' },
-      { id: 'TXN-49202', type: 'out', title: 'Kantin Sehat', amount: 15000, time: '12:15 PM' },
-      { id: 'TXN-48912', type: 'expired', title: 'Expired Coupon', amount: 10000, time: '05:01 PM' },
-    ],
-    yesterday: [
-      { id: 'TXN-48855', type: 'out', title: 'Kantin Kopi Senja', amount: 12000, time: '12:45 PM' },
-    ]
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchTransactionHistory = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/ccpay/transactions/', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        // 🌟 2. EXPIRED/INVALID TOKEN REJECTION: Clean database access rejections
+        if (response.status === 401) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          navigate('/login');
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setTransactions(data);
+
+        let incomingSum = 0;
+        let outgoingSum = 0;
+        data.forEach(txn => {
+          if (txn.type === 'DISTRIBUTION') {
+            incomingSum += txn.amount;
+          } else if (txn.type === 'PAYMENT') {
+            outgoingSum += txn.amount;
+          }
+        });
+        setStats({ totalIn: incomingSum, totalOut: outgoingSum });
+      } catch (err) {
+        console.error("Failed loading backend historical transactions ledger:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTransactionHistory();
+  }, [navigate]); // Added navigate cleanup safely to listener arrays
+
+  // Standardizes dynamic mapping inputs back to template expectations safely
+  const getMappedType = (backendType) => {
+    if (backendType === 'DISTRIBUTION') return 'in';
+    if (backendType === 'PAYMENT') return 'out';
+    return 'expired';
   };
 
+  // Normalizes rendering parameters safely for internal processing engines
+  const processedTransactions = transactions.map(txn => {
+    const isIncoming = txn.type === 'DISTRIBUTION';
+    const txnTitle = isIncoming
+      ? (txn.description || 'Coupon Distribution')
+      : (txn.merchant_stand_name || txn.description || 'Kantin Stand');
+
+    return {
+      id: txn.reference_id ? txn.reference_id.substring(0, 9).toUpperCase() : `TXN-${txn.id}`,
+      type: getMappedType(txn.type),
+      title: txnTitle,
+      amount: txn.amount,
+      time: txn.formatted_time || '00:00 AM',
+      dateBucket: txn.formatted_date || 'Older'
+    };
+  });
+
   // Processing function applying global type and text filters cleanly
-  const processGroup = (group) => {
-    return group.filter(txn => {
+  const filterRecords = (records) => {
+    return records.filter(txn => {
       const matchesSearch = txn.title.toLowerCase().includes(searchQuery.toLowerCase()) || txn.id.toLowerCase().includes(searchQuery.toLowerCase());
       if (!matchesSearch) return false;
       if (activeFilter === 'All') return true;
@@ -36,18 +100,20 @@ const History = () => {
     });
   };
 
-  const filteredToday = processGroup(transactionsData.today);
-  const filteredYesterday = processGroup(transactionsData.yesterday);
-  const hasResults = filteredToday.length > 0 || filteredYesterday.length > 0;
+  const filteredToday = filterRecords(processedTransactions.filter(t => t.dateBucket === 'Today'));
+  const filteredYesterday = filterRecords(processedTransactions.filter(t => t.dateBucket === 'Yesterday'));
+  const filteredOlder = filterRecords(processedTransactions.filter(t => t.dateBucket !== 'Today' && t.dateBucket !== 'Yesterday'));
+
+  const hasResults = filteredToday.length > 0 || filteredYesterday.length > 0 || filteredOlder.length > 0;
 
   return (
     <div className="bg-[#090a0b] text-[#8a939e] min-h-screen pb-28 font-sans antialiased selection:bg-[#69ff87]/30 w-full overflow-x-hidden">
-      
+
       {/* Matte Sticky Top Header Block */}
       <header className="sticky top-0 z-40 bg-[#090a0b]/80 backdrop-blur-md border-b border-[#16191d] px-4 py-4">
         <div className="max-w-xl mx-auto flex flex-col space-y-4">
           <div className="flex items-center space-x-3">
-            <button 
+            <button
               onClick={() => navigate(-1)}
               className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#131619] border border-[#1e2226] text-[#8a939e] hover:text-white transition-all active:scale-95"
             >
@@ -61,15 +127,17 @@ const History = () => {
       </header>
 
       <main className="max-w-xl mx-auto px-4 mt-5">
-        
-        {/* High-End Clean Stats Row (Replaces Clunky Summary Cards) */}
+
+        {/* High-End Clean Stats Row */}
         <section className="grid grid-cols-2 gap-2.5 mb-6">
           <div className="bg-[#131619] border border-[#1e2226] p-4 rounded-xl">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#535c66] block">Total Pengeluaran</span>
             {isLoading ? (
               <Skeleton className="h-6 w-24 bg-[#1e2226] mt-2" />
             ) : (
-              <span className="text-lg font-black text-white tracking-tight block mt-1">Rp 27.000</span>
+              <span className="text-lg font-black text-white tracking-tight block mt-1">
+                Rp {stats.totalOut.toLocaleString('id-ID')}
+              </span>
             )}
           </div>
           <div className="bg-[#131619] border border-[#1e2226] p-4 rounded-xl">
@@ -77,7 +145,9 @@ const History = () => {
             {isLoading ? (
               <Skeleton className="h-6 w-24 bg-[#1e2226] mt-2" />
             ) : (
-              <span className="text-lg font-black text-[#69ff87] tracking-tight block mt-1">Rp 35.000</span>
+              <span className="text-lg font-black text-[#69ff87] tracking-tight block mt-1">
+                Rp {stats.totalIn.toLocaleString('id-ID')}
+              </span>
             )}
           </div>
         </section>
@@ -103,11 +173,10 @@ const History = () => {
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-lg text-[11px] font-bold transition-all border ${
-                  activeFilter === filter 
-                    ? 'bg-[#1a1d21] text-white border-[#2a2f35]' 
+                className={`px-4 py-2 rounded-lg text-[11px] font-bold transition-all border ${activeFilter === filter
+                    ? 'bg-[#1a1d21] text-white border-[#2a2f35]'
                     : 'bg-transparent text-[#535c66] border-transparent hover:text-white'
-                }`}
+                  }`}
               >
                 {filter}
               </button>
@@ -151,6 +220,17 @@ const History = () => {
                   </div>
                 </div>
               )}
+
+              {filteredOlder.length > 0 && (
+                <div className="space-y-2.5">
+                  <div className="text-[10px] font-bold tracking-widest text-[#535c66] uppercase px-1 mt-2">Sebelumnya</div>
+                  <div className="space-y-2">
+                    {filteredOlder.map((txn) => (
+                      <TransactionRow key={txn.id} txn={txn} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12 text-xs font-medium text-[#535c66]">
@@ -171,23 +251,22 @@ const History = () => {
   );
 };
 
-// Isolated Clean Row Subcomponent
 const TransactionRow = ({ txn }) => {
   const getMeta = () => {
-    switch(txn.type) {
-      case 'in': 
+    switch (txn.type) {
+      case 'in':
         return {
           icon: <ArrowDownLeft className="w-4 h-4 text-[#69ff87]" />,
           prefix: '+',
           valueStyle: 'text-[#69ff87]'
         };
-      case 'out': 
+      case 'out':
         return {
           icon: <ArrowUpRight className="w-4 h-4 text-[#ff6b6b]" />,
           prefix: '-',
           valueStyle: 'text-white'
         };
-      default: 
+      default:
         return {
           icon: <Ban className="w-3.5 h-3.5 text-[#535c66]" />,
           prefix: '',
@@ -201,12 +280,9 @@ const TransactionRow = ({ txn }) => {
   return (
     <div className={`group flex items-center justify-between p-3.5 rounded-xl border bg-[#131619] border-[#1e2226] hover:border-[#2a2f35] transition-all duration-150 ${txn.type === 'expired' ? 'opacity-50' : ''}`}>
       <div className="flex items-center space-x-3.5 min-w-0">
-        
-        {/* Flat Minimal Icon Frame */}
         <div className="w-9 h-9 rounded-lg bg-[#1a1d21] border border-[#2a2f35] flex items-center justify-center flex-shrink-0">
           {meta.icon}
         </div>
-        
         <div className="min-w-0 flex flex-col">
           <span className="text-xs font-bold tracking-tight text-white truncate block">
             {txn.title}
@@ -216,8 +292,6 @@ const TransactionRow = ({ txn }) => {
           </span>
         </div>
       </div>
-
-      {/* Numeric Pricing Display column */}
       <div className="text-right flex-shrink-0 ml-3">
         <span className={`text-xs font-bold tracking-tight ${meta.valueStyle} block`}>
           {meta.prefix}Rp {txn.amount.toLocaleString('id-ID')}

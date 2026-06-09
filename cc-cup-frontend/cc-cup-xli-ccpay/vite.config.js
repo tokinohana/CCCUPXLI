@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename)
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/ccpay/',
   plugins: [
     react(),
     tailwindcss(),
@@ -18,4 +19,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000', // Point this to the API route later on in prod
+        changeOrigin: true,
+        secure: false,
+      }
+    }
+  }
 })

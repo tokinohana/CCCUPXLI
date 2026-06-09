@@ -13,22 +13,62 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const MerchantDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 🌟 Active dynamic state wrappers populated via the backend View data payload
+  const [merchantName, setMerchantName] = useState('Loading...');
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [todayRevenue, setTodayRevenue] = useState(0);
+  const [todayCount, setTodayCount] = useState(0);
+  const [liveTransactions, setLiveTransactions] = useState([]);
+  const [dailyHistory, setDailyHistory] = useState([]);
+
+  // Fetch data directly from the authenticated endpoint
+  const fetchDashboardData = async () => {
+    try {
+      // Safely fetch the terminal token stored inside the client browser instance context
+      const token = localStorage.getItem('merchant_token') || 'YOUR_DEFAULT_MERCHANT_TOKEN';
+      
+      const response = await fetch(`/api/ccpay/merchant/dashboard/?token=${token}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          // Optional: If token verification is strictly passed via standard JWT authorization headers:
+          // 'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Map DRF API keys directly to the functional UI dashboard targets
+        setMerchantName(data.merchant_name);
+        setTotalRevenue(data.total_revenue);
+        setTodayRevenue(data.today_revenue);
+        setTodayCount(data.today_count);
+        setLiveTransactions(data.live_transactions || []);
+        setDailyHistory(data.daily_history || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch operational merchant data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
+    // Run an immediate fetch check on mount instantiation sequence
+    fetchDashboardData();
+
+    // Establish a live 5-second polling loop to capture immediate user terminal checks
+    const interval = setInterval(() => {
+      fetchDashboardData();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const liveTransactions = [
-    { id: '00921-ID', name: 'Ahmad Fauzi', time: '10:42', amount: 22000 },
-    { id: '00920-ID', name: 'Siti Aminah', time: '10:39', amount: 18500 },
-    { id: '00919-ID', name: 'Kevin Pratama', time: '10:35', amount: 45000 },
-  ];
-
-  const dailyHistory = [
-    { day: 'Senin, 18 Apr', count: 210, amount: 2100000 },
-    { day: 'Minggu, 17 Apr', count: 145, amount: 1450000 },
-  ];
+  // Compute the absolute most recent lunas/payment record for the "Boomer Verification" display box
+  const latestTxn = liveTransactions.length > 0 ? liveTransactions[0] : null;
 
   return (
     <div className="bg-[#090a0b] font-sans text-[#8a939e] min-h-screen pb-32 selection:bg-[#69ff87]/30 select-none antialiased w-full max-w-md mx-auto border-x border-[#16191d]/40 relative">
@@ -45,7 +85,9 @@ const MerchantDashboard = () => {
               />
             </div>
             <div>
-              <h1 className="text-sm font-black text-white tracking-tight leading-none">Stand 04</h1>
+              <h1 className="text-sm font-black text-white tracking-tight leading-none">
+                {isLoading ? <Skeleton className="h-4 w-20 bg-[#1e2226]" /> : merchantName}
+              </h1>
               <p className="text-[10px] font-bold text-[#69ff87] uppercase tracking-widest mt-1 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#69ff87] animate-pulse" /> Live Terminal
               </p>
@@ -76,11 +118,11 @@ const MerchantDashboard = () => {
             ) : (
               <>
                 <span className="text-[40px] font-black tracking-tight text-[#69ff87] tabular-nums leading-none my-1">
-                  Rp 1.450.000
+                  Rp {todayRevenue.toLocaleString('id-ID')}
                 </span>
                 <div className="flex justify-between items-center mt-4 pt-3.5 border-t border-[#1e2226]/50">
                   <span className="text-white text-xs font-bold bg-[#1a1d21] border border-[#2a2f35]/60 px-2.5 py-1 rounded-lg">
-                    42 Transaksi Sukses
+                    {todayCount} Transaksi Sukses
                   </span>
                   <span className="text-[10px] text-[#535c66] font-semibold flex items-center gap-1.5">
                     <RefreshCw className="w-3 h-3 animate-spin" style={{ animationDuration: '8s' }} /> Updated
@@ -96,7 +138,7 @@ const MerchantDashboard = () => {
           <p className="text-[9px] font-black text-[#535c66] uppercase tracking-widest px-0.5">DANA TERAKHIR MASUK</p>
           {isLoading ? (
             <Skeleton className="h-28 w-full rounded-2xl bg-[#131619]" />
-          ) : (
+          ) : latestTxn ? (
             <div className="bg-gradient-to-b from-[#131619] to-[#131619]/90 rounded-2xl p-5 border border-[#1e2226] shadow-xl relative overflow-hidden">
               {/* Left Accent Bar to give instant spatial verification feedback */}
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#69ff87]" />
@@ -106,21 +148,25 @@ const MerchantDashboard = () => {
                   <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />LUNAS
                 </span>
                 <span className="text-[#8a939e] text-[11px] font-bold font-mono">
-                  2 Menit Lalu
+                  Pukul {latestTxn.time} WIB
                 </span>
               </div>
               
               <div className="flex justify-between items-end">
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-[#535c66] uppercase tracking-wider mb-0.5">Pelanggan/Siswa</p>
-                  <h3 className="text-lg font-black text-white tracking-tight truncate">Budi Santoso</h3>
+                  <h3 className="text-lg font-black text-white tracking-tight truncate">{latestTxn.name}</h3>
                 </div>
                 <div className="text-right flex-shrink-0">
                   <span className="text-2xl font-black text-[#69ff87] tracking-tight tabular-nums">
-                    +Rp 15.000
+                    +Rp {latestTxn.amount.toLocaleString('id-ID')}
                   </span>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="bg-[#131619]/20 rounded-2xl p-6 border border-[#1e2226] text-center text-xs text-[#535c66] font-medium">
+              Belum ada transaksi masuk hari ini.
             </div>
           )}
         </section>
@@ -134,7 +180,7 @@ const MerchantDashboard = () => {
           <div className="space-y-2">
             {isLoading ? (
               [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#131619]" />)
-            ) : (
+            ) : liveTransactions.length > 0 ? (
               liveTransactions.map((txn) => (
                 <div key={txn.id} className="bg-[#131619]/40 border border-[#1e2226] p-3.5 rounded-xl flex justify-between items-center hover:border-[#2a2f35] transition-all cursor-pointer group">
                   <div className="min-w-0 text-left">
@@ -148,6 +194,8 @@ const MerchantDashboard = () => {
                   </div>
                 </div>
               ))
+            ) : (
+              <div className="text-center p-4 text-xs text-[#535c66]">Tidak ada data transaksi.</div>
             )}
           </div>
         </section>
@@ -158,7 +206,7 @@ const MerchantDashboard = () => {
           <div className="grid grid-cols-1 gap-2">
             {isLoading ? (
               [1, 2].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl bg-[#131619]" />)
-            ) : (
+            ) : dailyHistory.length > 0 ? (
               dailyHistory.map((item, idx) => (
                 <div key={idx} className="bg-[#131619]/20 border border-[#1e2226]/60 p-3.5 rounded-xl flex justify-between items-center">
                   <div className="flex items-center gap-3">
@@ -175,6 +223,8 @@ const MerchantDashboard = () => {
                   </span>
                 </div>
               ))
+            ) : (
+              <div className="text-center p-4 text-xs text-[#535c66]">Belum ada riwayat harian.</div>
             )}
           </div>
         </section>

@@ -1,88 +1,57 @@
-### A. `users` (The Master List)
+### A. `merchant_stands`
 
 | Field | Type | Note |
 | :--- | :--- | :--- |
-| `id` | UUID (PK) | |
-| `nis` | String (Unique) | For lookup/mapping. |
-| `full_name` | String | |
-| `email` | String (Unique) | |
-| `role` | Enum | `ADMIN`, `CAPTAIN`, `MEMBER`, `MERCHANT` |
-| `division_id` | UUID (FK) | Links to `divisions.id` |
-| **`current_saldo`** | **BIGINT** | **Default: 0 (Stored in Rupiah)** |
+| `id` | Auto-Increment / BigInt (PK) | Unique system key |
+| `name` | String | Terminal display name (e.g., "Green Canteen") |
+| `token` | String (Unique) | Secret token assigned to the merchant keypad |
 | `is_active` | Boolean | Default: `true` |
 
 ---
 
-### B. `divisions`
+### B. `transactions` (The Ledger)
 
 | Field | Type | Note |
 | :--- | :--- | :--- |
-| `id` | UUID (PK) | |
-| `name` | String | e.g., "Logistik", "Acara" |
-| `captain_id` | UUID (FK) | Points to `users.id` |
-
----
-
-### C. `shifts` (The Logic Gate)
-
-| Field | Type | Note |
-| :--- | :--- | :--- |
-| `id` | UUID (PK) | |
-| `user_id` | UUID (FK) | The student |
-| `date` | Date | e.g., `2024-08-17` |
-| `start_time` | Time | e.g., `14:00` |
-| `end_time` | Time | e.g., `17:00` |
-| `is_distributed` | Boolean | **True only after the 14:00 script runs** |
-| `created_by` | UUID (FK) | The Captain who added them |
-
----
-
-### D. `transactions` (The Ledger)
-
-| Field | Type | Note |
-| :--- | :--- | :--- |
-| `id` | UUID (PK) | |
-| `sender_id` | UUID (FK) | NULL if System/Admin top-up |
-| `receiver_id` | UUID (FK) | NULL if System Clawback/Expiration |
-| **`amount`** | **BIGINT** | **Always positive (Logic handled by `type`)** |
+| `id` | Auto-Increment / BigInt (PK) | Unique ledger sequence |
+| `sender` | String | Plain string storage (stores user email, NIS, or stringified ID). Null for system distributions. |
+| `receiver` | String | Plain string storage (stores user email, NIS, or stringified ID). Null for payment checkouts/expirations. |
+| `merchant_stand_id` | BigInt (FK) | Links directly to localized `merchant_stands.id` |
+| `reference_id` | String (Unique) | Unique front-end fingerprint generated for idempotency checks |
+| **`amount`** | **BIGINT** | **Always positive (Accounting balance logic managed by `type`)** |
 | `type` | Enum | `DISTRIBUTION`, `PAYMENT`, `EXPIRATION`, `ADJUSTMENT` |
 | `timestamp` | Timestamp | Default: `now()` |
-| `description` | String | e.g., "Daily Lunch Coupon", "Daily Expiration" |
+| `description` | String | Context memo (e.g., "Payment at Green Canteen", "Daily Expiration") |
 
 ---
 
-### 1. The "Neat" Analytics Query
-To fetch the **unused coupons** per division (your "Administrative Hell" proof), you can now run this query:
+### 1. Simplified Analytical Query
+Because `sender` and `receiver` fields are tracked as direct string values containing user properties (like emails or unique account numbers), you no longer need heavy multi-table relational joins to track daily expirations:
+
 ```sql
 SELECT 
-    d.name as Division,
-    SUM(t.amount) as Unused_Rupiah
+    t.receiver AS Student_Identifier,
+    SUM(t.amount) AS Expired_Rupiah
 FROM transactions t
-JOIN users u ON t.receiver_id = u.id -- For Expirations, the 'receiver' is the one losing money
-JOIN divisions d ON u.division_id = d.id
 WHERE t.type = 'EXPIRATION' 
-AND t.timestamp::date = CURRENT_DATE
-GROUP BY d.name;
+  AND t.timestamp::date = CURRENT_DATE
+GROUP BY t.receiver;
 ```
 
-### 2. Solving the "Mistyped NIS" problem
-Because `division_id` is now in the `users` table, your Captain UI will work like this:
-* Captain logs in.
-* App says: `SELECT * FROM users WHERE division_id = 'Captain_Div_ID'`.
-* Captain sees a list of **Names**. They just click checkboxes. No typing involved.
+2. The 17:00 "Zeroing" Automation Script
+Your 17:00 background script operates cleanly without table locking conflicts on scheduling parameters:
 
+Query your global central account database to find all active profiles where current_saldo > 0.
 
+For every profile matched, create an immutable row entry inside the CC PAY transactions ledger table setting type = 'EXPIRATION', sender = NULL, receiver = user.email, and amount = user.current_saldo.
 
-### 3. The 17:00 "Zeroing" Logic
-Your script at 17:00 should do this in a **Transaction (ACID)**:
-1.  Find all users where `current_saldo > 0`.
-2.  For each user, create a `transaction` with `type = 'EXPIRATION'` and `amount = current_saldo`.
-3.  Set user `current_saldo = 0`.
+Set that user's core balance parameter current_saldo = 0 inside an atomic transaction block.
 
-This ensures that the "Lost" money is forever recorded in the `transactions` table, giving you the neat analytics you want.
+This ensures all unused allocations are securely logged for accounting verification and financial tracking while maintaining clean isolation from the active app databases.
 
-### 4. CCPAY in the Unified Admin
-All CCPAY data is managed via the main `/admin/` panel. 
-- **Heads** are placed in the `CCPAY_Heads` group, allowing them to verify their division's shifts and see their transaction history.
-- **Manual Overrides**: If the daily distribution script fails, a SuperAdmin can manually trigger it or adjust individual `current_saldo` values from the Admin panel.
-- **Analytics**: Use the Django Admin's "Filter" and "Search" features to quickly find transactions by type or date.
+3. CC PAY in the Unified Admin Panel
+All local transactions and terminal nodes are reviewed and isolated within the Django Admin control panel:
+
+Transaction Overview: Provides filters tracking transaction types (PAYMENT, DISTRIBUTION, EXPIRATION) alongside text matching across flat string entries (sender, receiver, reference_id).
+
+Terminal Management: Allows manual provisioning of access parameters and instant toggle locks (is_active = False) to terminate compromised device tokens instantly.
