@@ -211,3 +211,13 @@ cloudinary.config(
 
 # Use Cloudinary as the default file storage backend
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Email Configuration (Zoho SMTP)
+# ─────────────────────────────────────────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zoho.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv('ZOHO_EMAIL', '')
+EMAIL_HOST_PASSWORD = os.getenv('ZOHO_PASSWORD', '')

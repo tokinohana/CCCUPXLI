@@ -1,7 +1,8 @@
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, ScanLine, TicketPlus, Bell, Settings, User, Terminal } from "lucide-react";
+import { LayoutDashboard, ScanLine, TicketPlus, Bell, Settings, User, Terminal, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/button";
+import { authService } from "@/services/api";
 
 const Layout = () => {
   const location = useLocation();
@@ -46,9 +47,17 @@ const Layout = () => {
             </Link>
           ))}
         </nav>
-        <div className="p-4 mt-auto">
+        <div className="p-4 mt-auto flex flex-col gap-2">
           <Button className="w-full bg-[#00e475] text-[#003918] font-bold rounded-none hover:bg-[#62ff96]">
             SYSTEM CHECK
+          </Button>
+          <Button
+            onClick={() => authService.logout()}
+            variant="outline"
+            className="w-full border border-[#ffb4ab] text-[#ffb4ab] bg-transparent font-bold rounded-none hover:bg-[#ffb4ab]/10 flex items-center justify-center gap-2"
+          >
+            <LogOut size={16} />
+            LOGOUT
           </Button>
         </div>
       </aside>

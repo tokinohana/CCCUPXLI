@@ -1,18 +1,17 @@
 import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Webcam from "react-webcam";
-import { 
-  Camera, 
-  RefreshCw, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Edit3, 
-  ArrowRight, 
-  User, 
-  Terminal, 
-  Clock, 
+import {
+  Camera,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle2,
+  Edit3,
+  ArrowRight,
+  Terminal,
   XCircle,
-  TicketPlus
+  TicketPlus,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
@@ -21,6 +20,7 @@ import { Badge } from "@/components/badge";
 import { apiService } from "@/services/api";
 import { ocrService } from "@/services/ocr";
 import { cn } from "@/lib/utils";
+import type { AxiosError } from "axios";
 
 const TicketForm = () => {
   const [isCapturing, setIsCapturing] = useState(false);
@@ -29,12 +29,13 @@ const TicketForm = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [formStatus, setFormStatus] = useState<"FORM" | "SUCCESS" | "ERROR">("FORM");
   const [createdTicketId, setCreatedTicketId] = useState<string | null>(null);
-  
+  const [serverError, setServerError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
-    fullName: "",
-    nik: "",
+    full_name: "",
+    identification_number: "",
     email: "",
-    paymentStatus: "paid"
+    paymentStatus: "paid",
   });
 
   const [nikError, setNikError] = useState<string | null>(null);
@@ -49,37 +50,33 @@ const TicketForm = () => {
       setIsCapturing(false);
       performOcr(imageSrc);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [webcamRef]);
 
   const performOcr = async (imageBase64: string) => {
     setIsProcessing(true);
     setProgress(0);
-    
-    // Animation progress
+
     const interval = setInterval(() => {
       setProgress((prev) => (prev < 90 ? prev + 5 : prev));
     }, 100);
 
     try {
-      // In a real app, the API key should be in an environment variable
-      // or the OCR should be performed via a secure backend proxy.
       const apiKey = import.meta.env.VITE_GOOGLE_VISION_API_KEY || "";
-      
       const result = await ocrService.performOcr(imageBase64, apiKey);
-      
+
       if (result.fullName || result.nik) {
         setFormData((prev) => ({
           ...prev,
-          fullName: result.fullName || prev.fullName,
-          nik: result.nik || prev.nik,
+          full_name: result.fullName || prev.full_name,
+          identification_number: result.nik || prev.identification_number,
         }));
-        
-        // If NIK was extracted, trigger verification
+
         if (result.nik) {
           handleNikVerification(result.nik);
         }
       }
-      
+
       setProgress(100);
       setTimeout(() => setIsProcessing(false), 500);
     } catch (error) {
@@ -92,46 +89,76 @@ const TicketForm = () => {
 
   const handleNikVerification = async (nik: string) => {
     setIsCheckingNik(true);
-    const { exists } = await apiService.verifyNIK(nik);
-    setIsCheckingNik(false);
-    if (exists) {
-      setNikError("Ticket already exists for this NIK");
-    } else {
-      setNikError(null);
+    setNikError(null);
+    try {
+      const { exists } = await apiService.verifyNIK(nik);
+      if (exists) {
+        setNikError("Ticket already exists for this NIK");
+      }
+    } catch (err) {
+      console.error("NIK verification failed:", err);
+    } finally {
+      setIsCheckingNik(false);
     }
   };
 
   const handleNikChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setFormData({ ...formData, nik: value });
-    
+    setFormData({ ...formData, identification_number: value });
+
     if (value.length >= 10) {
-      setIsCheckingNik(true);
-      const { exists } = await apiService.verifyNIK(value);
-      setIsCheckingNik(false);
-      if (exists) {
-        setNikError("Ticket already exists for this NIK");
-      } else {
-        setNikError(null);
-      }
+      handleNikVerification(value);
+    } else {
+      setNikError(null);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (nikError) return;
-    
+    setServerError(null);
     setIsProcessing(true);
+
     try {
+      // 1. Create ticket (backend defaults to 'pending')
       const ticket = await apiService.createTicket({
-        fullName: formData.fullName,
-        nik: formData.nik,
+        full_name: formData.full_name,
         email: formData.email,
-        status: formData.paymentStatus as any
+        identification_number: formData.identification_number,
       });
-      setCreatedTicketId(ticket.id);
+
+      // 2. If user selected "paid", immediately update status
+      //    (this also triggers the QR email on the backend)
+      if (formData.paymentStatus === "paid") {
+        await apiService.updateTicketStatus(ticket.ticket_id, "paid");
+      }
+
+      setCreatedTicketId(ticket.ticket_id);
       setFormStatus("SUCCESS");
     } catch (error) {
+      const axiosErr = error as AxiosError<{
+        identification_number?: string[];
+        email?: string[];
+        full_name?: string[];
+        detail?: string;
+      }>;
+      const data = axiosErr.response?.data;
+
+      if (data) {
+        if (data.identification_number?.[0]) {
+          setNikError(data.identification_number[0]);
+        } else if (data.detail) {
+          setServerError(data.detail);
+        } else if (data.email?.[0]) {
+          setServerError(`Email: ${data.email[0]}`);
+        } else if (data.full_name?.[0]) {
+          setServerError(`Name: ${data.full_name[0]}`);
+        } else {
+          setServerError("Server rejected the request. Please check all fields.");
+        }
+      } else {
+        setServerError("Could not reach server. Please try again.");
+      }
       setFormStatus("ERROR");
     } finally {
       setIsProcessing(false);
@@ -141,11 +168,14 @@ const TicketForm = () => {
   const resetForm = () => {
     setFormStatus("FORM");
     setCapturedImage(null);
+    setServerError(null);
+    setNikError(null);
+    setCreatedTicketId(null);
     setFormData({
-      fullName: "",
-      nik: "",
+      full_name: "",
+      identification_number: "",
       email: "",
-      paymentStatus: "paid"
+      paymentStatus: "paid",
     });
   };
 
@@ -155,7 +185,7 @@ const TicketForm = () => {
         <div className="max-w-xl w-full border-2 border-[#00e475] bg-[#201f20] p-8 md:p-12 relative shadow-[0_0_40px_rgba(0,228,117,0.1)]">
           <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#00e475] -mt-1 -ml-1"></div>
           <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#00e475] -mb-1 -mr-1"></div>
-          
+
           <div className="flex flex-col items-center text-center space-y-8">
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 bg-[#00e475] flex items-center justify-center mb-6">
@@ -171,33 +201,49 @@ const TicketForm = () => {
                 <span className="font-mono text-[10px] text-[#c2c6d7] uppercase tracking-widest font-bold">Confirmation Status</span>
                 <div className="flex items-center justify-center gap-3 text-[#e5e2e3]">
                   <Terminal size={18} className="text-[#00e475]" />
-                  <span className="font-mono text-sm">QR email sent to: <span className="text-[#b0c6ff] underline">{formData.email || "recipient@example.com"}</span></span>
+                  <span className="font-mono text-sm">
+                    QR email sent to:{" "}
+                    <span className="text-[#b0c6ff] underline">{formData.email || "recipient@example.com"}</span>
+                  </span>
                 </div>
               </div>
               <div className="h-px bg-[#424655] w-full"></div>
               <div className="flex justify-between items-center px-2">
                 <div className="flex flex-col items-start">
                   <span className="font-mono text-[10px] text-[#c2c6d7] uppercase">Ticket ID</span>
-                  <span className="font-mono text-sm font-bold text-[#b0c6ff]">{createdTicketId}</span>
+                  <span className="font-mono text-sm font-bold text-[#b0c6ff]">
+                    {createdTicketId ? createdTicketId.slice(0, 8).toUpperCase() : "—"}
+                  </span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="font-mono text-[10px] text-[#c2c6d7] uppercase">Auth Token</span>
-                  <span className="font-mono text-sm font-bold text-[#b0c6ff]">#882-QX-90</span>
+                  <span className="font-mono text-[10px] text-[#c2c6d7] uppercase">NIK</span>
+                  <span className="font-mono text-sm font-bold text-[#b0c6ff]">{formData.identification_number}</span>
                 </div>
               </div>
             </div>
 
             <div className="w-full flex flex-col gap-4">
-              <Button onClick={resetForm} className="w-full py-8 bg-[#b0c6ff] text-[#002d6e] font-bold text-lg rounded-none uppercase tracking-tighter flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all">
+              <Button
+                onClick={resetForm}
+                className="w-full py-8 bg-[#b0c6ff] text-[#002d6e] font-bold text-lg rounded-none uppercase tracking-tighter flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all"
+              >
                 <TicketPlus size={24} />
                 Create Another Ticket
               </Button>
               <div className="flex gap-4 w-full">
-                <Button asChild variant="outline" className="flex-1 py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="flex-1 py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]"
+                >
                   <Link to="/dashboard">Return to Dashboard</Link>
                 </Button>
-                <Button variant="outline" className="flex-1 py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]">
-                  Print Log
+                <Button
+                  asChild
+                  variant="outline"
+                  className="flex-1 py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]"
+                >
+                  <Link to="/registry">View Registry</Link>
                 </Button>
               </div>
             </div>
@@ -213,7 +259,7 @@ const TicketForm = () => {
         <div className="max-w-xl w-full border-2 border-[#ffb4ab] bg-[#201f20] p-8 md:p-12 relative shadow-[0_0_40px_rgba(255,180,171,0.1)]">
           <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-[#ffb4ab] -mt-1 -ml-1"></div>
           <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-[#ffb4ab] -mb-1 -mr-1"></div>
-          
+
           <div className="flex flex-col items-center text-center space-y-8">
             <div className="flex flex-col items-center">
               <div className="w-24 h-24 bg-[#ffb4ab] flex items-center justify-center mb-6">
@@ -228,18 +274,27 @@ const TicketForm = () => {
               <div className="flex flex-col gap-2">
                 <span className="font-mono text-[10px] text-[#c2c6d7] uppercase tracking-widest font-bold">System Status</span>
                 <div className="flex items-center justify-center gap-3 text-[#e5e2e3]">
-                  <AlertTriangle size={18} className="text-[#ffb4ab]" />
-                  <span className="font-mono text-sm uppercase">Error: System was unable to process this request.</span>
+                  <AlertTriangle size={18} className="text-[#ffb4ab] flex-shrink-0" />
+                  <span className="font-mono text-sm uppercase text-left">
+                    {serverError || "Error: System was unable to process this request."}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="w-full flex flex-col gap-4">
-              <Button onClick={() => setFormStatus("FORM")} className="w-full py-8 bg-[#ffb4ab] text-[#690005] font-bold text-lg rounded-none uppercase tracking-tighter flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all">
+              <Button
+                onClick={() => { setFormStatus("FORM"); setServerError(null); }}
+                className="w-full py-8 bg-[#ffb4ab] text-[#690005] font-bold text-lg rounded-none uppercase tracking-tighter flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all"
+              >
                 <RefreshCw size={24} />
                 Retry Ticket Creation
               </Button>
-              <Button asChild variant="outline" className="w-full py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]">
+              <Button
+                asChild
+                variant="outline"
+                className="w-full py-6 border-2 border-[#424655] text-[#e5e2e3] font-bold uppercase rounded-none hover:bg-[#353436]"
+              >
                 <Link to="/dashboard">Return to Dashboard</Link>
               </Button>
             </div>
@@ -268,7 +323,7 @@ const TicketForm = () => {
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-[#201f20] border border-[#424655] relative group overflow-hidden">
             <div className="absolute inset-0 border-2 border-[#b0c6ff]/20 pointer-events-none z-10"></div>
-            
+
             {/* Camera Area */}
             <div className="aspect-[1.58/1] bg-[#0e0e0f] flex flex-col items-center justify-center relative">
               {isCapturing ? (
@@ -302,7 +357,7 @@ const TicketForm = () => {
                   </Button>
                 </div>
               )}
-              
+
               {/* Scanning Overlay Animation */}
               {isProcessing && (
                 <div className="absolute inset-x-8 top-1/4 h-0.5 bg-[#b0c6ff] shadow-[0_0_15px_rgba(176,198,255,0.8)] animate-[scan_2s_linear_infinite] z-20"></div>
@@ -341,7 +396,7 @@ const TicketForm = () => {
               <Edit3 className="text-[#b0c6ff]" size={24} />
               <h2 className="text-xl font-bold text-[#e5e2e3] uppercase">Data Penerima Tiket</h2>
             </div>
-            
+
             <form className="space-y-8" onSubmit={handleSubmit}>
               {/* Full Name */}
               <div className="space-y-2">
@@ -349,12 +404,12 @@ const TicketForm = () => {
                   Full Name
                   <span className="text-[#b0c6ff]">Required [A-Z]</span>
                 </label>
-                <Input 
+                <Input
                   className="bg-[#0e0e0f] border-[#424655] focus:border-[#b0c6ff] text-[#e5e2e3] h-12 rounded-none font-mono uppercase"
                   placeholder="John Doe"
                   required
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                 />
               </div>
 
@@ -362,13 +417,13 @@ const TicketForm = () => {
               <div className="space-y-2">
                 <label className="font-mono text-[10px] text-[#c2c6d7] uppercase font-bold">NIK (Nomor Induk Kependudukan)</label>
                 <div className="relative">
-                  <Input 
+                  <Input
                     className={cn(
                       "bg-[#0e0e0f] h-12 rounded-none font-mono",
                       nikError ? "border-2 border-[#ffb4ab]" : "border-[#424655] focus:border-[#b0c6ff]"
                     )}
                     required
-                    value={formData.nik}
+                    value={formData.identification_number}
                     onChange={handleNikChange}
                   />
                   {isCheckingNik && (
@@ -376,7 +431,7 @@ const TicketForm = () => {
                       <RefreshCw className="animate-spin text-[#b0c6ff]" size={16} />
                     </div>
                   )}
-                  {nikError && (
+                  {nikError && !isCheckingNik && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
                       <XCircle className="text-[#ffb4ab]" size={16} />
                     </div>
@@ -392,13 +447,13 @@ const TicketForm = () => {
               {/* Email */}
               <div className="space-y-2">
                 <label className="font-mono text-[10px] text-[#c2c6d7] uppercase font-bold">Email Address</label>
-                <Input 
+                <Input
                   type="email"
                   placeholder="john.doe@gmail.com"
                   required
                   className="bg-[#0e0e0f] border-[#424655] focus:border-[#b0c6ff] text-[#e5e2e3] h-12 rounded-none font-mono"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
 
@@ -406,32 +461,38 @@ const TicketForm = () => {
               <div className="space-y-4">
                 <label className="font-mono text-[10px] text-[#c2c6d7] uppercase font-bold">Payment Status</label>
                 <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    onClick={() => setFormData({...formData, paymentStatus: 'paid'})}
+                  <div
+                    onClick={() => setFormData({ ...formData, paymentStatus: "paid" })}
                     className={cn(
                       "p-4 border-2 transition-all flex items-center justify-between cursor-pointer",
-                      formData.paymentStatus === 'paid' ? "border-[#00e475] bg-[#00e475]/10" : "border-[#424655]"
+                      formData.paymentStatus === "paid" ? "border-[#00e475] bg-[#00e475]/10" : "border-[#424655]"
                     )}
                   >
                     <span className="font-mono text-xs font-bold uppercase">Paid</span>
-                    <CheckCircle2 className={cn("text-[#00e475]", formData.paymentStatus === 'paid' ? "opacity-100" : "opacity-0")} size={20} />
+                    <CheckCircle2
+                      className={cn("text-[#00e475]", formData.paymentStatus === "paid" ? "opacity-100" : "opacity-0")}
+                      size={20}
+                    />
                   </div>
-                  <div 
-                    onClick={() => setFormData({...formData, paymentStatus: 'pending'})}
+                  <div
+                    onClick={() => setFormData({ ...formData, paymentStatus: "pending" })}
                     className={cn(
                       "p-4 border-2 transition-all flex items-center justify-between cursor-pointer",
-                      formData.paymentStatus === 'pending' ? "border-[#fe9400] bg-[#fe9400]/10" : "border-[#424655]"
+                      formData.paymentStatus === "pending" ? "border-[#fe9400] bg-[#fe9400]/10" : "border-[#424655]"
                     )}
                   >
                     <span className="font-mono text-xs font-bold uppercase">Pending</span>
-                    <Clock className={cn("text-[#fe9400]", formData.paymentStatus === 'pending' ? "opacity-100" : "opacity-0")} size={20} />
+                    <Clock
+                      className={cn("text-[#fe9400]", formData.paymentStatus === "pending" ? "opacity-100" : "opacity-0")}
+                      size={20}
+                    />
                   </div>
                 </div>
               </div>
 
               {/* Action Button */}
               <div className="pt-6">
-                <Button 
+                <Button
                   type="submit"
                   disabled={isProcessing || !!nikError}
                   className="w-full h-16 bg-[#b0c6ff] hover:bg-[#b0c6ff]/90 text-[#002d6e] font-bold text-lg rounded-none uppercase tracking-widest group"
@@ -439,7 +500,9 @@ const TicketForm = () => {
                   {isProcessing ? "Processing Submission..." : "Create & Send Ticket"}
                   {!isProcessing && <ArrowRight className="ml-4 transition-transform group-hover:translate-x-2" />}
                 </Button>
-                <p className="text-center font-mono text-[10px] text-[#c2c6d7] mt-4 uppercase">System will log operator IP [192.168.1.104] for this transaction.</p>
+                <p className="text-center font-mono text-[10px] text-[#c2c6d7] mt-4 uppercase">
+                  Ticket will be created as {formData.paymentStatus === "paid" ? "PAID (QR email sent immediately)" : "PENDING"}
+                </p>
               </div>
             </form>
           </div>
