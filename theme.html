@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viking Design System - Premium Font Board</title>
+    <style>
+        /* --- GOOGLE FONTS INGESTION --- */
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Pirata+One&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+        /* --- RESET & GLOBAL TYPOGRAPHY ACCESSIBILITY --- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        *:focus-visible {
+            outline: 3px solid #d69642 !important;
+            outline-offset: 2px;
+        }
+
+        body {
+            background-color: #1f3347; /* Deep Fjord Blue Background */
+            font-family: "Poppins", sans-serif; /* Set Poppins as default body font */
+            font-weight: 400;
+            font-style: normal;
+            color: #2B2B2B;
+            padding: 60px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* --- THE DASHBOARD GRID SYSTEM --- */
+        .design-board {
+            display: grid;
+            grid-template-columns: 280px repeat(3, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* --- CARD GEOMETRY --- */
+        .board-card {
+            background-color: #ece8dc; /* Bone White Canvas */
+            position: relative;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 210px;
+            
+            /* Clean bottom-right notch matching image blueprint layout exactly */
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+        }
+
+        /* Structural Amber Edge Pillar */
+        .board-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background-color: #d69642;
+        }
+
+        .span-v-3 { grid-row: span 3; }
+        .span-h-3 { grid-column: span 3; }
+
+        /* Meta Headers (Utilizing Pirata One for theme accents) */
+        .meta-header {
+            display: flex;
+            justify-content: space-between;
+            font-family: "Pirata One", system-ui;
+            font-weight: 400;
+            font-style: normal;
+            font-size: 1.15rem;
+            color: #1f3347;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px dashed rgba(31, 51, 71, 0.3);
+            padding-bottom: 4px;
+            margin-bottom: 16px;
+        }
+        .meta-header span:last-child {
+            opacity: 0.6;
+        }
+
+        /* --- PALETTE SYSTEM --- */
+        .color-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+            justify-content: space-between;
+        }
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .color-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1f3347;
+        }
+        .color-hex {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        .color-preview {
+            height: 44px;
+            border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.15);
+            margin-top: 4px;
+        }
+        .color-strip {
+            display: flex;
+            height: 14px;
+            margin-top: 4px;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+        .strip-step { flex: 1; }
+
+        /* --- TYPOGRAPHY GLYPH EXPRESSIONS --- */
+        .typography-glyph {
+            font-size: 5.5rem;
+            line-height: 1;
+            color: #2B2B2B;
+            margin-top: auto;
+            align-self: flex-end;
+        }
+        
+        /* Font Class Integrations */
+        .font-headline {
+            font-family: "Cinzel Decorative", serif;
+            font-weight: 900;
+            font-style: normal;
+        }
+        .font-body {
+            font-family: "Poppins", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+        }
+        .font-label {
+            font-family: "Poppins", sans-serif;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        /* --- SYSTEM BUTTON MATRIX --- */
+        .button-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: auto;
+        }
+        .action-btn {
+            padding: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 2px solid #2B2B2B;
+            border-radius: 2px;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.1s ease, color 0.1s ease;
+        }
+        /* WCAG AAA Compliant Text Combinations */
+        .btn-p { background-color: #1f3347; color: #ece8dc; border-color: #1f3347; }
+        .btn-s { background-color: #d69642; color: #2B2B2B; border-color: #d69642; }
+        .btn-i { background-color: #2B2B2B; color: #ece8dc; border-color: #2B2B2B; }
+        .btn-o { background-color: transparent; color: #1f3347; border-color: #1f3347; }
+        
+        .action-btn:hover { filter: brightness(1.08); }
+
+        /* --- ACCESSIBLE FORM FIELD --- */
+        .search-field-container {
+            position: relative;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        .search-field-input {
+            width: 100%;
+            padding: 14px 14px 14px 44px;
+            background-color: transparent;
+            border: 2px solid #2B2B2B;
+            border-radius: 2px;
+            font-size: 0.95rem;
+            color: #2B2B2B;
+            font-weight: 600;
+            font-family: "Poppins", sans-serif;
+        }
+        .search-field-input::placeholder {
+            font-weight: 400;
+            opacity: 0.6;
+        }
+        .search-field-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            fill: #1f3347;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* --- VISUAL PROGRESS TRACKERS --- */
+        .progress-container {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        .track-element {
+            height: 12px;
+            background-color: rgba(31, 51, 71, 0.1);
+            border: 1px solid rgba(43, 43, 43, 0.3);
+            border-radius: 1px;
+            position: relative;
+        }
+        .track-fill { height: 100%; }
+
+        /* --- NAVIGATION SYSTEM --- */
+        .navigation-row-element {
+            background-color: #2B2B2B;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-radius: 2px;
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+        .navigation-anchor {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 18px;
+            cursor: pointer;
+            border-radius: 2px;
+            border: none;
+            background: transparent;
+        }
+        .navigation-anchor svg { fill: #ece8dc; width: 20px; height: 20px; }
+        .navigation-anchor.is-active { background-color: #d69642; }
+        .navigation-anchor.is-active svg { fill: #2B2B2B; }
+
+        /* --- UTILITY NODES --- */
+        .center-flex-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        .utility-square-control {
+            width: 48px;
+            height: 48px;
+            background-color: #2B2B2B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+            cursor: pointer;
+            border: none;
+        }
+        .utility-square-control svg { fill: #ece8dc; width: 20px; height: 20px; }
+
+        /* Contextual Pill Control */
+        .pill-action-control {
+            background-color: #1f3347;
+            color: #ece8dc;
+            padding: 12px 28px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            margin-top: auto;
+            margin-bottom: auto;
+            align-self: center;
+            width: 100%;
+            font-family: "Poppins", sans-serif;
+        }
+        .pill-action-control svg { fill: #d69642; width: 16px; height: 16px; }
+
+        /* Bottom Status Area */
+        .horizontal-status-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: auto;
+        }
+        .status-node {
+            width: 46px;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+            border: 2px solid #2B2B2B;
+        }
+        .status-node svg { width: 18px; height: 18px; }
+
+        /* Fluid Layout Adaptations */
+        @media (max-width: 1024px) {
+            .design-board { grid-template-columns: repeat(2, 1fr); }
+            .span-v-3 { grid-row: span 1; }
+            .span-h-3 { grid-column: span 1; }
+        }
+        @media (max-width: 640px) {
+            .design-board { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="design-board">
+
+        <section class="board-card span-v-3" aria-label="Color Swatches">
+            <div class="meta-header" aria-hidden="true"><span>Swatches</span><span>Palette Scales</span></div>
+            <div class="color-stack">
+                
+                <div class="color-item">
+                    <div class="color-title">Primary Blue</div>
+                    <div class="color-hex">#1F3347</div>
+                    <div class="color-preview" style="background-color: #1f3347;"></div>
+                    <div class="color-strip">
+                        <div class="strip-step" style="background-color: #0c141c;"></div>
+                        <div class="strip-step" style="background-color: #152230;"></div>
+                        <div class="strip-step" style="background-color: #38536e;"></div>
+                        <div class="strip-step" style="background-color: #5b7997;"></div>
+                    </div>
+                </div>
+
+                <div class="color-item">
+                    <div class="color-title">Amber Gold</div>
+                    <div class="color-hex">#D69642</div>
+                    <div class="color-preview" style="background-color: #d69642;"></div>
+                    <div class="color-strip">
+                        <div class="strip-step" style="background-color: #5e4118;"></div>
+                        <div class="strip-step" style="background-color: #9c6c2e;"></div>
+                        <div class="strip-step" style="background-color: #e2b273;"></div>
+                        <div class="strip-step" style="background-color: #edd1aa;"></div>
+                    </div>
+                </div>
+
+                <div class="color-item">
+                    <div class="color-title">Bone White</div>
+                    <div class="color-hex">#ECE8DC</div>
+                    <div class="color-preview" style="background-color: #ece8dc;"></div>
+                    <div class="color-strip">
+                        <div class="strip-step" style="background-color: #b0ab9c;"></div>
+                        <div class="strip-step" style="background-color: #cfcab9;"></div>
+                        <div class="strip-step" style="background-color: #f1eee6;"></div>
+                        <div class="strip-step" style="background-color: #ffffff;"></div>
+                    </div>
+                </div>
+
+                <div class="color-item">
+                    <div class="color-title">Charcoal</div>
+                    <div class="color-hex">#2B2B2B</div>
+                    <div class="color-preview" style="background-color: #2B2B2B;"></div>
+                    <div class="color-strip">
+                        <div class="strip-step" style="background-color: #000000;"></div>
+                        <div class="strip-step" style="background-color: #171717;"></div>
+                        <div class="strip-step" style="background-color: #545454;"></div>
+                        <div class="strip-step" style="background-color: #8c8c8c;"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="board-card" aria-label="Headline Font Display">
+            <div class="meta-header" aria-hidden="true"><span>Headline Font</span><span>Cinzel Decorative</span></div>
+            <div class="typography-glyph font-headline" aria-hidden="true">Aa</div>
+        </section>
+
+        <section class="board-card" aria-label="Interactive Button Demonstrations">
+            <div class="meta-header" aria-hidden="true"><span>Interactive</span><span>Button Types</span></div>
+            <div class="button-matrix">
+                <button class="action-btn btn-p">Primary</button>
+                <button class="action-btn btn-s">Secondary</button>
+                <button class="action-btn btn-i">Inverted</button>
+                <button class="action-btn btn-o">Outlined</button>
+            </div>
+        </section>
+
+        <section class="board-card" aria-label="Form Input Fields">
+            <div class="meta-header" aria-hidden="true"><span>Input Fields</span><span>Search Asset</span></div>
+            <div class="search-field-container">
+                <label for="search-input" class="sr-only">Search assets</label>
+                <svg class="search-field-icon" width="18" height="18" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                <input type="text" id="search-input" class="search-field-input" placeholder="Search Map...">
+            </div>
+        </section>
+
+        <section class="board-card" aria-label="Body Text Font Display">
+            <div class="meta-header" aria-hidden="true"><span>Body Text</span><span>Poppins Regular</span></div>
+            <div class="typography-glyph font-body" aria-hidden="true">Aa</div>
+        </section>
+
+        <section class="board-card" aria-label="Progress Display Elements">
+            <div class="meta-header" aria-hidden="true"><span>Visual Progress</span><span>Raid Status</span></div>
+            <div class="progress-container">
+                <div class="track-element" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"><div class="track-fill" style="background-color: #2B2B2B; width: 80%;"></div></div>
+                <div class="track-element" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100"><div class="track-fill" style="background-color: #d69642; width: 92%;"></div></div>
+                <div class="track-element" role="progressbar" aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"><div class="track-fill" style="background-color: #1f3347; width: 55%;"></div></div>
+            </div>
+        </section>
+
+        <nav class="board-card" aria-label="Icon Strip Navigation">
+            <div class="meta-header" aria-hidden="true"><span>Navigation</span><span>Icon Strip</span></div>
+            <div class="navigation-row-element">
+                <button class="navigation-anchor is-active" aria-label="Home">
+                    <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </button>
+                <button class="navigation-anchor" aria-label="Maps">
+                    <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5c.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+                </button>
+                <button class="navigation-anchor" aria-label="Shield and Defense">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                </button>
+            </div>
+        </nav>
+
+        <section class="board-card" aria-label="Label Font Display">
+            <div class="meta-header" aria-hidden="true"><span>Label Text</span><span>Poppins Bold</span></div>
+            <div class="typography-glyph font-label" style="opacity: 0.85;" aria-hidden="true">Aa</div>
+        </section>
+
+        <section class="board-card" aria-label="Action Modules">
+            <div class="meta-header" aria-hidden="true"><span>Action Module</span><span>Edit Block</span></div>
+            <div class="center-flex-wrapper">
+                <button class="utility-square-control" aria-label="Edit Item">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                </button>
+            </div>
+        </section>
+
+        <section class="board-card" aria-label="Pill Actions">
+            <div class="meta-header" aria-hidden="true"><span>Pill State</span><span>Context Label</span></div>
+            <button class="pill-action-control">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-4h-2V7h2v2z"/></svg>
+                Action
+            </button>
+        </section>
+
+        <section class="board-card span-h-3" style="min-height: auto;" aria-label="System Status Node Row">
+            <div class="meta-header" aria-hidden="true"><span>Status Indicators</span><span>Row Action</span></div>
+            <div class="horizontal-status-bar">
+                <div class="status-node" style="background-color: #1f3347;" role="img" aria-label="System Settings Node"><svg fill="#ece8dc" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg></div>
+                <div class="status-node" style="background-color: #d69642;" role="img" aria-label="Warning Node"><svg fill="#2B2B2B" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L20.53 19H3.47L12 5.99zM11 16h2v2h-2v-2zm0-6h2v4h-2v-4z"/></svg></div>
+                <div class="status-node" style="background-color: #2B2B2B;" role="img" aria-label="Information Label Node"><svg fill="#ece8dc" viewBox="0 0 24 24"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7c-.83 0-1.5-.67-1.5-1.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg></div>
+                <div class="status-node" style="background-color: #660000; border-color: #660000;" role="img" aria-label="Destructive Action Danger Node"><svg fill="#ece8dc" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H4v2h15V4z"/></svg></div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>

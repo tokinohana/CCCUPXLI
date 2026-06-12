@@ -9,7 +9,9 @@ click==8.4.1
 click-didyoumean==0.3.1
 click-plugins==1.1.1.2
 click-repl==0.3.0
+cloudinary==1.44.2
 dj-database-url==3.1.0
+dj3-cloudinary-storage==0.0.6
 Django==6.0.2
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
