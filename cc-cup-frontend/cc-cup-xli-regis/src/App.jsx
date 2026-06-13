@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
+import DashboardSkeleton from './components/DashboardSkeleton';
 import LoginPage from './pages/LoginPage';
 import SignupStep1Page from './pages/SignupStep1Page';
 import SignupStep2Page from './pages/SignupStep2Page';
@@ -57,16 +58,9 @@ function App() {
     setTeamStatus(null);
   };
 
-  // Show a minimal loading screen while checking stored token
+  // Show a skeleton layout while checking stored token
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center space-y-2">
-          <div className="w-8 h-8 border-4 border-black border-t-yellow-400 rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Memuat...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const resolvedStatus = teamStatus || 'PENDING';

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 // Components
 import NavigationHeader from '../components/NavigationHeader';
+import DashboardSkeleton from '../components/DashboardSkeleton';
 import StatusBanner from '../components/StatusBanner';
 import TeamSummaryGrid from '../components/TeamSummaryGrid';
 import TeamFilesWorkspace from '../components/TeamFilesWorkspace';
@@ -341,14 +342,7 @@ export default function DashboardPage({ teamData: initialTeamData, onTeamUpdate,
   // Render
   // ─────────────────────────────────────────────────────────────────────────────
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center space-y-2">
-          <div className="w-8 h-8 border-4 border-black border-t-yellow-400 rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Memuat dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
