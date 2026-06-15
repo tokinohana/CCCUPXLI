@@ -112,7 +112,7 @@ class TeamFile(models.Model):
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='files', verbose_name='Tim')
     file_type = models.CharField(max_length=30, choices=FILE_TYPE_CHOICES, verbose_name='Jenis Berkas')
-    file = models.FileField(upload_to='regis/team_files/', verbose_name='Berkas')
+    file = models.FileField(upload_to='Registration/team_files/', verbose_name='Berkas')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
 
     class Meta:
@@ -131,7 +131,7 @@ class MemberFile(models.Model):
     """
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='files', verbose_name='Anggota')
     file_type = models.CharField(max_length=50, verbose_name='Jenis Berkas')  # e.g. "akte", "rapor", "sabuk"
-    file = models.FileField(upload_to='regis/member_files/', verbose_name='Berkas')
+    file = models.FileField(upload_to='Registration/member_files/', verbose_name='Berkas')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
 
     class Meta:
@@ -167,11 +167,14 @@ class OtherInfo(models.Model):
 # ─────────────────────────────────────────────────────────────────────────────
 class ChatDocument(models.Model):
     """
-    Admin-uploaded SOP / reference PDF that the AI consultant uses as
-    its knowledge base. Shared across all teams.
+    SOP / reference PDF referenced by URL. The PDF lives on the homepage's
+    /public/sop/ folder (or any public URL). Text is extracted once by Celery
+    and cached in extracted_text.
     """
     name = models.CharField(max_length=255, verbose_name='Nama Dokumen')
-    file = models.FileField(upload_to='regis/chat_documents/', verbose_name='Berkas PDF')
+    pdf_url = models.URLField(max_length=500, default='', verbose_name='URL PDF')
+    filename = models.CharField(max_length=255, blank=True, verbose_name='Nama File',
+                                help_text='Original filename, e.g. voli.pdf')
     extracted_text = models.TextField(blank=True, verbose_name='Teks Hasil Ekstraksi')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
     is_active = models.BooleanField(default=True, verbose_name='Aktif')

@@ -80,7 +80,7 @@ const Login = () => {
                 required
                 autoFocus
                 autoComplete="email"
-                placeholder="operator@cccup.dev"
+                placeholder="operator@cccup.id"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-[#0e0e0f] border-[#424655] focus:border-[#b0c6ff] text-[#e5e2e3] h-12 rounded-none font-mono"

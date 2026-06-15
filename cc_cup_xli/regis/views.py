@@ -581,9 +581,9 @@ class SaveSubkategoriView(views.APIView):
 # AI CHAT CONSULTANT
 # ─────────────────────────────────────────────────────────────────────────────
 def _get_active_documents():
-    """Return list of {name, text} for all active ChatDocuments."""
+    """Return list of {name, filename, text} for all active ChatDocuments."""
     docs = ChatDocument.objects.filter(is_active=True).exclude(extracted_text='')
-    return [{'name': d.name, 'text': d.extracted_text} for d in docs]
+    return [{'name': d.name, 'filename': d.filename, 'text': d.extracted_text} for d in docs]
 
 
 def _get_or_create_chat_session(team):

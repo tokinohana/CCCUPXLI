@@ -97,7 +97,6 @@ def generate_reply(
         documents: list of {name, text} dicts (active ChatDocuments).
         chat_history: list of {role, content} dicts.
         user_message: the latest user message.
-    
     Returns:
         (reply_text, source_filenames)
     """
@@ -107,8 +106,9 @@ def generate_reply(
     for doc in documents:
         snippet = pick_relevant_snippet(doc.get("text", ""), user_message, max_chars=2000)
         if snippet:
-            context_parts.append(f"Content from uploaded file '{doc['name']}':\n{snippet}")
-            available_sources.append(doc["name"])
+            ref = doc.get('filename') or doc['name']
+            context_parts.append(f"Content from '{doc['name']}' (file: {ref}):\n{snippet}")
+            available_sources.append(ref)
 
     system_prompt = (
         "Anda adalah 'Konsultan CC CUP'—layanan pelanggan profesional yang bertugas "

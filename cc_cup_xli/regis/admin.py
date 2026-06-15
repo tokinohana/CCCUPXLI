@@ -77,44 +77,38 @@ class OtherInfoAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
 @admin.register(ChatDocument)
 class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     allowed_group = REGIS_GROUP
-    list_display = ['name', 'is_active', 'uploaded_at']
+    list_display = ['name', 'pdf_url', 'is_active', 'has_extracted_text', 'uploaded_at']
     list_filter = ['is_active', 'uploaded_at']
     actions = ['extract_text_action']
 
+    @admin.display(boolean=True, description='Extracted')
+    def has_extracted_text(self, obj):
+        return bool(obj.extracted_text) and not obj.extracted_text.startswith('[Extraction error')
+
     def save_model(self, request, obj, form, change):
-        """Auto-extract PDF text on save."""
+        """Save the document, then dispatch PDF extraction to Celery."""
         super().save_model(request, obj, form, change)
-        if obj.file and (not obj.extracted_text or 'file' in form.changed_data):
-            try:
-                from . import chat_services
-                import requests
-                # Works with both local and Cloudinary storage via URL
-                url = obj.file.url
-                resp = requests.get(url, timeout=30)
-                resp.raise_for_status()
-                obj.extracted_text = chat_services.extract_pdf_text(resp.content)
-                obj.save(update_fields=['extracted_text'])
-            except Exception as e:
-                obj.extracted_text = f"[Extraction error: {e}]"
-                obj.save(update_fields=['extracted_text'])
+        if obj.pdf_url and (not obj.extracted_text or 'pdf_url' in form.changed_data):
+            from .tasks import extract_chat_document_text
+            extract_chat_document_text.delay(obj.pk)
+            self.message_user(
+                request,
+                f'PDF extraction queued for "{obj.name}" (runs in background).',
+            )
 
     def extract_text_action(self, request, queryset):
-        """Re-extract text from selected PDFs."""
-        from . import chat_services
-        import requests
+        """Re-extract text from selected PDFs via Celery tasks."""
+        from .tasks import extract_chat_document_text
         count = 0
         for doc in queryset:
-            try:
-                url = doc.file.url
-                resp = requests.get(url, timeout=30)
-                resp.raise_for_status()
-                doc.extracted_text = chat_services.extract_pdf_text(resp.content)
-                doc.save(update_fields=['extracted_text'])
+            if doc.pdf_url:
+                extract_chat_document_text.delay(doc.pk)
                 count += 1
-            except Exception:
-                pass
-        self.message_user(request, f"Extracted text from {count} document(s).")
-    extract_text_action.short_description = "Re-extract PDF text"
+        self.message_user(
+            request,
+            f'Queued text extraction for {count} document(s) in background.',
+        )
+    extract_text_action.short_description = "Re-extract PDF text (background)"
 
 
 @admin.register(ChatSession)
