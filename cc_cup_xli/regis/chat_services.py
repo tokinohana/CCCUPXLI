@@ -118,6 +118,7 @@ def generate_reply(
         "Gunakan gaya bahasa Indonesia yang formal namun ramah. Jangan memberikan "
         "pertanyaan balik yang tidak perlu atau berbelit-belit; langsung berikan solusi "
         "atau jawaban yang dicari user. "
+        "BATASI jawaban Anda MAKSIMAL 2 paragraf singkat. Jangan bertele-tele.\n"
         "Jika informasi tersedia dalam dokumen, jelaskan dengan akurat. Jika informasi "
         "sama sekali tidak ditemukan, sampaikan dengan sopan bahwa Anda belum memiliki "
         f"datanya dan arahkan user untuk menghubungi Admin pusat di: {ADMIN_PHONE}.\n\n"
@@ -166,6 +167,7 @@ def generate_reply(
             model=model,
             messages=messages,
             temperature=0.2,
+            max_tokens=256,
             tool_choice="none",
         )
         raw = (resp.choices[0].message.content or "").strip()
