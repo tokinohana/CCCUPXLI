@@ -8,4 +8,8 @@ This project is built using "Modular Monorepo" architecture. It contains several
 
 ### Collaborators
 1. Lead Developer - Benedict Halim (https://github.com/tokinohana)
-2. Ticketing Developer - Mark Bern Widjaja (https://github.com/superproplayer1234)
+2. Ticketing - Mark Bern Widjaja (https://github.com/superproplayer1234)
+3. Registration - Benedict Halim, Gerardus Paxton Mardhi
+4. AI (RAG) for registration - Owen Benedict Tanjung, Nathanael Ethan Santoso
+5. Homepage - Nicholas Edward Santoso, I Gusti Ngurah Anargya Y. K.
+6. CC PAY - Benedict Halim
