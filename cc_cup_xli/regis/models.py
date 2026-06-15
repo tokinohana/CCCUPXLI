@@ -160,3 +160,49 @@ class OtherInfo(models.Model):
 
     def __str__(self):
         return f"{self.team.nama_tim} - {self.key}"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CHAT / AI CONSULTANT
+# ─────────────────────────────────────────────────────────────────────────────
+class ChatDocument(models.Model):
+    """
+    Admin-uploaded SOP / reference PDF that the AI consultant uses as
+    its knowledge base. Shared across all teams.
+    """
+    name = models.CharField(max_length=255, verbose_name='Nama Dokumen')
+    file = models.FileField(upload_to='regis/chat_documents/', verbose_name='Berkas PDF')
+    extracted_text = models.TextField(blank=True, verbose_name='Teks Hasil Ekstraksi')
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
+    is_active = models.BooleanField(default=True, verbose_name='Aktif')
+
+    class Meta:
+        ordering = ['-uploaded_at']
+        verbose_name = 'Dokumen Chat AI'
+        verbose_name_plural = 'Dokumen Chat AI'
+
+    def __str__(self):
+        return self.name
+
+
+class ChatSession(models.Model):
+    """
+    Per-team chat state: conversation history, token usage, and cap.
+    Created on first chat interaction.
+    """
+    team = models.OneToOneField(
+        Team, on_delete=models.CASCADE, related_name='chat_session',
+        verbose_name='Tim'
+    )
+    chat_history = models.JSONField(default=list, blank=True, verbose_name='Riwayat Chat')
+    token_usage = models.PositiveIntegerField(default=0, verbose_name='Penggunaan Token')
+    token_cap = models.PositiveIntegerField(default=10000, verbose_name='Batas Token')
+    last_active_at = models.DateTimeField(auto_now=True, verbose_name='Terakhir Aktif')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Dibuat Pada')
+
+    class Meta:
+        verbose_name = 'Sesi Chat'
+        verbose_name_plural = 'Sesi Chat'
+
+    def __str__(self):
+        return f"Chat: {self.team.nama_tim} ({self.token_usage}/{self.token_cap} tokens)"

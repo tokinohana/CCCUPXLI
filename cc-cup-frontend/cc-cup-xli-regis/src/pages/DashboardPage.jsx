@@ -11,6 +11,7 @@ import RosterWorkspace from '../components/RosterWorkspace';
 import MobileToolbar from '../components/MobileToolbar';
 import UnifiedMemberModal from '../components/UnifiedMemberModal';
 import BankRekeningForm from '../components/BankRekeningForm';
+import ChatWidget from '../components/ChatWidget';
 
 // Competition metadata for dynamic field/quota resolution
 import { COMPETITION_METADATA } from '../config/competition';
@@ -423,6 +424,9 @@ export default function DashboardPage({ teamData: initialTeamData, onTeamUpdate,
         onClose={() => setModalConfig({ isOpen: false, mode: 'add', selectedMember: null })}
         onSave={handleSaveMember}
       />
+
+      {/* Floating AI Chat Consultant */}
+      <ChatWidget />
     </div>
   );
 }

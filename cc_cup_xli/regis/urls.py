@@ -31,4 +31,9 @@ urlpatterns = [
 
     # Subkategori
     path('save-subkategori/', views.SaveSubkategoriView.as_view(), name='regis-save-subkategori'),
+
+    # AI Chat Consultant
+    path('chat/', views.ChatView.as_view(), name='regis-chat'),
+    path('chat/status/', views.ChatStatusView.as_view(), name='regis-chat-status'),
+    path('chat/clear/', views.ChatClearView.as_view(), name='regis-chat-clear'),
 ]

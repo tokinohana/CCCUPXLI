@@ -190,4 +190,22 @@ export async function saveSubkategori(memberId, subkategori) {
   return res.data;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Chat Consultant
+// ─────────────────────────────────────────────────────────────────────────────
+export async function getChatStatus() {
+  const res = await api.get('/chat/status/');
+  return res.data;
+}
+
+export async function sendChatMessage(message) {
+  const res = await api.post('/chat/', { message });
+  return res.data;
+}
+
+export async function clearChatHistory() {
+  const res = await api.post('/chat/clear/');
+  return res.data;
+}
+
 export default api;

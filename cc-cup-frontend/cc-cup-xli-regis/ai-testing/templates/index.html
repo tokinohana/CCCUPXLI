@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PDF → Markdown → Chat Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chat.css') }}" />
+  </head>
+  <body>
+    <h1>PDF → Markdown → Chat Demo</h1>
+
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+      <label>
+        Upload PDF files:
+        <input type="file" name="file" accept=".pdf,application/pdf" multiple required />
+      </label>
+      <button type="submit">Upload</button>
+    </form>
+
+    {% if docs %}
+      <h3>Uploaded Documents:</h3>
+      <ul>
+        {% for doc in docs %}
+          <li><strong>{{ doc.name }}</strong> (Internal name: {{ doc.base }})</li>
+        {% endfor %}
+      </ul>
+      <p>The AI can now choose which file to open based on your questions.</p>
+    {% else %}
+      <p>Status: No documents uploaded yet. You can upload multiple PDFs.</p>
+    {% endif %}
+
+    <p>Need urgent help? Contact Admin: <strong>{{ admin_phone }}</strong></p>
+
+    <div
+      id="chat-root"
+      data-docs="{{ docs | tojson | forceescape }}"
+      data-admin-phone="{{ admin_phone }}"
+    ></div>
+
+    <script type="module" src="{{ url_for('static', filename='chat.js') }}"></script>
+  </body>
+</html>

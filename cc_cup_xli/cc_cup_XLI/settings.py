@@ -221,3 +221,11 @@ EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 EMAIL_HOST_USER = os.getenv('ZOHO_EMAIL', '')
 EMAIL_HOST_PASSWORD = os.getenv('ZOHO_PASSWORD', '')
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI Chat Consultant (Groq LLM)
+# ─────────────────────────────────────────────────────────────────────────────
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
+CHAT_ADMIN_PHONE = os.getenv('CHAT_ADMIN_PHONE', '+62-812-3456-7890')
+CHAT_DEFAULT_TOKEN_CAP = int(os.getenv('CHAT_DEFAULT_TOKEN_CAP', '10000'))

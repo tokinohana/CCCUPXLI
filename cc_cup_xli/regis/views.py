@@ -1,15 +1,17 @@
 import os
+import json
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Team, Member, TeamFile, MemberFile, OtherInfo
+from .models import Team, Member, TeamFile, MemberFile, OtherInfo, ChatDocument, ChatSession
 from .serializers import (
     TeamSerializer, MemberSerializer, TeamFileSerializer,
     MemberFileSerializer, OtherInfoSerializer, LoginSerializer,
     RegisterSerializer, RekeningSerializer
 )
+from . import chat_services
 
 User = get_user_model()
 
@@ -573,3 +575,133 @@ class SaveSubkategoriView(views.APIView):
         member.save()
 
         return Response(MemberSerializer(member).data)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AI CHAT CONSULTANT
+# ─────────────────────────────────────────────────────────────────────────────
+def _get_active_documents():
+    """Return list of {name, text} for all active ChatDocuments."""
+    docs = ChatDocument.objects.filter(is_active=True).exclude(extracted_text='')
+    return [{'name': d.name, 'text': d.extracted_text} for d in docs]
+
+
+def _get_or_create_chat_session(team):
+    """Return (ChatSession, created) for the given team."""
+    session, created = ChatSession.objects.get_or_create(
+        team=team,
+        defaults={
+            'chat_history': [],
+            'token_usage': 0,
+            'token_cap': chat_services.DEFAULT_TOKEN_CAP,
+        }
+    )
+    return session, created
+
+
+class ChatStatusView(views.APIView):
+    """
+    GET /api/regis/chat/status/
+    Return chat session status: token usage, cap, and document count.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        team, err = _get_team_or_error(request)
+        if err:
+            return err
+
+        session, _ = _get_or_create_chat_session(team)
+        doc_count = ChatDocument.objects.filter(is_active=True).count()
+
+        return Response({
+            'token_usage': session.token_usage,
+            'token_cap': session.token_cap,
+            'document_count': doc_count,
+            'has_documents': doc_count > 0,
+        })
+
+
+class ChatView(views.APIView):
+    """
+    POST /api/regis/chat/
+    Send a message and receive an AI reply.
+    Body: { "message": "..." }
+    Response: { "reply": "...", "usage": N, "cap": N, "sources": [...] }
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        team, err = _get_team_or_error(request)
+        if err:
+            return err
+
+        message = (request.data.get('message') or '').strip()
+        if not message:
+            return Response(
+                {'reply': 'Silakan kirim pesan yang valid.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        session, _ = _get_or_create_chat_session(team)
+
+        # Token cap check
+        if session.token_usage >= session.token_cap:
+            return Response({
+                'reply': (
+                    f"Batas token Anda ({session.token_cap}) telah tercapai. "
+                    "Silakan hubungi admin untuk bantuan lebih lanjut atau tunggu reset harian."
+                ),
+                'usage': session.token_usage,
+                'cap': session.token_cap,
+                'sources': [],
+            })
+
+        # Count user message tokens
+        session.token_usage += chat_services.estimate_tokens(message)
+
+        # Append user message to history
+        history = session.chat_history or []
+        history.append({'role': 'user', 'content': message})
+
+        # Build document context
+        documents = _get_active_documents()
+
+        # Generate reply
+        try:
+            reply, sources = chat_services.generate_reply(documents, history, message)
+            session.token_usage += chat_services.estimate_tokens(reply)
+        except Exception as e:
+            reply = (
+                f"Terjadi kesalahan pada backend chat: {e}. "
+                "Silakan coba lagi atau muat ulang halaman."
+            )
+            sources = []
+
+        # Append assistant reply to history (keep last 20)
+        history.append({'role': 'assistant', 'content': reply})
+        session.chat_history = history[-20:]
+        session.save()
+
+        return Response({
+            'reply': reply,
+            'usage': session.token_usage,
+            'cap': session.token_cap,
+            'sources': sources,
+        })
+
+
+class ChatClearView(views.APIView):
+    """
+    POST /api/regis/chat/clear/
+    Clear the team's chat history (does NOT reset token usage).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        team, err = _get_team_or_error(request)
+        if err:
+            return err
+
+        ChatSession.objects.filter(team=team).update(chat_history=[])
+        return Response({'ok': True})
