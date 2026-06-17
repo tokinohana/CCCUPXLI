@@ -1,4 +1,9 @@
 import csv
+import io
+import logging
+import qrcode
+
+from django.core.mail import EmailMessage
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
@@ -16,6 +21,33 @@ from .serializers import (
     UpdateTicketSerializer,
     RedeemTicketSerializer,
 )
+
+logger = logging.getLogger(__name__)
+
+
+def _send_ticket_qr_email(ticket):
+    """Generate a QR code for the ticket and email it via Zoho SMTP (~5-10s)."""
+    try:
+        qr = qrcode.make(str(ticket.ticket_id))
+        buffer = io.BytesIO()
+        qr.save(buffer, format='PNG')
+        buffer.seek(0)
+
+        email = EmailMessage(
+            subject='Tiket Closing Event CCCUP XLI',
+            body=(
+                f'Halo {ticket.full_name}!\n\n'
+                f'Ini QR Code tiket kamu untuk Closing Event CCCUP XLI.\n'
+                f'Tunjukkan QR Code ini saat masuk ke venue.\n\n'
+                f'Terima kasih!'
+            ),
+            from_email='noreply@cccupxli.com',
+            to=[ticket.email],
+        )
+        email.attach(f'ticket_{ticket.ticket_id}.png', buffer.read(), 'image/png')
+        email.send()
+    except Exception as exc:
+        logger.error(f"Failed to send QR email for ticket {ticket.ticket_id}: {exc}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -83,15 +115,9 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         old_status = self.get_object().status
         ticket = serializer.save()
-        # Fire QR email in a background thread when status changes to 'paid'
+        # Send QR email synchronously when status changes to 'paid' (~5-10s Zoho SMTP)
         if old_status != 'paid' and ticket.status == 'paid':
-            import threading
-            from .tasks import send_ticket_qr_email
-            threading.Thread(
-                target=send_ticket_qr_email,
-                args=(ticket.pk,),
-                daemon=True,
-            ).start()
+            _send_ticket_qr_email(ticket)
 
 
 class VerifyNIKView(APIView):

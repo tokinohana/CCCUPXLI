@@ -25,8 +25,6 @@
                                       │
                          ┌────────────▼────────────────────┐
                          │   Gunicorn :8000 (Django)        │
-                         │   + Celery Worker + Beat         │
-                         │   + Redis (broker)               │
                          └─────────────────────────────────┘
                                       │
                          ┌────────────▼────────────────────┐
@@ -67,7 +65,7 @@ chown -R deploy:deploy /home/deploy/.ssh
 apt update && apt upgrade -y
 
 # Install essential packages
-apt install -y nginx python3.12 python3.12-venv python3-pip redis-server \
+apt install -y nginx python3.12 python3.12-venv python3-pip \
   certbot python3-certbot-nginx postgresql-client ufw git
 
 # Configure firewall
@@ -138,10 +136,6 @@ ALLOWED_HOSTS=api.cccup.id,admin.cccup.id,cccup.id
 
 # ── Database (Neon PostgreSQL — already external) ──
 DATABASE_URL=postgresql://<user>:<pass>@<host>/neondb?sslmode=require
-
-# ── Redis (local, for Celery) ──
-CELERY_BROKER_URL=redis://localhost:6379/0
-CELERY_RESULT_BACKEND=redis://localhost:6379/0
 
 # ── Cloudinary ──
 CLOUDINARY_CLOUD_NAME=<your_cloud_name>
@@ -238,59 +232,6 @@ WantedBy=multi-user.target
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable --now gunicorn
-```
-
-### 4.7 Celery Services
-
-Create `/etc/systemd/system/celery-worker.service`:
-
-```ini
-[Unit]
-Description=Celery Worker for CC CUP XLI
-After=network.target redis.service
-
-[Service]
-User=deploy
-Group=deploy
-WorkingDirectory=/home/deploy/apps/cccupxli/cc_cup_xli
-Environment="PATH=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin"
-ExecStart=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin/celery \
-    -A cc_cup_XLI worker \
-    --loglevel=info \
-    --logfile=/home/deploy/apps/cccupxli/celery-worker.log
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Create `/etc/systemd/system/celery-beat.service`:
-
-```ini
-[Unit]
-Description=Celery Beat for CC CUP XLI
-After=network.target redis.service
-
-[Service]
-User=deploy
-Group=deploy
-WorkingDirectory=/home/deploy/apps/cccupxli/cc_cup_xli
-Environment="PATH=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin"
-ExecStart=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin/celery \
-    -A cc_cup_XLI beat \
-    --loglevel=info \
-    --logfile=/home/deploy/apps/cccupxli/celery-beat.log
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable --now celery-worker celery-beat
 ```
 
 ---
@@ -595,7 +536,7 @@ rm -rf $WEB_ROOT/ticketing
 mkdir -p $WEB_ROOT/ticketing && cp -r dist/* $WEB_ROOT/ticketing/
 
 echo "=== Restarting services ==="
-sudo systemctl restart gunicorn celery-worker celery-beat
+sudo systemctl restart gunicorn
 sudo systemctl reload nginx
 
 echo "=== Deploy complete! ==="
@@ -638,9 +579,6 @@ chmod +x /home/deploy/apps/cccupxli/deploy.sh
 |---------|------|-----------|
 | nginx | 80/443 | systemd |
 | Gunicorn | 8000 (localhost) | systemd (`gunicorn`) |
-| Celery Worker | — | systemd (`celery-worker`) |
-| Celery Beat | — | systemd (`celery-beat`) |
-| Redis | 6379 (localhost) | systemd (`redis-server`) |
 | PostgreSQL | External (Neon) | Neon dashboard |
 
 ---
@@ -650,18 +588,15 @@ chmod +x /home/deploy/apps/cccupxli/deploy.sh
 ```bash
 # Check service status
 sudo systemctl status gunicorn
-sudo systemctl status celery-worker
-sudo systemctl status celery-beat
 sudo systemctl status nginx
 
 # View logs
 tail -f /home/deploy/apps/cccupxli/gunicorn-error.log
-tail -f /home/deploy/apps/cccupxli/celery-worker.log
 sudo tail -f /var/log/nginx/error.log
 
 # Test nginx config
 sudo nginx -t
 
 # Restart everything
-sudo systemctl restart gunicorn celery-worker celery-beat nginx
+sudo systemctl restart gunicorn nginx
 ```
