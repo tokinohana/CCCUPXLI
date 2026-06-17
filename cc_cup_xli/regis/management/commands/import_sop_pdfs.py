@@ -2,7 +2,7 @@
 Import SOP PDFs from the homepage's /public/sop/ folder into ChatDocument.
 
 Just saves the public URL — no download/upload to Cloudinary.
-Celery then fetches the PDF directly from the homepage URL for text extraction.
+PDF text is extracted synchronously during import.
 
 Usage:
     python manage.py import_sop_pdfs --base-url https://cccup.id
@@ -47,7 +47,7 @@ COMPETITION_NAMES = {
 
 
 class Command(BaseCommand):
-    help = "Import SOP PDFs from the homepage into ChatDocument + extract text via Celery."
+    help = "Import SOP PDFs from the homepage into ChatDocument + extract text."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -91,8 +91,8 @@ class Command(BaseCommand):
                     filename=filename,
                 )
     
-            extract_chat_document_text.delay(doc.pk)
-            self.stdout.write(self.style.SUCCESS(f"  \u2713  {display_name} \u2192 {url} (extraction queued)"))
+            extract_chat_document_text(doc.pk)
+            self.stdout.write(self.style.SUCCESS(f"  \u2713  {display_name} \u2192 {url} (extraction done)"))
             created += 1
     
         self.stdout.write(self.style.SUCCESS(

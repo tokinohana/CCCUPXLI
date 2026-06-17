@@ -1,20 +1,17 @@
-"""Celery tasks for the regis app — PDF text extraction runs in background."""
-from celery import shared_task
-from celery.utils.log import get_task_logger
+"""Background PDF text extraction — runs synchronously or via threading."""
+import logging
+import requests
+from .chat_services import extract_pdf_text
 
-logger = get_task_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=10)
-def extract_chat_document_text(self, document_id: int):
+def extract_chat_document_text(document_id: int):
     """
     Fetch a ChatDocument's PDF from its public URL and extract text.
     Saves the result to the extracted_text field.
-    Runs asynchronously so the admin UI doesn't block.
     """
     from .models import ChatDocument
-    from .chat_services import extract_pdf_text
-    import requests
 
     try:
         doc = ChatDocument.objects.get(pk=document_id)
@@ -38,4 +35,3 @@ def extract_chat_document_text(self, document_id: int):
         logger.error(f"Failed to extract text from '{doc.name}': {exc}")
         doc.extracted_text = f"[Extraction error: {exc}]"
         doc.save(update_fields=['extracted_text'])
-        raise self.retry(exc=exc)

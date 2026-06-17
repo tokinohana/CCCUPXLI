@@ -168,7 +168,7 @@ class OtherInfo(models.Model):
 class ChatDocument(models.Model):
     """
     SOP / reference PDF referenced by URL. The PDF lives on the homepage's
-    /public/sop/ folder (or any public URL). Text is extracted once by Celery
+    /public/sop/ folder (or any public URL). Text is extracted once
     and cached in extracted_text.
     """
     name = models.CharField(max_length=255, verbose_name='Nama Dokumen')

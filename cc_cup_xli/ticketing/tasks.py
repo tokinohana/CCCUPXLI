@@ -1,12 +1,13 @@
 import io
+import logging
 import qrcode
-from celery import shared_task
 from django.core.mail import EmailMessage
 from .models import Ticket
 
+logger = logging.getLogger(__name__)
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_ticket_qr_email(self, ticket_pk):
+
+def send_ticket_qr_email(ticket_pk):
     """Generate a QR code for the ticket and email it to the customer."""
     try:
         ticket = Ticket.objects.get(pk=ticket_pk)
@@ -32,7 +33,6 @@ def send_ticket_qr_email(self, ticket_pk):
         email.send()
 
     except Ticket.DoesNotExist:
-        # Don't retry if the ticket has been deleted
-        pass
+        logger.warning(f"Ticket {ticket_pk} not found — skipping QR email.")
     except Exception as exc:
-        raise self.retry(exc=exc)
+        logger.error(f"Failed to send QR email for ticket {ticket_pk}: {exc}")

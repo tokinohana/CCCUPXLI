@@ -86,27 +86,37 @@ class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
         return bool(obj.extracted_text) and not obj.extracted_text.startswith('[Extraction error')
 
     def save_model(self, request, obj, form, change):
-        """Save the document, then dispatch PDF extraction to Celery."""
+        """Save the document, then extract PDF text in a background thread."""
         super().save_model(request, obj, form, change)
         if obj.pdf_url and (not obj.extracted_text or 'pdf_url' in form.changed_data):
+            import threading
             from .tasks import extract_chat_document_text
-            extract_chat_document_text.delay(obj.pk)
+            threading.Thread(
+                target=extract_chat_document_text,
+                args=(obj.pk,),
+                daemon=True,
+            ).start()
             self.message_user(
                 request,
-                f'PDF extraction queued for "{obj.name}" (runs in background).',
+                f'PDF extraction started in background for "{obj.name}".',
             )
 
     def extract_text_action(self, request, queryset):
-        """Re-extract text from selected PDFs via Celery tasks."""
+        """Re-extract text from selected PDFs via background threads."""
+        import threading
         from .tasks import extract_chat_document_text
         count = 0
         for doc in queryset:
             if doc.pdf_url:
-                extract_chat_document_text.delay(doc.pk)
+                threading.Thread(
+                    target=extract_chat_document_text,
+                    args=(doc.pk,),
+                    daemon=True,
+                ).start()
                 count += 1
         self.message_user(
             request,
-            f'Queued text extraction for {count} document(s) in background.',
+            f'Started text extraction for {count} document(s) in background.',
         )
     extract_text_action.short_description = "Re-extract PDF text (background)"
 

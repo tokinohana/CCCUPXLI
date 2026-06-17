@@ -1,0 +1,19 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:ccpay-distribute-funds' %}"
+       onclick="return confirm('Distribute Rp35,000 daily coupon to ALL active committee members? This action cannot be undone.');"
+       style="background:#28a745;color:#fff;padding:4px 12px;border-radius:4px;">
+      Distribute Funds
+    </a>
+  </li>
+  <li>
+    <a href="{% url 'admin:ccpay-expire-funds' %}"
+       onclick="return confirm('Expire ALL unspent coupon balances? This resets every committee member\'s saldo to 0 and cannot be undone.');"
+       style="background:#dc3545;color:#fff;padding:4px 12px;border-radius:4px;">
+      Expire Funds
+    </a>
+  </li>
+  {{ block.super }}
+{% endblock %}

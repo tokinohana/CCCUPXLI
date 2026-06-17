@@ -83,10 +83,15 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
     def perform_update(self, serializer):
         old_status = self.get_object().status
         ticket = serializer.save()
-        # Trigger QR email when status changes to 'paid'
+        # Fire QR email in a background thread when status changes to 'paid'
         if old_status != 'paid' and ticket.status == 'paid':
+            import threading
             from .tasks import send_ticket_qr_email
-            send_ticket_qr_email.delay(ticket.pk)
+            threading.Thread(
+                target=send_ticket_qr_email,
+                args=(ticket.pk,),
+                daemon=True,
+            ).start()
 
 
 class VerifyNIKView(APIView):
