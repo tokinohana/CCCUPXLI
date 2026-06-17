@@ -11,7 +11,7 @@ Usage:
 from django.core.management.base import BaseCommand
 
 from regis.models import ChatDocument
-from regis.tasks import extract_chat_document_text
+from regis.chat_services import extract_chat_document_text
 
 SOP_FILES = [
     "band.pdf", "basket.pdf", "bultang.pdf", "catur.pdf", "cerdascermat.pdf",

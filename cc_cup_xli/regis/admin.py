@@ -90,7 +90,7 @@ class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if obj.pdf_url and (not obj.extracted_text or 'pdf_url' in form.changed_data):
             import threading
-            from .tasks import extract_chat_document_text
+            from .chat_services import extract_chat_document_text
             threading.Thread(
                 target=extract_chat_document_text,
                 args=(obj.pk,),
@@ -104,7 +104,7 @@ class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     def extract_text_action(self, request, queryset):
         """Re-extract text from selected PDFs via background threads."""
         import threading
-        from .tasks import extract_chat_document_text
+        from .chat_services import extract_chat_document_text
         count = 0
         for doc in queryset:
             if doc.pdf_url:

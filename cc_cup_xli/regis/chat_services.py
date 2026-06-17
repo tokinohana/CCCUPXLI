@@ -2,11 +2,14 @@
 AI Consultant service layer for the CC CUP registration chatbot.
 Ported from the Flask ai-testing demo into idiomatic Django.
 """
+import logging
 import os
 import re
 from io import BytesIO
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 ADMIN_PHONE = getattr(settings, "CHAT_ADMIN_PHONE", "+62-812-3456-7890")
 DEFAULT_MODEL = getattr(settings, "GROQ_MODEL", "llama-3.3-70b-versatile")
@@ -34,6 +37,38 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
 
     merged = "\n\n---\n\n".join(parts).strip()
     return merged or "Tidak ada teks yang dapat diekstrak dari PDF ini."
+
+
+def extract_chat_document_text(document_id: int):
+    """
+    Fetch a ChatDocument's PDF from its public URL and extract text.
+    Saves the result to the extracted_text field.
+    """
+    import requests
+    from .models import ChatDocument
+
+    try:
+        doc = ChatDocument.objects.get(pk=document_id)
+    except ChatDocument.DoesNotExist:
+        logger.error(f"ChatDocument {document_id} not found")
+        return
+
+    if not doc.pdf_url:
+        logger.warning(f"ChatDocument {document_id} has no pdf_url")
+        return
+
+    logger.info(f"Extracting text from '{doc.name}' (id={document_id}) ...")
+
+    try:
+        resp = requests.get(doc.pdf_url, timeout=30)
+        resp.raise_for_status()
+        doc.extracted_text = extract_pdf_text(resp.content)
+        doc.save(update_fields=['extracted_text'])
+        logger.info(f"\u2713 Extracted {len(doc.extracted_text)} chars from '{doc.name}'")
+    except Exception as exc:
+        logger.error(f"Failed to extract text from '{doc.name}': {exc}")
+        doc.extracted_text = f"[Extraction error: {exc}]"
+        doc.save(update_fields=['extracted_text'])
 
 
 # ─────────────────────────────────────────────────────────────────────────────
