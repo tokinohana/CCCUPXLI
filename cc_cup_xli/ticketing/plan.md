@@ -150,22 +150,15 @@ Already configured in `settings.py` for `localhost:5173` and `localhost:3000`. A
 Use `python-qrcode` to encode the `ticket_id` UUID as a QR image.
 The QR payload is just the UUID string — the scanner app reads it and calls the redeem API.
 
-### Celery Task
-Celery is already configured in `settings.py` (Redis broker on `localhost:6379`).
+### Email Sending (Synchronous)
+No Celery — the QR email is sent synchronously in the request via `_send_ticket_qr_email()` in `views.py`.
+The Zoho SMTP call takes ~5-10s, which is acceptable for this use case. Wrapped in try/except with logging.
 
 ```python
-# ticketing/tasks.py
-from celery import shared_task
-import qrcode
-import io
-from django.core.mail import EmailMessage
-from .models import Ticket
-
-@shared_task(bind=True, max_retries=3, default_retry_delay=60)
-def send_ticket_qr_email(self, ticket_id):
+# ticketing/views.py
+def _send_ticket_qr_email(ticket):
+    """Generate a QR code for the ticket and email it via Zoho SMTP (~5-10s)."""
     try:
-        ticket = Ticket.objects.get(pk=ticket_id)
-        # Generate QR code in memory
         qr = qrcode.make(str(ticket.ticket_id))
         buffer = io.BytesIO()
         qr.save(buffer, format='PNG')
@@ -179,10 +172,8 @@ def send_ticket_qr_email(self, ticket_id):
         )
         email.attach(f'ticket_{ticket.ticket_id}.png', buffer.read(), 'image/png')
         email.send()
-    except Ticket.DoesNotExist:
-        pass  # Don't retry if ticket is gone
-    except Exception as exc:
-        raise self.retry(exc=exc)
+    except Exception:
+        logger.exception('Failed to send QR email for ticket %s', ticket.pk)
 ```
 
 ### Email Backend
@@ -197,9 +188,9 @@ EMAIL_HOST_PASSWORD = os.getenv('ZOHO_PASSWORD')
 ```
 
 ### Trigger
-After creating a ticket with `status='paid'`, dispatch the Celery task:
+After updating a ticket to `status='paid'`, call the email function synchronously:
 ```python
-send_ticket_qr_email.delay(ticket.pk)
+_send_ticket_qr_email(ticket)
 ```
 
 ---
@@ -214,7 +205,7 @@ Since payment is **manual/offline**, the flow is:
 4. If unique → create ticket with `status='pending'`.
 5. Committee collects cash payment from customer.
 6. Committee marks ticket as `paid` via `PATCH /tickets/<uuid>/` with `{"status": "paid"}`.
-7. On status change to `paid` → trigger `send_ticket_qr_email` Celery task.
+7. On status change to `paid` → call `_send_ticket_qr_email(ticket)` synchronously (~5-10s SMTP delay).
 
 ### Voiding tickets
 Django admin or `PATCH /tickets/<uuid>/` with `{"status": "voided"}`.
@@ -295,15 +286,11 @@ class TicketAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
 
 ---
 
-## 9. Celery Setup Checklist
+## 9. Email Setup Checklist
 
-Celery config already exists in `settings.py`. Remaining tasks:
 1. Add `python-qrcode` and `Pillow` to `requirements.txt`.
-2. Create `ticketing/tasks.py` with the email task.
-3. Add `ticketing` tasks to `CELERY_BEAT_SCHEDULE` if periodic jobs are needed.
-4. Ensure Redis is running (`redis-server` or Docker).
-5. Start worker: `celery -A cc_cup_XLI worker -l info`.
-6. Configure Zoho SMTP env vars (`ZOHO_EMAIL`, `ZOHO_PASSWORD`).
+2. Configure Zoho SMTP env vars (`ZOHO_EMAIL`, `ZOHO_PASSWORD`).
+3. Email is sent synchronously in `_send_ticket_qr_email()` within `views.py` — no background task needed.
 
 ---
 
@@ -317,7 +304,7 @@ Celery config already exists in `settings.py`. Remaining tasks:
 | 4 | Create `ticketing/permissions.py` (IsCommittee) | None |
 | 5 | Create `ticketing/views.py` (all API views from Section 2) | Tasks 3, 4 |
 | 6 | Create `ticketing/urls.py` + register in root `urls.py` | Task 5 |
-| 7 | Create `ticketing/tasks.py` (Celery QR email task) | Task 1 |
+| 7 | Email sending is handled synchronously in `views.py` (`_send_ticket_qr_email`) | Task 1 |
 | 8 | Add email SMTP config to `settings.py` + env vars | None |
 | 9 | Update `ticketing/admin.py` (add new fields, CSV export action) | Task 1 |
 | 10 | Update frontend types to match backend (Section 7) | Task 5 |
