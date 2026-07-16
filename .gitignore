@@ -1,3 +1,7 @@
 .agents
 .graphifyignore
 graphify-out
+
+tmp
+
+.opencode

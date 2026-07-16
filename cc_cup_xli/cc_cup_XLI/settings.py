@@ -206,3 +206,11 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.3-70b-versatile')
 CHAT_ADMIN_PHONE = os.getenv('CHAT_ADMIN_PHONE', '+62-812-3456-7890')
 CHAT_DEFAULT_TOKEN_CAP = int(os.getenv('CHAT_DEFAULT_TOKEN_CAP', '10000'))
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Embeddings (Qwen text-embedding-v4 via DashScope, OpenAI-compatible API)
+# ─────────────────────────────────────────────────────────────────────────────
+DASHSCOPE_API_KEY = os.getenv('DASHSCOPE_API_KEY', '')
+DASHSCOPE_BASE_URL = os.getenv('DASHSCOPE_BASE_URL', 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1')
+EMBEDDING_MODEL = os.getenv('EMBEDDING_MODEL', 'text-embedding-v4')
+EMBEDDING_DIMENSIONS = int(os.getenv('EMBEDDING_DIMENSIONS', '1536'))
