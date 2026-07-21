@@ -19,7 +19,6 @@ const Scanner = () => {
   const [state, setState] = useState<ScannerState>("SCANNING");
   const [result, setResult] = useState<Ticket | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [isScannerStarted, setIsScannerStarted] = useState(false);
   const [terminal] = useState("GATE-1");
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const isStartingRef = useRef(false);
@@ -44,7 +43,6 @@ const Scanner = () => {
         onScanSuccess,
         onScanFailure
       );
-      setIsScannerStarted(true);
     } catch (err) {
       console.error("Failed to start scanner:", err);
     } finally {
@@ -56,7 +54,6 @@ const Scanner = () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
-        setIsScannerStarted(false);
       } catch (err) {
         console.error("Failed to stop scanner:", err);
       }
@@ -146,7 +143,6 @@ const Scanner = () => {
       <div className="mt-auto z-20 w-full">
         {state === "CLAIMED" && result && (
           <StatusPanel
-            type="warning"
             title="Ticket Already Used"
             icon={AlertTriangle}
             color="bg-[#fe9400]"
@@ -162,7 +158,6 @@ const Scanner = () => {
 
         {state === "SUCCESS" && result && (
           <StatusPanel
-            type="success"
             title="Ticket Validated"
             icon={CheckCircle2}
             color="bg-[#00e475]"
@@ -178,7 +173,6 @@ const Scanner = () => {
 
         {state === "UNPAID" && (
           <StatusPanel
-            type="warning"
             title="Unpaid Ticket"
             icon={DollarSign}
             color="bg-[#fe9400]"
@@ -194,7 +188,6 @@ const Scanner = () => {
 
         {state === "INVALID" && (
           <StatusPanel
-            type="error"
             title="Invalid Ticket"
             icon={XCircle}
             color="bg-[#ffb4ab]"
@@ -208,7 +201,6 @@ const Scanner = () => {
 
         {state === "NETWORK_ERROR" && (
           <StatusPanel
-            type="error"
             title="Network Error"
             icon={Wifi}
             color="bg-[#ffb4ab]"
@@ -251,7 +243,6 @@ const Scanner = () => {
 };
 
 interface StatusPanelProps {
-  type: "success" | "warning" | "error";
   title: string;
   icon: React.ComponentType<{ size?: number; className?: string }>;
   color: string;
@@ -259,7 +250,7 @@ interface StatusPanelProps {
   onReset: () => void;
 }
 
-const StatusPanel = ({ type, title, icon: Icon, color, data, onReset }: StatusPanelProps) => (
+const StatusPanel = ({ title, icon: Icon, color, data, onReset }: StatusPanelProps) => (
   <div className={cn("animate-in fade-in slide-in-from-bottom-4 duration-300", color, "text-black p-6 border-t-4 border-black/20 shadow-2xl")}>
     <div className="flex items-center gap-3">
       <Icon size={40} className="fill-current" />

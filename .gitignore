@@ -1,7 +1,9 @@
 .agents
 .graphifyignore
 graphify-out
-
 tmp
-
 .opencode
+deployment.md
+*.sh
+
+.env.production

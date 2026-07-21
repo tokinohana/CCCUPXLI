@@ -26,12 +26,12 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-9c$t26v*6-4l7v_0@9ha#qh$xwn5d4ug_gs8nob2@@^=foqlw=')
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*'] # For development
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', os.getenv('ALLOWED_HOSTS', '*')).split(',')
 
 
 # Application definition
@@ -73,6 +73,7 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
+    "https://cccup.id",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
@@ -154,6 +155,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 SIMPLE_JWT = {
     # Match this with the frontend limit to reject tokens after they expire

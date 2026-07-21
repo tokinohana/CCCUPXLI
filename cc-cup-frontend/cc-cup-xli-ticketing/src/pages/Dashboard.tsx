@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Search, Ticket, CheckCircle, Clock, Copy, Filter, Terminal as TerminalIcon } from "lucide-react";
 import { Button } from "@/components/button";
 import { Input } from "@/components/input";
-import { Progress } from "@/components/progress";
 import { Badge } from "@/components/badge";
 import { cn } from "@/lib/utils";
 
