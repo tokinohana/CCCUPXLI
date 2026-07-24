@@ -1,13 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel+Decorative:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel+Decorative:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme {
-  --color-background: #ece8dc;
-  --color-accent: #d69642;
-  --color-crimson: #660000;
-  --color-primary: #1f3347;
-  --color-text: #2B2B2B;
+  --color-limestone: #F4F3EF;
+  --color-obsidian: #121315;
+  --color-obsidian-card: #1E1F23;
+  --color-[#111111]: #111111;
+  --color-[#555555]: #555555;
+  --color-[#E0DDD5]: #E0DDD5;
+  --font-mono: 'Space Grotesk', monospace, sans-serif;
 }
 
 html {
@@ -16,8 +18,9 @@ html {
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background-color: #ece8dc;
-  color: #2B2B2B;
+  background-color: #F4F3EF;
+  color: #111111;
+  overflow-x: hidden;
 }
 
 .font-pirata {
@@ -28,6 +31,53 @@ body {
   font-family: "Cinzel Decorative", serif;
 }
 
+.font-mono {
+  font-family: 'Space Grotesk', monospace, sans-serif;
+}
+
 .font-body {
   font-family: Inter, system-ui, sans-serif;
+}
+
+/* Maya Hard-Edge Low-Relief Projection Shadow */
+.relief-box {
+  box-shadow: 4px 4px 0px #111111;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.relief-box:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px #111111;
+}
+
+.relief-box:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px #111111;
+}
+
+/* Dark Mode Relief Box */
+.relief-box-dark {
+  box-shadow: 4px 4px 0px #FFFFFF;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.relief-box-dark:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px #FFFFFF;
+}
+
+.relief-box-dark:active {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px #FFFFFF;
+}
+
+/* Engraved Inset Effect */
+.engraved-box {
+  box-shadow: inset 2px 2px 4px rgba(0,0,0,0.06), inset -1px -1px 0px rgba(255,255,255,0.8);
+}
+
+/* Vertical Text Helper */
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-transform: uppercase;
 }

@@ -10,7 +10,6 @@ const FEATURED_IDS = [
     "basket-putri",
     "voli-putra",
     "voli-putri",
-    "bulu-tangkis",
 ]
 
 function CompetitionSection() {
@@ -35,67 +34,69 @@ function CompetitionSection() {
         <section
             id="competitions"
             className="
-                max-w-7xl
-                mx-auto
-                px-6
+                bg-[#F4F3EF]
                 py-24
+                px-6
+                relative
             "
         >
-            <h2 className="
-                font-cinzel
-                text-4xl
-                font-bold
-                text-center
-                mb-12
-            ">
-                ⚔ Competitions ⚔
-            </h2>
+            <div className="max-w-7xl mx-auto">
+                <div className="text-center max-w-2xl mx-auto mb-16">
+                    <p className="font-mono text-xs uppercase tracking-[0.3em] text-[#555555] mb-2">
+                        [ SECTION 02 // TOURNAMENT ARCHITECTURE ]
+                    </p>
+                    <h2 className="
+                        font-cinzel
+                        text-3xl
+                        md:text-5xl
+                        font-bold
+                        text-[#111111]
+                    ">
+                        Competitions
+                    </h2>
+                </div>
 
-            <div
-                className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    lg:grid-cols-3
-                    gap-8
-                "
-            >
-                {featured.map(comp => (
-                    <CompetitionCard
-                        key={comp.id}
-                        id={comp.id}
-                        title={comp.title}
-                        description={comp.description}
-                        jenjang={comp.jenjang}
-                        status={comp.status}
-                        icon={comp.icon}
-                        onClick={() => handleCardClick(comp)}
-                    />
-                ))}
-            </div>
+                {/* Asymmetrical Pyramid / Masonry Layout Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                    {featured.map((comp, idx) => (
+                        <CompetitionCard
+                            key={comp.id}
+                            id={comp.id}
+                            title={comp.title}
+                            description={comp.description}
+                            jenjang={comp.jenjang}
+                            status={comp.status}
+                            icon={comp.icon}
+                            index={idx}
+                            isCapstone={idx === 0}
+                            onClick={() => handleCardClick(comp)}
+                        />
+                    ))}
+                </div>
 
-            {/* More Competitions button */}
-            <div className="flex justify-center mt-12">
-                <Link
-                    to="/competitions"
-                    className="
-                        px-8
-                        py-4
-                        border-2
-                        border-[#d69642]
-                        text-[#d69642]
-                        font-semibold
-                        rounded-full
-                        transition-all
-                        hover:bg-[#d69642]
-                        hover:text-white
-                        cursor-pointer
-                        hover:scale-105
-                        active:scale-95
-                    "
-                >
-                    View All Competitions →
-                </Link>
+                {/* Section CTA with Hard-Edge Relief */}
+                <div className="flex justify-center mt-16">
+                    <Link
+                        to="/competitions"
+                        className="
+                            px-10
+                            py-4
+                            bg-[#F4F3EF]
+                            text-[#111111]
+                            font-mono
+                            text-xs
+                            font-bold
+                            uppercase
+                            tracking-widest
+                            border-2
+                            border-[#111111]
+                            relief-box
+                            cursor-pointer
+                        "
+                    >
+                        ┌─ VIEW ALL COMPETITIONS → ─┐
+                    </Link>
+                </div>
             </div>
 
             {pendingCompetition && (
@@ -110,3 +111,5 @@ function CompetitionSection() {
 }
 
 export default CompetitionSection
+
+

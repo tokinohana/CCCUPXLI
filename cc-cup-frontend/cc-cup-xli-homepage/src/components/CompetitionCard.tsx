@@ -7,6 +7,8 @@ interface CompetitionCardProps {
     jenjang: Jenjang[]
     status: "opened" | "closed"
     icon?: string
+    index?: number
+    isCapstone?: boolean
     onClick?: () => void
 }
 
@@ -16,9 +18,13 @@ function CompetitionCard({
     jenjang,
     status,
     icon,
+    index = 0,
+    isCapstone = false,
     onClick,
 }: CompetitionCardProps) {
+
     const isClosed = status === "closed"
+    const indexFormatted = String(index + 1).padStart(2, "0")
 
     return (
         <div
@@ -32,102 +38,142 @@ function CompetitionCard({
                 }
             }}
             className={`
-                block
-                rounded-2xl
-                bg-[#1f3347]
+                group
+                relative
+                flex
+                flex-col
+                justify-between
+                bg-[#FFFFFF]
+                border-2
+                border-[#111111]
                 p-8
-                min-h-[220px]
-
-                transition-all
-                duration-300
-
-                hover:-translate-y-2
-                hover:shadow-xl
-
+                relief-box
                 cursor-pointer
-
+                ${isCapstone ? "lg:col-span-2 min-h-[300px]" : "min-h-[280px]"}
                 ${isClosed ? "opacity-60" : ""}
             `}
         >
-            {/* Jenjang badges */}
-            <div className="flex gap-2 mb-3 flex-wrap">
-                {jenjang.map(j => (
-                    <span
-                        key={j}
-                        className="
-                            text-xs
-                            font-semibold
-                            px-2 py-0.5
-                            rounded-full
-                            bg-[#d69642]/20
-                            text-[#d69642]
-                            border border-[#d69642]/40
-                        "
-                    >
-                        {j}
+            {/* Top Bar: Carved Side Index & Cartouche Badge Frame */}
+            <div>
+                <div className="flex items-center justify-between gap-4 mb-6">
+                    <span className="font-mono text-xs font-bold text-[#555555] tracking-widest uppercase">
+                        [ #{indexFormatted} // STELA ]
                     </span>
-                ))}
-                {isClosed && (
-                    <span className="
-                        text-xs
-                        font-semibold
-                        px-2 py-0.5
-                        rounded-full
-                        bg-red-500/20
-                        text-red-400
-                        border border-red-400/40
-                    ">
-                        CLOSED
-                    </span>
-                )}
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {jenjang.map(j => (
+                            <span
+                                key={j}
+                                className="
+                                    font-mono
+                                    text-[11px]
+                                    font-bold
+                                    px-2.5
+                                    py-0.5
+                                    bg-[#F4F3EF]
+                                    text-[#111111]
+                                    border
+                                    border-[#111111]
+                                "
+                            >
+                                ┌─ {j} ─┐
+                            </span>
+                        ))}
+                        {isClosed && (
+                            <span className="
+                                font-mono
+                                text-[11px]
+                                font-bold
+                                px-2.5
+                                py-0.5
+                                bg-red-100
+                                text-red-700
+                                border
+                                border-red-700
+                            ">
+                                CLOSED
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Icon inside Cartouche Framing */}
+                <div className="flex items-center gap-4 mb-6">
+                    {icon ? (
+                        <div className="p-3 border-2 border-[#111111] bg-[#F4F3EF]">
+                            <div
+                                className="w-8 h-8 bg-[#111111]"
+                                style={{
+                                    maskImage: `url(${icon})`,
+                                    maskSize: "contain",
+                                    maskRepeat: "no-repeat",
+                                    maskPosition: "center",
+                                    WebkitMaskImage: `url(${icon})`,
+                                    WebkitMaskSize: "contain",
+                                    WebkitMaskRepeat: "no-repeat",
+                                    WebkitMaskPosition: "center",
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="w-12 h-12 flex items-center justify-center border-2 border-[#111111] bg-[#F4F3EF] font-pirata text-xl text-[#111111]">
+                            ⚔
+                        </div>
+                    )}
+
+                    <div>
+                        <h3 className={`
+                            font-cinzel
+                            font-bold
+                            text-[#111111]
+                            ${isCapstone ? "text-2xl md:text-3xl" : "text-xl"}
+                        `}>
+                            {title}
+                        </h3>
+                    </div>
+                </div>
+
+                {/* Description */}
+                <p className="
+                    text-sm
+                    text-[#555555]
+                    leading-relaxed
+                    mb-8
+                    font-body
+                ">
+                    {description}
+                </p>
             </div>
 
-            {icon ? (
-                <div
-                    className="w-10 h-10 mb-4 bg-[#d69642]"
-                    style={{
-                        maskImage: `url(${icon})`,
-                        maskSize: "contain",
-                        maskRepeat: "no-repeat",
-                        maskPosition: "center",
-                        WebkitMaskImage: `url(${icon})`,
-                        WebkitMaskSize: "contain",
-                        WebkitMaskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                    }}
-                />
-            ) : (
-                <p className="text-3xl text-[#d69642] mb-4">
-                    ⚔
-                </p>
-            )}
-            <h3 className="
-                font-cinzel
-                text-2xl
+            {/* Footer Action */}
+            <div className="
+                pt-4
+                border-t
+                border-[#E0DDD5]
+                flex
+                items-center
+                justify-between
+                font-mono
+                text-xs
                 font-bold
-                text-[#d69642]
+                uppercase
+                tracking-wider
+                text-[#111111]
             ">
-                {title}
-            </h3>
-            <p
-                className="
-                    text-[#ece8dc]
-                    opacity-80
-                    mb-8
-                "
-            >
-                {description}
-            </p>
-            <p
-                className="
-                    text-[#d69642]
-                    font-medium
-                "
-            >
-                → View Details
-            </p>
+                <span>// VIEW TOURNAMENT SPEC</span>
+                <span className="
+                    inline-block
+                    transition-transform
+                    duration-200
+                    group-hover:translate-x-1.5
+                ">
+                    →
+                </span>
+            </div>
         </div>
     )
 }
 
 export default CompetitionCard
+
+
