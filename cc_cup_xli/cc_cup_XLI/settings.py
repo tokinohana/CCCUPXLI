@@ -64,6 +64,7 @@ AUTH_USER_MODEL = 'user.User'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # serves static files directly from Gunicorn (no nginx)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -72,13 +73,30 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# ── CORS: 4 Vercel-hosted frontends on their own subdomains ──
 CORS_ALLOWED_ORIGINS = [
     "https://cccup.id",
+    "https://regis.cccup.id",
+    "https://pay.cccup.id",
+    "https://tix.cccup.id",
+    # Development
     "http://localhost:3000",
     "http://localhost:5173",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
 ]
+
+# ── CSRF: cross-subdomain POSTs (registration forms, CCPay transactions) ──
+CSRF_TRUSTED_ORIGINS = [
+    "https://cccup.id",
+    "https://regis.cccup.id",
+    "https://pay.cccup.id",
+    "https://tix.cccup.id",
+]
+
+# ── Shared cookie domain: session set on api.cccup.id readable across subdomains ──
+SESSION_COOKIE_DOMAIN = ".cccup.id"
+CSRF_COOKIE_DOMAIN = ".cccup.id"
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -156,6 +174,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise: compress + cache-bust static files served directly by Gunicorn
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 SIMPLE_JWT = {
     # Match this with the frontend limit to reject tokens after they expire

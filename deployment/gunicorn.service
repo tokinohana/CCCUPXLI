@@ -1,15 +1,19 @@
 [Unit]
-Description=Gunicorn for CC CUP XLI
+Description=Gunicorn for CC CUP XLI (direct TLS bind, no reverse proxy)
 After=network.target
 
 [Service]
 User=deploy
 Group=deploy
 WorkingDirectory=/home/deploy/apps/cccupxli/cc_cup_xli
-Environment="PATH=/home/deploy/apps/cccupxli/venv/bin"
-ExecStart=/home/deploy/apps/cccupxli/venv/bin/gunicorn \
+Environment="PATH=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin"
+ExecStart=/home/deploy/apps/cccupxli/cc_cup_xli/.venv/bin/gunicorn \
     --workers 3 \
-    --bind 127.0.0.1:8000 \
+    --bind 0.0.0.0:443 \
+    --certfile=/etc/letsencrypt/live/api.cccup.id/fullchain.pem \
+    --keyfile=/etc/letsencrypt/live/api.cccup.id/privkey.pem \
+    --limit-request-line 8190 \
+    --timeout 120 \
     --access-logfile /home/deploy/apps/cccupxli/gunicorn-access.log \
     --error-logfile /home/deploy/apps/cccupxli/gunicorn-error.log \
     cc_cup_XLI.wsgi:application

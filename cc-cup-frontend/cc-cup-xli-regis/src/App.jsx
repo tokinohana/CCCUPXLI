@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardSkeleton from './components/DashboardSkeleton';
 import LoginPage from './pages/LoginPage';
@@ -12,11 +12,10 @@ import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [teamStatus, setTeamStatus] = useState(null); // null = loading
+  const [teamStatus, setTeamStatus] = useState(null);
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount: restore session from stored JWT
   useEffect(() => {
     async function restoreSession() {
       if (!checkToken()) {
@@ -29,7 +28,6 @@ function App() {
         setTeamStatus(data.regis_status);
         setIsAuthenticated(true);
       } catch {
-        // Token invalid/expired - clear and stay on login
         clearAuth();
       }
       setLoading(false);
@@ -37,14 +35,12 @@ function App() {
     restoreSession();
   }, []);
 
-  // Called by LoginPage after successful API login
   const handleLogin = (team) => {
     setIsAuthenticated(true);
     setTeamData(team);
     setTeamStatus(team?.regis_status || 'PENDING');
   };
 
-  // Called by SignupStep2Page after successful registration
   const handleSignup = (team) => {
     setIsAuthenticated(true);
     setTeamData(team);
@@ -58,108 +54,98 @@ function App() {
     setTeamStatus(null);
   };
 
-  // Show a skeleton layout while checking stored token
   if (loading) {
     return <DashboardSkeleton />;
   }
 
   const resolvedStatus = teamStatus || 'PENDING';
 
-  return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Route */}
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? (
-              <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
-            ) : (
-              <LoginPage onLogin={handleLogin} />
-            )
-          }
-        />
-
-        {/* Signup Step 1 */}
-        <Route
-          path="/signup"
-          element={
-            isAuthenticated ? (
-              <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
-            ) : (
-              <SignupStep1Page />
-            )
-          }
-        />
-
-        {/* Signup Step 2 */}
-        <Route
-          path="/signup/step2"
-          element={
-            isAuthenticated ? (
-              <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
-            ) : (
-              <SignupStep2Page onSignup={handleSignup} />
-            )
-          }
-        />
-
-        {/* Protected Dashboard Route */}
-        <Route
-          element={
-            <ProtectedRoute
-              isAuthenticated={isAuthenticated}
-              teamStatus={resolvedStatus}
-              allowedStatus="DASHBOARD"
-            />
-          }
-        >
-          <Route
-            path="/dashboard"
-            element={
+  // Define the router instance with the basename option
+  const router = createBrowserRouter(
+    [
+      {
+        path: '/login',
+        element: isAuthenticated ? (
+          <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
+        ) : (
+          <LoginPage onLogin={handleLogin} />
+        ),
+      },
+      {
+        path: '/signup',
+        element: isAuthenticated ? (
+          <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
+        ) : (
+          <SignupStep1Page />
+        ),
+      },
+      {
+        path: '/signup/step2',
+        element: isAuthenticated ? (
+          <Navigate to={resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard'} replace />
+        ) : (
+          <SignupStep2Page onSignup={handleSignup} />
+        ),
+      },
+      {
+        element: (
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            teamStatus={resolvedStatus}
+            allowedStatus="DASHBOARD"
+          />
+        ),
+        children: [
+          {
+            path: '/dashboard',
+            element: (
               <DashboardPage
                 teamData={teamData}
                 onTeamUpdate={setTeamData}
                 onStatusChange={setTeamStatus}
                 onLogout={handleLogout}
               />
+            ),
+          },
+        ],
+      },
+      {
+        element: (
+          <ProtectedRoute
+            isAuthenticated={isAuthenticated}
+            teamStatus={resolvedStatus}
+            allowedStatus="REJECTED"
+          />
+        ),
+        children: [
+          {
+            path: '/rejected',
+            element: <RejectedPage teamData={teamData} onLogout={handleLogout} />,
+          },
+        ],
+      },
+      {
+        path: '*',
+        element: (
+          <Navigate
+            to={
+              isAuthenticated
+                ? resolvedStatus === 'REJECTED'
+                  ? '/rejected'
+                  : '/dashboard'
+                : '/login'
             }
+            replace
           />
-        </Route>
-
-        {/* Protected Rejected Route */}
-        <Route
-          element={
-            <ProtectedRoute
-              isAuthenticated={isAuthenticated}
-              teamStatus={resolvedStatus}
-              allowedStatus="REJECTED"
-            />
-          }
-        >
-          <Route
-            path="/rejected"
-            element={<RejectedPage teamData={teamData} onLogout={handleLogout} />}
-          />
-        </Route>
-
-        {/* Catch-all Routing Redirects */}
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to={
-                isAuthenticated
-                  ? (resolvedStatus === 'REJECTED' ? '/rejected' : '/dashboard')
-                  : '/login'
-              }
-              replace
-            />
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+        ),
+      },
+    ],
+    {
+      basename: '/regis', // <-- Pass basename here!
+    }
   );
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;

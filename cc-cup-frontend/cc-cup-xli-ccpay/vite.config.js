@@ -8,8 +8,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // https://vite.dev/config/
+// base is intentionally omitted (defaults to '/') — this frontend lives at the
+// root of pay.cccup.id on Vercel. Setting base: '/ccpay/' would cause asset
+// 404s on the subdomain deployment.
 export default defineConfig({
-  base: '/ccpay/',
   plugins: [
     react(),
     tailwindcss(),
@@ -22,7 +24,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000', // Point this to the API route later on in prod
+        target: 'http://127.0.0.1:8000', // local dev only
         changeOrigin: true,
         secure: false,
       }

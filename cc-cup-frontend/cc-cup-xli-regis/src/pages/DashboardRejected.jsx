@@ -21,7 +21,7 @@ export default function RejectedPage({ teamData, onLogout }) {
     if (onLogout) {
       onLogout();
     } else {
-      window.location.href = '/login';
+      window.location.href = './regis/login';
     }
   };
 
