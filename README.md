@@ -12,4 +12,5 @@ This project is built using "Modular Monorepo" architecture. It contains several
 3. Registration - Benedict Halim, Gerardus Paxton Mardhi
 4. AI (RAG) for registration - Owen Benedict Tanjung, Nathanael Ethan Santoso
 5. Homepage - Nicholas Edward Santoso, I Gusti Ngurah Anargya Y. K.
-6. CC PAY - Benedict Halim
+6. CC PAY - Benedict Halim, Gregorius Darren Wilson Meirtritan
+7. 
