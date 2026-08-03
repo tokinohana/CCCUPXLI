@@ -16,8 +16,6 @@ distro==1.9.0
 dj-database-url==3.1.0
 dj3-cloudinary-storage==0.0.6
 Django==6.0.2
-gunicorn
-whitenoise
 django-cors-headers==4.9.0
 djangorestframework==3.16.1
 djangorestframework-simplejwt==5.3.1
@@ -58,3 +56,4 @@ tzdata==2026.2
 urllib3==2.7.0
 vine==5.1.0
 wcwidth==0.7.0
+whitenoise==6.12.0

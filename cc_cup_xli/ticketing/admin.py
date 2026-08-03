@@ -1,14 +1,13 @@
 import csv
 from django.contrib import admin
 from django.http import HttpResponse
-from admin_utils import AppGroupPermissionMixin
 from .models import Ticket
 
 TICKETING_GROUP = 'Ticketing Committee'
 
 
 @admin.register(Ticket)
-class TicketAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+class TicketAdmin(admin.ModelAdmin):
     allowed_group = TICKETING_GROUP
     list_display = (
         'full_name', 'identification_number', 'status',

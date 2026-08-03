@@ -1,87 +1,83 @@
-65432q# Registration Forms & Inputs Documentation
+# Registration Forms & Inputs Documentation
 
-This document detail the inputs required for different sports (Cabang Olahraga) in the CCCUP XL registration system.
+This document details the inputs the `regis` API actually accepts, based on `models.py`, `serializers.py`, and `views.py`. It replaces the earlier version, which described the product-level intent but didn't distinguish what the backend structurally enforces from what's UI/product convention only.
 
-## 1. Common Registration Data
+## 1. Account / Team Creation (`RegisterSerializer` — `POST /register/`)
 
-### Team Captain / Account Info
-These fields are collected during the initial signup:
-- **Email**: Unique login identifier.
-- **Password**: Account security.
-- **Team Name**: The display name of the team.
-- **School**: The institution representing the team.
-- **Phone**: Contact number (WA preferred).
-- **Competition**: Selected sport.
-- **Jenjang**: SMP or SMA.
+Sent as a **single call**, not a two-step account-then-team flow at the API level (any step-splitting is frontend UI only):
 
-### Required Team-Level Files
-These files must be uploaded by the captain in the dashboard:
-- **Bukti Pembayaran**: PDF of the payment receipt.
-- **Kartu Pelajar**: PDF of the captain's student ID (or School Letter).
-- **Selfie dengan Kartu Pelajar**: PDF photo for verification.
-- **Surat Pernyataan**: PDF signed commitment.
-- **Izin Sekolah**: PDF formal permission from school.
+- **email** — `EmailField`, must be unique (checked in `RegisterView`, `409` if taken)
+- **password** — write-only, `min_length=8`
+- **phone** — `CharField(max_length=20)`
+- **jenjang** — `SMP` or `SMA`
+- **school** — `CharField(max_length=200)`
+- **nama_tim** — `CharField(max_length=150)`
+- **competition** — `CharField(max_length=100)` — a free-text slug, **not** an FK or `choices`-constrained field; the backend doesn't validate it against a fixed sport list.
 
----
+Login (`POST /login/`) takes `email` + `password` only. A successful register/login returns JWT `access`/`refresh` tokens — there's no session-cookie-based auth for this flow (JWT is `DEFAULT_AUTHENTICATION_CLASSES[0]`).
 
-## 2. Base Member Inputs (Mandatory for All)
-Every member added to a team requires these basic fields:
-- **Nama**: Full name.
-- **Email**: Personal email.
-- **Nomor Telepon**: Personal contact.
-- **Tanggal Lahir**: Date of birth.
-- **Gender**: Laki-laki / Perempuan (Restricted by metadata).
-- **Kelas**: Grade level (Number).
-- **NISN**: National Student Identification Number.
+## 2. Required Team-Level Files (`TeamFile.FILE_TYPE_CHOICES`)
 
----
+Uploaded individually via `POST /upload/<file_type>/`, one at a time (not a single multi-file form submit):
 
-## 3. Sport-Specific Inputs (Cabang Olahraga)
+| `file_type` value | Label | Accepted formats |
+| :--- | :--- | :--- |
+| `pembayaran` | Bukti Pembayaran | PDF, PNG, JPG |
+| `kartuPelajar` | Kartu Pelajar Kapten | PDF only |
+| `selfie` | Selfie Dengan Kartu Pelajar | PDF only |
+| `suratPernyataan` | Surat Pernyataan Tim | PDF only |
+| `suratIzin` | Surat Izin Sekolah | PDF only |
 
-The inputs below are **in addition** to the base member inputs above.
+All 5 are required before `/submit/` will succeed (`SubmitRegistrationView` checks this explicitly).
 
-### 🏀 Basketball (Putra & Putri)
-- **Team Info**: Nama Pelatih, Email Pelatih, Nomor Telepon Pelatih.
-- **Member Info**: Tempat Lahir, Berat Badan (kg), Tinggi Badan (cm).
+## 3. Base Member Inputs (`Member` model)
 
-### 🥋 Pencak Silat
-- **Team Info**: Nama Pelatih, Email Pelatih, Nomor Telepon Pelatih.
-- **Member Info**: Tempat Lahir, Berat Badan (kg), Tinggi Badan (cm), Subkategori (Weight Class).
+All of the following are `blank=True` at the model level (i.e. **not required by the database or by `AddMemberView`/`EditMemberView`** — the views accept whatever's sent, defaulting missing fields to empty):
 
-### ♟️ Catur (Chess)
-- **Member Files**: Akte Kelahiran (PDF), Fotocopy Rapor - Identitas (PDF).
+- **nama** — full name
+- **email**
+- **nomor_telepon**
+- **tanggal_lahir** — date
+- **gender** — `Laki-laki` / `Perempuan`
+- **kelas**
+- **nisn**
 
-### 🥋 Taekwondo
-- **Team Info**: Nama Pelatih, Email Pelatih, Nomor Telepon Pelatih.
-- **Member Info**: Akte Kelahiran (File), Sertifikat Sabuk (File), Subkategori (Weight Class).
+## 4. Sport-Specific Member Fields
 
-### 🎬 Short Movie
-- **Member Info**: Role (e.g., Director, Actor, Editor).
+These five are explicit `Member` model columns (not just thrown into the JSON catch-all), reused across multiple sports:
 
-### 🧊 Cubing
-- **Team Info**: Cube Categories (Multiple select: 2x2, 3x3, 4x4, 3x3 OH, Pyraminx, Skewb, Clock).
+- **tempat_lahir**, **berat_badan** (kg, decimal), **tinggi_badan** (cm, decimal), **role**, **subkategori**
 
-### 🎨 Digital Painting
-- **Member Files**: Akte Kelahiran (PDF).
+Anything not covered by an explicit column lands in **`dynamic_data`** (a `JSONField`), sent as a JSON-encoded string under the `dynamic_data` key in the multipart body.
 
-### 🥋 Karate Kyokushin
-- **Member Info**: Tempat Lahir, Berat Badan (kg), Tinggi Badan (cm), Sertifikat Sabuk (File), Subkategori (Weight/Category Class).
+> ⚠️ **None of the per-sport field requirements below are enforced by the backend.** The `Member` model doesn't vary its required fields by `competition`, and neither `AddMemberView` nor `EditMemberView` branch on sport. This table is a **product/UI reference** — actual enforcement (if any) lives in frontend form logic not included in these files.
 
-### ⚽ Mini Soccer, 🏐 Voli, 🏸 Bulu Tangkis, 💃 Modern Dance, 🎸 Band, 📸 Fotografi, 🗣️ English Debate, 🧗 Wall Climbing, 🎤 Paduan Suara, 🧠 Cerdas Cermat
-- **Member Info**: No extra fields (Only Base Member Inputs).
+| Sport | Extra Member Fields | Extra Member Files |
+| :--- | :--- | :--- |
+| 🏀 Basketball (Putra & Putri) | Tempat Lahir, Berat Badan, Tinggi Badan | — |
+| 🥋 Pencak Silat | Tempat Lahir, Berat Badan, Tinggi Badan, Subkategori | — |
+| ♟️ Catur (Chess) | — | Akte Kelahiran, Fotocopy Rapor |
+| 🥋 Taekwondo | Subkategori | Akte Kelahiran, Sertifikat Sabuk |
+| 🎬 Short Movie | Role | — |
+| 🧊 Cubing | — (team-level: Cube Categories, see §7) | — |
+| 🎨 Digital Painting | — | Akte Kelahiran |
+| 🥋 Karate Kyokushin | Tempat Lahir, Berat Badan, Tinggi Badan, Subkategori | Sertifikat Sabuk |
+| Mini Soccer, Voli, Bulu Tangkis, Modern Dance, Band, Fotografi, English Debate, Wall Climbing, Paduan Suara, Cerdas Cermat | — | — |
 
----
+> ⚠️ **Roster size limits (min/max players per team) are documented but not enforced anywhere in the current backend.** `SubmitRegistrationView` only checks "team has ≥ 1 member," regardless of `competition`. Treat the old min/max table as product intent, not a live constraint.
 
-## 4. Input Constraints Summary
+## 5. Member Files (`MemberFile`)
 
-| Sport | Player Count (Min-Max) | Extra Member Data | Extra Member Files | Team Metadata |
-| :--- | :---: | :--- | :--- | :--- |
-| **Mini Soccer** | 7 - 14 | - | - | - |
-| **Basket** | 5 - 12 | Birthplace, Weight, Height | - | Coach Info |
-| **Pencak Silat**| 1 - 2 | Birthplace, Weight, Height | - | Coach Info |
-| **Catur** | 1 - 2 | - | Akte, Rapor | - |
-| **Taekwondo** | 1 - 6 | - | Akte, Belt Cert | Coach Info |
-| **Short Movie** | 1 - 100| Role | - | - |
-| **Cubing** | 1 - 1 | - | - | Cube Types |
-| **Karate** | 1 - 5 | Birthplace, Weight, Height | Belt Cert | - |
-| **Digital Paint**| 1 - 1 | - | Akte | - |
+Uploaded via multipart keys formatted `file_<type>` on `add_member`/`edit_member` — e.g. `file_akte`, `file_rapor`, `file_sabuk`. Unlike `TeamFile`, `MemberFile.file_type` is a **free `CharField(max_length=50)`**, not a fixed `choices` list — the backend will accept any `file_<anything>` key and create a `MemberFile` with that type string.
+
+## 6. Bank / Rekening (`RekeningSerializer` — `POST /update-rekening/`)
+
+- **bank_name** — `CharField(max_length=100)`
+- **account_number** — `CharField(max_length=50)`
+- **account_holder** — `CharField(max_length=150)`
+
+Only accepted while `Team.regis_status == 'PENDINGTF'` — rejected (`403`) at any other status.
+
+## 7. Team Metadata (`OtherInfo` — `POST /add_info/`)
+
+Accepts **any** flat `{key: value}` JSON object — there's no fixed schema at the DB level. In practice this is used for things like Nama Pelatih / Email Pelatih / Nomor Telepon Pelatih (coach info) and Cube Categories (Cubing), but the backend will happily store any key/value pair sent to it. One `OtherInfo` row is upserted per key.

@@ -13,7 +13,7 @@ except admin.sites.NotRegistered:
     pass
 
 
-class SuperuserOnlyGroupAdmin(AppGroupPermissionMixin, GroupAdmin):
+class SuperuserOnlyGroupAdmin(GroupAdmin):
     """Restrict Group management to superusers only."""
     pass
 
@@ -29,10 +29,10 @@ try:
         BlacklistedTokenAdmin, OutstandingTokenAdmin,
     )
 
-    class SuperuserOnlyBlacklistedTokenAdmin(AppGroupPermissionMixin, BlacklistedTokenAdmin):
+    class SuperuserOnlyBlacklistedTokenAdmin(BlacklistedTokenAdmin):
         pass
 
-    class SuperuserOnlyOutstandingTokenAdmin(AppGroupPermissionMixin, OutstandingTokenAdmin):
+    class SuperuserOnlyOutstandingTokenAdmin(OutstandingTokenAdmin):
         pass
 
     admin.site.unregister(BlacklistedToken)
@@ -44,9 +44,29 @@ except (ImportError, admin.sites.NotRegistered):
 
 
 @admin.register(User)
-class UserAdmin(AppGroupPermissionMixin, BaseUserAdmin):
+class UserAdmin(BaseUserAdmin):
     """Custom user admin with proper password hashing via built-in forms."""
 
+    def has_module_permission(self, request):
+        """Hides the entire model/app from the admin index dashboard for non-superusers."""
+        return request.user.is_superuser
+
+    def has_view_permission(self, request, obj=None):
+        """Prevents direct URL access to view object listings or details."""
+        return request.user.is_superuser
+
+    def has_add_permission(self, request):
+        """Prevents adding new records."""
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        """Prevents editing existing records."""
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        """Prevents deleting records."""
+        return request.user.is_superuser
+    
     form = UserChangeForm
     add_form = UserCreationForm
 

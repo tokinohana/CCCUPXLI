@@ -92,11 +92,15 @@ CSRF_TRUSTED_ORIGINS = [
     "https://regis.cccup.id",
     "https://pay.cccup.id",
     "https://tix.cccup.id",
+
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 # ── Shared cookie domain: session set on api.cccup.id readable across subdomains ──
-SESSION_COOKIE_DOMAIN = ".cccup.id"
-CSRF_COOKIE_DOMAIN = ".cccup.id"
+if not DEBUG:
+    SESSION_COOKIE_DOMAIN = ".cccup.id"
+    CSRF_COOKIE_DOMAIN = ".cccup.id"
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -179,10 +183,19 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 SIMPLE_JWT = {
-    # Match this with the frontend limit to reject tokens after they expire
+    # Short-lived access token; frontend should silently call the refresh
+    # endpoint on 401 rather than forcing a full re-login.
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=30),
-    
+
+    # Registration window is ~25 days (Aug 18 - Sep 11). 14 days + rotation
+    # means an active user's session effectively renews itself for the whole
+    # window (each refresh call issues a new 14-day token), while someone
+    # who goes inactive for 2 weeks has to log in again rather than holding
+    # a token valid for the entire event.
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=14),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+
     # Standard settings for token generation
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,

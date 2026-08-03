@@ -1,7 +1,11 @@
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
 urlpatterns = [
+    #CompetitionMetaData
+    path("competitions/", views.CompetitionMetadataView.as_view(), name="competition-metadata"),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     # Auth
     path('register/', views.RegisterView.as_view(), name='regis-register'),
     path('login/', views.LoginView.as_view(), name='regis-login'),

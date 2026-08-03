@@ -1,5 +1,7 @@
+from .competition_data import COMPETITIONS
 import os
 import json
+from django.db import transaction
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -12,6 +14,7 @@ from .serializers import (
     RegisterSerializer, RekeningSerializer
 )
 from . import chat_services
+from . import competition_data as compdata
 
 User = get_user_model()
 
@@ -41,6 +44,66 @@ def _freeze_check(team):
         )
     return None
 
+
+_SPORT_SPECIFIC_FIELDS = ('tempat_lahir', 'berat_badan', 'tinggi_badan', 'role', 'subkategori')
+
+
+def _extract_member_payload(data, existing=None):
+    """
+    Normalize a multipart member submission (add or edit) into the shape
+    MemberSerializer expects: sport-specific fields promoted out of
+    dynamic_data into their own keys, everything else left in dynamicFields.
+    `existing` is the current Member (for edit — fills in fields not resent).
+    """
+    data = data.copy()
+
+    dynamic_data = dict((existing.dynamic_data or {}) if existing else {})
+    if 'dynamic_data' in data:
+        try:
+            dynamic_data = json.loads(data['dynamic_data'])
+        except (json.JSONDecodeError, TypeError):
+            pass
+        del data['dynamic_data']
+
+    def field(name, default=''):
+        if name in data:
+            return data.get(name)
+        if name in dynamic_data:
+            return dynamic_data.pop(name)
+        if existing is not None:
+            return getattr(existing, name)
+        return default
+
+    payload = {
+        'nama': field('nama'),
+        'email': field('email'),
+        'nomor_telepon': field('nomor_telepon'),
+        'tanggal_lahir': data.get('tanggal_lahir') or (existing.tanggal_lahir if existing else None),
+        'gender': field('gender'),
+        'kelas': field('kelas'),
+        'nisn': field('nisn'),
+    }
+    for name in _SPORT_SPECIFIC_FIELDS:
+        payload[name] = field(name, default='')
+
+    for name in ('berat_badan', 'tinggi_badan'):
+        payload[name] = payload[name] or None
+
+    payload['dynamicFields'] = dynamic_data
+    return payload
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPETITION METADATA PAYLOAD
+# ─────────────────────────────────────────────────────────────────────────────
+class CompetitionMetadataView(views.APIView):
+    """
+    GET /api/regis/competitions/
+    Return registration metadata for every competition.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        return Response(COMPETITIONS)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AUTH
@@ -109,26 +172,37 @@ class RegisterView(views.APIView):
                 status=status.HTTP_409_CONFLICT
             )
 
-        # Create User
-        user = User.objects.create_user(
-            email=email,
-            password=d['password'],
-            phone_number=d['phone'],
-            is_external=True,
-            username=email.split('@')[0],
-        )
+        # User + Team + the representative's own roster row are created
+        # together — if any step fails, none of it should be left behind.
+        with transaction.atomic():
+            user = User.objects.create_user(
+                email=email,
+                password=d['password'],
+                phone_number=d['phone'],
+                is_external=True,
+                username=email.split('@')[0],
+            )
 
-        # Create Team
-        team = Team.objects.create(
-            captain=user,
-            nama_tim=d['nama_tim'],
-            school=d['school'],
-            phone=d['phone'],
-            competition=d['competition'],
-            jenjang=d['jenjang'],
-        )
+            team = Team.objects.create(
+                captain=user,
+                nama_tim=d['nama_tim'],
+                school=d['school'],
+                phone=d['phone'],
+                competition=d['competition'],
+                jenjang=d['jenjang'],
+            )
 
-        # Generate tokens
+            # The person who signed up is automatically part of the roster.
+            # `user` links this row back to their account so it can't be
+            # deleted by its own owner (see DeleteMemberView) and can't be
+            # duplicated (OneToOneField enforces one representative row).
+            Member.objects.create(
+                team=team,
+                user=user,
+                email=email,
+                nomor_telepon=d['phone'],
+            )
+
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -193,41 +267,13 @@ class AddMemberView(views.APIView):
         if freeze:
             return freeze
 
-        data = request.data.copy()
+        payload = _extract_member_payload(request.data)
 
-        # Parse dynamic_data JSON from string if sent as FormData
-        dynamic_data = {}
-        if 'dynamic_data' in data:
-            import json
-            try:
-                dynamic_data = json.loads(data['dynamic_data'])
-            except (json.JSONDecodeError, TypeError):
-                dynamic_data = {}
-            del data['dynamic_data']
+        serializer = MemberSerializer(data=payload, context={'team': team})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        # Extract known sport-specific fields from dynamic_data into model fields
-        tempat_lahir = dynamic_data.pop('tempat_lahir', data.get('tempat_lahir', ''))
-        berat_badan = dynamic_data.pop('berat_badan', data.get('berat_badan'))
-        tinggi_badan = dynamic_data.pop('tinggi_badan', data.get('tinggi_badan'))
-        role = dynamic_data.pop('role', data.get('role', ''))
-        subkategori = dynamic_data.pop('subkategori', data.get('subkategori', ''))
-
-        member = Member.objects.create(
-            team=team,
-            nama=data.get('nama', ''),
-            email=data.get('email', ''),
-            nomor_telepon=data.get('nomor_telepon', ''),
-            tanggal_lahir=data.get('tanggal_lahir') or None,
-            gender=data.get('gender', ''),
-            kelas=data.get('kelas', ''),
-            nisn=data.get('nisn', ''),
-            tempat_lahir=tempat_lahir,
-            berat_badan=berat_badan or None,
-            tinggi_badan=tinggi_badan or None,
-            role=role,
-            subkategori=subkategori,
-            dynamic_data=dynamic_data
-        )
+        member = Member.objects.create(team=team, **serializer.validated_data)
 
         # Handle member file uploads (keys like file_akte, file_rapor, file_sabuk, etc.)
         for key, uploaded_file in request.FILES.items():
@@ -263,47 +309,18 @@ class EditMemberView(views.APIView):
         except Member.DoesNotExist:
             return Response({"error": "Anggota tidak ditemukan."}, status=status.HTTP_404_NOT_FOUND)
 
-        data = request.data.copy()
+        payload = _extract_member_payload(request.data, existing=member)
 
-        # Parse dynamic_data
-        dynamic_data = member.dynamic_data or {}
-        if 'dynamic_data' in data:
-            import json
-            try:
-                dynamic_data = json.loads(data['dynamic_data'])
-            except (json.JSONDecodeError, TypeError):
-                pass
-            del data['dynamic_data']
-
-        # Update known fields
-        member.nama = data.get('nama', member.nama)
-        member.email = data.get('email', member.email)
-        member.nomor_telepon = data.get('nomor_telepon', member.nomor_telepon)
-        member.tanggal_lahir = data.get('tanggal_lahir') or member.tanggal_lahir
-        member.gender = data.get('gender', member.gender)
-        member.kelas = data.get('kelas', member.kelas)
-        member.nisn = data.get('nisn', member.nisn)
-
-        # Sport-specific
-        if 'tempat_lahir' in data or 'tempat_lahir' in dynamic_data:
-            member.tempat_lahir = dynamic_data.pop('tempat_lahir', data.get('tempat_lahir', member.tempat_lahir))
-        if 'berat_badan' in data or 'berat_badan' in dynamic_data:
-            member.berat_badan = dynamic_data.pop('berat_badan', data.get('berat_badan')) or member.berat_badan
-        if 'tinggi_badan' in data or 'tinggi_badan' in dynamic_data:
-            member.tinggi_badan = dynamic_data.pop('tinggi_badan', data.get('tinggi_badan')) or member.tinggi_badan
-        if 'role' in data or 'role' in dynamic_data:
-            member.role = dynamic_data.pop('role', data.get('role', member.role))
-        if 'subkategori' in data or 'subkategori' in dynamic_data:
-            member.subkategori = dynamic_data.pop('subkategori', data.get('subkategori', member.subkategori))
-
-        member.dynamic_data = dynamic_data
-        member.save()
+        serializer = MemberSerializer(member, data=payload, context={'team': team})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
 
         # Re-upload files (replace existing)
         for key, uploaded_file in request.FILES.items():
             if key.startswith('file_'):
                 file_type = key[len('file_'):]
-                obj, created = MemberFile.objects.update_or_create(
+                MemberFile.objects.update_or_create(
                     member=member,
                     file_type=file_type,
                     defaults={'file': uploaded_file}
@@ -331,8 +348,11 @@ class DeleteMemberView(views.APIView):
         except Member.DoesNotExist:
             return Response({"error": "Anggota tidak ditemukan."}, status=status.HTTP_404_NOT_FOUND)
 
-        if member.is_kapten:
-            return Response({"error": "Tidak dapat menghapus kapten tim."}, status=status.HTTP_403_FORBIDDEN)
+        if member.user_id == request.user.id:
+            return Response(
+                {"error": "Tidak dapat menghapus data diri sendiri sebagai perwakilan tim."},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         member.delete()
         return Response({"message": "Anggota berhasil dihapus."})
@@ -473,9 +493,19 @@ class SubmitRegistrationView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Validate: minimum member count (use a basic default of 1 if competition not known)
+        # Validate: roster size against the real per-sport min/max
         member_count = team.members.count()
-        if member_count < 1:
+        rng = compdata.player_range(team.competition, team.jenjang)
+        if rng:
+            min_players, max_players = rng
+            if member_count < min_players or member_count > max_players:
+                return Response(
+                    {"error": f"Jumlah anggota tim harus antara {min_players}-{max_players} orang untuk cabang ini. Saat ini: {member_count}."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif member_count < 1:
+            # Competition/jenjang not found in metadata — fall back to the
+            # bare minimum rather than blocking submission entirely.
             return Response(
                 {"error": "Tambahkan minimal 1 anggota tim terlebih dahulu."},
                 status=status.HTTP_400_BAD_REQUEST

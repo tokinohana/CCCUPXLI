@@ -1,0 +1,145 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+/*
+ * Maya-Themed Registration Platform — design system.
+ * Light mode only. Sharp corners, prominent borders, no soft shadows,
+ * no gradients, no glassmorphism.
+ */
+
+@theme inline {
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
+
+  --font-display: "Oswald", "Arial Narrow", sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-stone: var(--stone);
+  --color-jungle: var(--jungle);
+  --color-jungle-deep: var(--jungle-deep);
+  --color-terracotta: var(--terracotta);
+  --color-obsidian: var(--obsidian);
+  --color-limestone: var(--limestone);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0px;
+
+  /* Limestone White */
+  --limestone: oklch(0.962 0.002 106);
+  /* Obsidian Black */
+  --obsidian: oklch(0.239 0 0);
+  /* Jungle Canopy */
+  --jungle: oklch(0.472 0.079 158);
+  --jungle-deep: oklch(0.372 0.069 158);
+  /* Terracotta / Cinnabar */
+  --terracotta: oklch(0.704 0.121 40);
+  /* Carved stone surface */
+  --stone: oklch(0.912 0.004 106);
+
+  --background: var(--limestone);
+  --foreground: var(--obsidian);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--obsidian);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--obsidian);
+  --primary: var(--jungle);
+  --primary-foreground: oklch(0.985 0.002 106);
+  --secondary: var(--stone);
+  --secondary-foreground: var(--obsidian);
+  --muted: var(--stone);
+  --muted-foreground: oklch(0.48 0.006 106);
+  --accent: var(--terracotta);
+  --accent-foreground: oklch(0.18 0 0);
+  --destructive: var(--terracotta);
+  --destructive-foreground: oklch(0.18 0 0);
+  --border: var(--obsidian);
+  --input: var(--obsidian);
+  --ring: var(--jungle);
+
+  --sidebar: var(--limestone);
+  --sidebar-foreground: var(--obsidian);
+  --sidebar-primary: var(--jungle);
+  --sidebar-primary-foreground: oklch(0.985 0.002 106);
+  --sidebar-accent: var(--stone);
+  --sidebar-accent-foreground: var(--obsidian);
+  --sidebar-border: var(--obsidian);
+  --sidebar-ring: var(--jungle);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+  }
+}
+
+/* Stone-carved block: heavy border, no shadow. */
+@utility block-carved {
+  border: 2px solid var(--color-border);
+  background-color: var(--color-card);
+}
+
+/* Stepped pyramid rule used to separate monumental sections. */
+@utility stepped-rule {
+  height: 10px;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-obsidian) 0 24px,
+    transparent 24px 32px
+  );
+}
+
+@utility glyph-band {
+  background-color: var(--color-obsidian);
+  color: var(--color-limestone);
+}

@@ -5,12 +5,10 @@ from django.contrib import messages
 from admin_utils import AppGroupPermissionMixin
 from .models import Transaction, MerchantStand
 from .services import distribute_daily_funds, expire_daily_funds
-# ccpay is superuser-only: allowed_group stays None
 
 
 @admin.register(Transaction)
-class TransactionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    # allowed_group = None  →  superuser only
+class TransactionAdmin(admin.ModelAdmin):
     change_list_template = 'admin/ccpay/transaction/change_list.html'
     list_display = ('id', 'type', 'sender', 'receiver', 'merchant_stand_name', 'amount', 'timestamp')
     list_filter = ('type', 'timestamp', 'merchant_stand')
@@ -19,6 +17,7 @@ class TransactionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     search_fields = ('sender__email', 'receiver__email', 'reference_id', 'description')
     readonly_fields = ('timestamp',)
 
+    
     @admin.display(description='Merchant Stand')
     def merchant_stand_name(self, obj):
         return obj.merchant_stand.name if obj.merchant_stand else "-"

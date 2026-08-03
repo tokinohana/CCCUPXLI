@@ -1,211 +1,135 @@
-import axios from 'axios';
+/**
+ * API client for the CC Cup XLI Django/DRF backend.
+ * One place for the host: VITE_API_BASE_URL.
+ */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/regis';
+export const API_BASE_URL = (
+  import.meta.env["VITE_API_BASE_URL"] ?? "https://api.cccup.id/api/regis"
+).replace(/\/+$/, "");
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Axios instance with JWT interceptors
-// ─────────────────────────────────────────────────────────────────────────────
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+const REFRESH_STORAGE_KEY = "cccup.refresh";
 
-// Attach JWT access token to every outgoing request
-api.interceptors.request.use(
-  (config) => {
-    const accessToken = localStorage.getItem('regis_access_token');
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Access token lives in memory only; refresh token is persisted.
+let accessToken = null;
 
-// Handle 401 responses: try to refresh token, or force logout
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+export function setAccessToken(token) {
+  accessToken = token;
+}
 
-    // Only try refresh once per request
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+export function getAccessToken() {
+  return accessToken;
+}
 
-      const refreshToken = localStorage.getItem('regis_refresh_token');
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${API_BASE_URL}/token/refresh/`, {
-            refresh: refreshToken,
-          });
-          const newAccess = res.data.access;
-          localStorage.setItem('regis_access_token', newAccess);
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-          return api(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed - clear tokens and redirect
-          clearAuth();
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
-        }
-      } else {
-        clearAuth();
-        window.location.href = '/login';
-      }
-    }
+export function setRefreshToken(token) {
+  if (typeof window === "undefined") return;
+  if (token) window.localStorage.setItem(REFRESH_STORAGE_KEY, token);
+  else window.localStorage.removeItem(REFRESH_STORAGE_KEY);
+}
 
-    return Promise.reject(error);
+export function getRefreshToken() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(REFRESH_STORAGE_KEY);
+}
+
+export function clearTokens() {
+  setAccessToken(null);
+  setRefreshToken(null);
+}
+
+export class ApiError extends Error {
+  constructor(status, message, data) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.data = data;
   }
-);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth helpers
-// ─────────────────────────────────────────────────────────────────────────────
-export function clearAuth() {
-  localStorage.removeItem('regis_access_token');
-  localStorage.removeItem('regis_refresh_token');
+  get fieldErrors() {
+    if (this.data && typeof this.data === "object" && !Array.isArray(this.data)) {
+      return this.data;
+    }
+    return {};
+  }
 }
 
-export function isAuthenticated() {
-  return !!localStorage.getItem('regis_access_token');
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth endpoints
-// ─────────────────────────────────────────────────────────────────────────────
-export async function login(email, password) {
-  const res = await api.post('/login/', { email, password });
-  const { access, refresh, team } = res.data;
-  localStorage.setItem('regis_access_token', access);
-  localStorage.setItem('regis_refresh_token', refresh);
-  return team; // team profile object
-}
-
-export async function register(payload) {
-  // payload: { email, password, phone, jenjang, school, nama_tim, competition }
-  const res = await api.post('/register/', payload);
-  const { access, refresh, team } = res.data;
-  localStorage.setItem('regis_access_token', access);
-  localStorage.setItem('regis_refresh_token', refresh);
-  return team;
-}
-
-export async function logout() {
-  const refresh = localStorage.getItem('regis_refresh_token');
+async function parseBody(response) {
+  const text = await response.text();
+  if (!text) return null;
   try {
-    await api.post('/logout/', { refresh });
+    return JSON.parse(text);
   } catch {
-    // Ignore errors on logout
+    return text;
   }
-  clearAuth();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Dashboard
-// ─────────────────────────────────────────────────────────────────────────────
-export async function getDashboard() {
-  const res = await api.get('/dashboard/');
-  return res.data;
+function extractMessage(data, fallback) {
+  if (typeof data === "string") return data;
+  if (data && typeof data === "object") {
+    if ("detail" in data && typeof data.detail === "string") return data.detail;
+    if ("non_field_errors" in data && Array.isArray(data.non_field_errors)) {
+      return data.non_field_errors.join(" ");
+    }
+    const firstKey = Object.keys(data)[0];
+    if (firstKey) {
+      const val = data[firstKey];
+      if (Array.isArray(val)) return `${firstKey}: ${val.join(" ")}`;
+      if (typeof val === "string") return `${firstKey}: ${val}`;
+    }
+  }
+  return fallback;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Members
-// ─────────────────────────────────────────────────────────────────────────────
-export async function addMember(formData) {
-  // formData is a FormData instance with member fields + files
-  const res = await api.post('/add_member/', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+async function refreshAccessToken() {
+  const refresh = getRefreshToken();
+  if (!refresh) return false;
+
+  const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh }),
   });
-  return res.data;
+
+  if (!response.ok) {
+    clearTokens();
+    return false;
+  }
+
+  const data = await response.json();
+  if (!data.access) return false;
+  setAccessToken(data.access);
+  // Refresh tokens rotate — always store the new one.
+  if (data.refresh) setRefreshToken(data.refresh);
+  return true;
 }
 
-export async function editMember(memberId, formData) {
-  // formData is a FormData instance with member fields + files
-  const res = await api.put(`/edit_member/${memberId}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return res.data;
-}
+export async function apiRequest(path, options = {}) {
+  const { method = "GET", body, auth = true, multipart = false } = options;
 
-export async function deleteMember(memberId) {
-  const res = await api.delete(`/delete_member/${memberId}/`);
-  return res.data;
-}
+  const send = async () => {
+    const headers = {};
+    if (!multipart && body !== undefined) headers["Content-Type"] = "application/json";
+    if (auth && accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+    const payload =
+      body === undefined ? null : multipart ? body : JSON.stringify(body);
+    return fetch(`${API_BASE_URL}${path}`, { method, headers, body: payload });
+  };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Team Files
-// ─────────────────────────────────────────────────────────────────────────────
-export async function uploadTeamFile(fileType, file) {
-  const formData = new FormData();
-  formData.append('file', file);
-  const res = await api.post(`/upload/${fileType}/`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
-  return res.data;
-}
+  let response = await send();
 
-export async function deleteTeamFile(fileType) {
-  const res = await api.delete(`/delete_file/${fileType}/`);
-  return res.data;
-}
+  // One silent refresh + one retry on 401.
+  if (response.status === 401 && auth) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) response = await send();
+  }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Team Info (OtherInfo)
-// ─────────────────────────────────────────────────────────────────────────────
-export async function saveTeamInfo(data) {
-  // data is a plain object: { coach_name: "...", coach_email: "...", ... }
-  const res = await api.post('/add_info/', data);
-  return res.data;
-}
+  const data = await parseBody(response);
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      extractMessage(data, `Request failed (${response.status})`),
+      data
+    );
+  }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Submit / Unsubmit
-// ─────────────────────────────────────────────────────────────────────────────
-export async function submitRegistration() {
-  const res = await api.post('/submit/');
-  return res.data;
+  return data;
 }
-
-export async function unsubmitRegistration() {
-  const res = await api.post('/unsubmit/');
-  return res.data;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Rekening
-// ─────────────────────────────────────────────────────────────────────────────
-export async function updateRekening(data) {
-  // data: { bank_name, account_number, account_holder }
-  const res = await api.post('/update-rekening/', data);
-  return res.data;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Subkategori
-// ─────────────────────────────────────────────────────────────────────────────
-export async function saveSubkategori(memberId, subkategori) {
-  const res = await api.post('/save-subkategori/', { member_id: memberId, subkategori });
-  return res.data;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AI Chat Consultant
-// ─────────────────────────────────────────────────────────────────────────────
-export async function getChatStatus() {
-  const res = await api.get('/chat/status/');
-  return res.data;
-}
-
-export async function sendChatMessage(message) {
-  const res = await api.post('/chat/', { message });
-  return res.data;
-}
-
-export async function clearChatHistory() {
-  const res = await api.post('/chat/clear/');
-  return res.data;
-}
-
-export default api;

@@ -1,15 +1,16 @@
 from django.contrib import admin
 from admin_utils import AppGroupPermissionMixin
 from .models import Team, Member, TeamFile, MemberFile, OtherInfo, ChatDocument, ChatSession
+from . import competition_data as compdata
 
-REGIS_GROUP = 'Registration Committee'
+# REGIS_GROUP = 'Registration Committee'
 
 
 class MemberInline(admin.TabularInline):
     model = Member
     extra = 0
-    fields = ['nama', 'email', 'nisn', 'kelas', 'gender', 'is_kapten', 'subkategori']
-    readonly_fields = ['created_at']
+    fields = ['nama', 'email', 'nisn', 'kelas', 'gender', 'user', 'subkategori']
+    readonly_fields = ['created_at', 'user']
 
 
 class TeamFileInline(admin.TabularInline):
@@ -23,13 +24,28 @@ class OtherInfoInline(admin.TabularInline):
 
 
 @admin.register(Team)
-class TeamAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
-    list_display = ['nama_tim', 'competition', 'jenjang', 'school', 'regis_status', 'created_at']
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ['nama_tim', 'competition', 'jenjang', 'school', 'regis_status', 'quota_flag', 'created_at']
     list_filter = ['competition', 'regis_status', 'jenjang', 'created_at']
     search_fields = ['nama_tim', 'school', 'captain__email']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [MemberInline, TeamFileInline, OtherInfoInline]
+
+    @admin.display(description='Kuota/Status')
+    def quota_flag(self, obj):
+        """
+        Soft, informational only — registration is never blocked by quota or
+        a 'closed' competition status. Admins audit and act on this manually.
+        """
+        flags = []
+        if compdata.is_closed(obj.competition, obj.jenjang):
+            flags.append('⚠️ CLOSED')
+        q = compdata.quota(obj.competition, obj.jenjang)
+        if q is not None:
+            count = Team.objects.filter(competition=obj.competition, jenjang=obj.jenjang).count()
+            if count > q:
+                flags.append(f'⚠️ OVER QUOTA ({count}/{q})')
+        return ' '.join(flags) if flags else '—'
     fieldsets = (
         ('Informasi Tim', {
             'fields': ('captain', 'nama_tim', 'school', 'phone', 'competition', 'jenjang', 'regis_status')
@@ -46,37 +62,32 @@ class TeamAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
 
 
 @admin.register(Member)
-class MemberAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
-    list_display = ['nama', 'team', 'nisn', 'kelas', 'gender', 'is_kapten']
-    list_filter = ['team__competition', 'gender', 'is_kapten']
-    search_fields = ['nama', 'nisn', 'email', 'team__nama_tim']
+class MemberAdmin(admin.ModelAdmin):
+    list_display = ['nama', 'team', 'nisn', 'kelas', 'gender', 'user']
+    list_filter = ['team__competition', 'gender']
+    search_fields = ['nama', 'nisn', 'email', 'team__nama_tim', 'user__email']
 
 
 @admin.register(TeamFile)
-class TeamFileAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
+class TeamFileAdmin(admin.ModelAdmin):
     list_display = ['team', 'file_type', 'uploaded_at']
     list_filter = ['file_type', 'uploaded_at']
 
 
 @admin.register(MemberFile)
-class MemberFileAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
+class MemberFileAdmin(admin.ModelAdmin):
     list_display = ['member', 'file_type', 'uploaded_at']
     list_filter = ['file_type', 'uploaded_at']
 
 
 @admin.register(OtherInfo)
-class OtherInfoAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
+class OtherInfoAdmin(admin.ModelAdmin):
     list_display = ['team', 'key', 'value']
     list_filter = ['key']
 
 
 @admin.register(ChatDocument)
-class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
+class ChatDocumentAdmin(admin.ModelAdmin):
     list_display = ['name', 'pdf_url', 'is_active', 'has_extracted_text', 'uploaded_at']
     list_filter = ['is_active', 'uploaded_at']
     actions = ['extract_text_action']
@@ -122,8 +133,7 @@ class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
 
 
 @admin.register(ChatSession)
-class ChatSessionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    allowed_group = REGIS_GROUP
+class ChatSessionAdmin(admin.ModelAdmin):
     list_display = ['team', 'token_usage', 'token_cap', 'last_active_at']
     list_filter = ['last_active_at']
     search_fields = ['team__nama_tim']

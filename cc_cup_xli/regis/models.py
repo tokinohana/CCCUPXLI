@@ -66,6 +66,21 @@ class Member(models.Model):
     )
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='members', verbose_name='Tim')
+
+    # Links this roster row to the account holder (team representative) who
+    # registered the team. Null for every other member. Replaces the old
+    # is_kapten boolean, which nothing ever set. A OneToOne enforces that a
+    # given User can only be linked to one roster row, and this row cannot be
+    # deleted by its own owner (enforced in the view, not here).
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='member_profile',
+        verbose_name='Akun Perwakilan Tim'
+    )
+
     nama = models.CharField(max_length=200, verbose_name='Nama Lengkap')
     email = models.EmailField(blank=True, verbose_name='Email')
     nomor_telepon = models.CharField(max_length=20, blank=True, verbose_name='Nomor Telepon')
@@ -81,8 +96,6 @@ class Member(models.Model):
     role = models.CharField(max_length=100, blank=True, verbose_name='Role / Peran')
     subkategori = models.CharField(max_length=255, blank=True, verbose_name='Subkategori')
 
-    is_kapten = models.BooleanField(default=False, verbose_name='Apakah Kapten?')
-
     # Catch-all for any additional dynamic fields not covered above
     dynamic_data = models.JSONField(default=dict, blank=True, verbose_name='Data Dinamis Tambahan')
 
@@ -90,7 +103,7 @@ class Member(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-is_kapten', 'created_at']
+        ordering = ['created_at']
         verbose_name = 'Anggota'
         verbose_name_plural = 'Daftar Anggota'
 
