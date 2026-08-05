@@ -4,29 +4,19 @@ from . import competition_data as compdata
 
 
 class TeamFileSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
+    url = serializers.CharField(source='file_url', read_only=True)
 
     class Meta:
         model = TeamFile
         fields = ['id', 'file_type', 'url', 'uploaded_at']
 
-    def get_url(self, obj):
-        if obj.file:
-            return obj.file.url
-        return None
-
 
 class MemberFileSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
+    url = serializers.CharField(source='file_url', read_only=True)
 
     class Meta:
         model = MemberFile
         fields = ['id', 'file_type', 'url', 'uploaded_at']
-
-    def get_url(self, obj):
-        if obj.file:
-            return obj.file.url
-        return None
 
 
 class OtherInfoSerializer(serializers.ModelSerializer):

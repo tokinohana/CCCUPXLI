@@ -125,7 +125,11 @@ class TeamFile(models.Model):
 
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='files', verbose_name='Tim')
     file_type = models.CharField(max_length=30, choices=FILE_TYPE_CHOICES, verbose_name='Jenis Berkas')
-    file = models.FileField(upload_to='Registration/team_files/', verbose_name='Berkas')
+    # Populated from the Cloudinary widget's upload result — Django never
+    # receives the raw file (unsigned client-side upload).
+    file_url = models.URLField(max_length=500, verbose_name='URL Berkas')
+    public_id = models.CharField(max_length=255, blank=True, verbose_name='Cloudinary Public ID')
+    file_format = models.CharField(max_length=10, blank=True, verbose_name='Format Berkas')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
 
     class Meta:
@@ -144,7 +148,13 @@ class MemberFile(models.Model):
     """
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='files', verbose_name='Anggota')
     file_type = models.CharField(max_length=50, verbose_name='Jenis Berkas')  # e.g. "akte", "rapor", "sabuk"
-    file = models.FileField(upload_to='Registration/member_files/', verbose_name='Berkas')
+    # TRANSITIONAL: old field kept temporarily so the data migration can
+    # read from it. Remove this once the data migration has run — see
+    # phase 3 below.
+    file = models.FileField(upload_to='Registration/member_files/', blank=True, null=True, verbose_name='Berkas (lama)')
+    file_url = models.URLField(max_length=500, blank=True, default='', verbose_name='URL Berkas')
+    public_id = models.CharField(max_length=255, blank=True, verbose_name='Cloudinary Public ID')
+    file_format = models.CharField(max_length=10, blank=True, verbose_name='Format Berkas')
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Waktu Unggah')
 
     class Meta:

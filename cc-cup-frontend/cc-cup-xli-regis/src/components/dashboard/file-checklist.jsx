@@ -3,25 +3,39 @@ import { toast } from "sonner";
 
 import { GlyphCheckStone } from "@/components/glyphs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api";
 import { endpoints } from "@/lib/endpoints";
+import { openCloudinaryWidget } from "@/lib/cloudinary";
 import { TEAM_FILE_TYPES } from "@/lib/types";
+
+function formatsFromAccept(accept) {
+  if (!accept) return undefined;
+  return accept
+    .split(",")
+    .map((part) => part.trim().replace(/^\./, "").toLowerCase())
+    .filter(Boolean);
+}
 
 export function FileChecklist({ files, frozen, onChanged }) {
   const [busyKey, setBusyKey] = useState(null);
 
-  const upload = async (fileType, file) => {
-    setBusyKey(fileType);
-    try {
-      await endpoints.uploadFile(fileType, file);
-      await onChanged();
-      toast.success("Berkas tersimpan.");
-    } catch (caught) {
-      toast.error(caught instanceof ApiError ? caught.message : "Berkas gagal diunggah.");
-    } finally {
-      setBusyKey(null);
-    }
+  const upload = (fileType, allowedFormats) => {
+    openCloudinaryWidget({ allowedFormats }, async (info) => {
+      setBusyKey(fileType);
+      try {
+        await endpoints.uploadFile(fileType, {
+          url: info.secure_url,
+          public_id: info.public_id,
+          format: info.format,
+        });
+        await onChanged();
+        toast.success("Berkas tersimpan.");
+      } catch (caught) {
+        toast.error(caught instanceof ApiError ? caught.message : "Berkas gagal diunggah.");
+      } finally {
+        setBusyKey(null);
+      }
+    });
   };
 
   const remove = async (fileType) => {
@@ -60,16 +74,15 @@ export function FileChecklist({ files, frozen, onChanged }) {
 
             {!frozen ? (
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Input
-                  type="file"
-                  accept={type.accept}
-                  aria-label={`Unggah ${type.label}`}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   disabled={busyKey === type.key}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    if (file) void upload(type.key, file);
-                  }}
-                />
+                  onClick={() => upload(type.key, formatsFromAccept(type.accept))}
+                >
+                  {busyKey === type.key ? "Mengunggah..." : existing ? "Ganti berkas" : "Unggah berkas"}
+                </Button>
                 {existing ? (
                   <Button
                     type="button"

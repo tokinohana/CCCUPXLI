@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api";
 import { endpoints } from "@/lib/endpoints";
+import { openCloudinaryWidget } from "@/lib/cloudinary";
 
 const GENDER_LABEL = { M: "Laki-laki", F: "Perempuan" };
 
@@ -45,12 +46,24 @@ export function MemberForm({ level, member, onDone, onCancel }) {
   });
 
   const [files, setFiles] = useState({});
+  const [uploadingKey, setUploadingKey] = useState(null);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [busy, setBusy] = useState(false);
 
   const set = (key) => (value) =>
     setValues((prev) => ({ ...prev, [key]: value }));
+
+  const uploadDynamicFile = (key) => {
+    setUploadingKey(key);
+    openCloudinaryWidget({}, (info) => {
+      setFiles((prev) => ({
+        ...prev,
+        [key]: { url: info.secure_url, public_id: info.public_id, format: info.format },
+      }));
+      setUploadingKey(null);
+    }, () => setUploadingKey(null));
+  };
 
   const namedExtras = new Set([
     "tempat_lahir",
@@ -66,31 +79,34 @@ export function MemberForm({ level, member, onDone, onCancel }) {
     setFieldErrors({});
     setBusy(true);
 
-    const form = new FormData();
+    const payload = {};
     for (const key of ["nama", "email", "nomor_telepon", "tanggal_lahir", "gender", "kelas", "nisn"]) {
-      form.append(key, values[key] ?? "");
+      payload[key] = values[key] ?? "";
     }
     for (const key of namedExtras) {
-      if (key in extra || values[key]) form.append(key, values[key] ?? "");
+      if (key in extra || values[key]) payload[key] = values[key] ?? "";
     }
 
     const dynamicPayload = {};
+    const filesPayload = {};
     for (const [key, type] of Object.entries(extra)) {
       if (namedExtras.has(key)) continue;
       if (type === "File") {
-        const file = files[key];
-        if (file) form.append(`file_${key}`, file);
+        if (files[key]) filesPayload[key] = files[key];
       } else if (dynamicValues[key]) {
         dynamicPayload[key] = dynamicValues[key];
       }
     }
     if (Object.keys(dynamicPayload).length > 0) {
-      form.append("dynamic_data", JSON.stringify(dynamicPayload));
+      payload.dynamic_data = dynamicPayload;
+    }
+    if (Object.keys(filesPayload).length > 0) {
+      payload.files = filesPayload;
     }
 
     try {
-      if (member) await endpoints.editMember(member.id, form);
-      else await endpoints.addMember(form);
+      if (member) await endpoints.editMember(member.id, payload);
+      else await endpoints.addMember(payload);
       await onDone();
     } catch (caught) {
       if (caught instanceof ApiError) {
@@ -215,14 +231,19 @@ export function MemberForm({ level, member, onDone, onCancel }) {
         .map(([key, type]) =>
           type === "File" ? (
             <Field key={key} label={key} id={`file-${key}`} error={fieldErrors[key]}>
-              <Input
-                id={`file-${key}`}
-                type="file"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) setFiles((prev) => ({ ...prev, [key]: file }));
-                }}
-              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={uploadingKey === key}
+                onClick={() => uploadDynamicFile(key)}
+              >
+                {uploadingKey === key
+                  ? "Mengunggah..."
+                  : files[key]
+                    ? "Berkas terunggah — ganti"
+                    : "Unggah berkas"}
+              </Button>
             </Field>
           ) : (
             <Field key={key} label={key} id={`dyn-${key}`} error={fieldErrors[key]}>

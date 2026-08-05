@@ -412,7 +412,6 @@ COMPETITIONS = {
             "players": [3, 3],
             "subkategori": [],
             "kuota": 16,
-            "status": "closed",
             "extra": {
                 "tim": {},
                 "anggota": {}
@@ -423,7 +422,6 @@ COMPETITIONS = {
             "players": [3, 3],
             "subkategori": [],
             "kuota": 16,
-            "status": "closed",
             "extra": {
                 "tim": {},
                 "anggota": {}

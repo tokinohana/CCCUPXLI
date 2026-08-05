@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { clearTokens, getRefreshToken, setAccessToken, setRefreshToken } from "@/lib/api";
@@ -11,6 +11,19 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const navigate = useNavigate();
+  const hasBooted = useRef(false);
+  const isMounted = useRef(true);
+
+  // Reflects real mount status. Under StrictMode this effect also runs
+  // mount->cleanup->mount, but synchronously — so isMounted.current is
+  // back to true well before any async work below resolves. It only
+  // stays false if the component genuinely unmounts.
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   const refreshTeam = useCallback(async () => {
     try {
@@ -27,19 +40,18 @@ export function AuthProvider({ children }) {
 
   // Restore the session from the persisted refresh token on first load.
   useEffect(() => {
-    let active = true;
+    if (hasBooted.current) return;
+    hasBooted.current = true;
+
     const boot = async () => {
       if (!getRefreshToken()) {
-        if (active) setReady(true);
+        if (isMounted.current) setReady(true);
         return;
       }
       await refreshTeam();
-      if (active) setReady(true);
+      if (isMounted.current) setReady(true);
     };
     void boot();
-    return () => {
-      active = false;
-    };
   }, [refreshTeam]);
 
   const applyAuth = useCallback((payload) => {

@@ -1,10 +1,10 @@
 from .competition_data import COMPETITIONS
 import os
 import json
+import cloudinary.uploader
 from django.db import transaction
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.contrib.auth import authenticate, get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Team, Member, TeamFile, MemberFile, OtherInfo, ChatDocument, ChatSession
@@ -50,20 +50,26 @@ _SPORT_SPECIFIC_FIELDS = ('tempat_lahir', 'berat_badan', 'tinggi_badan', 'role',
 
 def _extract_member_payload(data, existing=None):
     """
-    Normalize a multipart member submission (add or edit) into the shape
+    Normalize a member submission (add or edit) into the shape
     MemberSerializer expects: sport-specific fields promoted out of
     dynamic_data into their own keys, everything else left in dynamicFields.
     `existing` is the current Member (for edit — fills in fields not resent).
+    Accepts a plain JSON dict; 'files' (if present) is handled separately
+    by `_save_member_files`, not passed through to the serializer.
     """
-    data = data.copy()
+    data = dict(data)
+    data.pop('files', None)
 
     dynamic_data = dict((existing.dynamic_data or {}) if existing else {})
     if 'dynamic_data' in data:
-        try:
-            dynamic_data = json.loads(data['dynamic_data'])
-        except (json.JSONDecodeError, TypeError):
-            pass
-        del data['dynamic_data']
+        raw = data.pop('dynamic_data')
+        if isinstance(raw, str):
+            try:
+                dynamic_data = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                pass
+        elif isinstance(raw, dict):
+            dynamic_data = raw
 
     def field(name, default=''):
         if name in data:
@@ -91,6 +97,43 @@ def _extract_member_payload(data, existing=None):
 
     payload['dynamicFields'] = dynamic_data
     return payload
+
+
+def _save_member_files(member, files_payload):
+    """
+    Record member-level files that were already uploaded client-side to
+    Cloudinary via the unsigned upload widget. `files_payload` is expected
+    to be a dict like:
+        { "akte": {"url": "...", "public_id": "...", "format": "pdf"}, ... }
+    """
+    if not isinstance(files_payload, dict):
+        return
+
+    for file_type, info in files_payload.items():
+        if not isinstance(info, dict):
+            continue
+        url = info.get('url')
+        if not url:
+            continue
+
+        # Replacing an existing file: clean up the old asset on Cloudinary
+        # first so it doesn't linger as an orphaned upload.
+        existing = MemberFile.objects.filter(member=member, file_type=file_type).first()
+        if existing and existing.public_id and existing.public_id != info.get('public_id'):
+            try:
+                cloudinary.uploader.destroy(existing.public_id, resource_type='auto')
+            except Exception:
+                pass
+
+        MemberFile.objects.update_or_create(
+            member=member,
+            file_type=file_type,
+            defaults={
+                'file_url': url,
+                'public_id': info.get('public_id', ''),
+                'file_format': (info.get('format') or '').lower(),
+            }
+        )
 
 # ─────────────────────────────────────────────────────────────────────────────
 # COMPETITION METADATA PAYLOAD
@@ -253,11 +296,11 @@ class DashboardView(views.APIView):
 class AddMemberView(views.APIView):
     """
     POST /api/regis/add_member
-    Create a new member with dynamic fields and optional file uploads.
-    Expects multipart/form-data.
+    Create a new member with dynamic fields and optional file references.
+    Expects JSON — file fields are Cloudinary widget results, e.g.:
+        { "nama": "...", ..., "files": { "akte": {"url": "...", ...} } }
     """
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         team, err = _get_team_or_error(request)
@@ -275,15 +318,7 @@ class AddMemberView(views.APIView):
 
         member = Member.objects.create(team=team, **serializer.validated_data)
 
-        # Handle member file uploads (keys like file_akte, file_rapor, file_sabuk, etc.)
-        for key, uploaded_file in request.FILES.items():
-            if key.startswith('file_'):
-                file_type = key[len('file_'):]
-                MemberFile.objects.create(
-                    member=member,
-                    file_type=file_type,
-                    file=uploaded_file
-                )
+        _save_member_files(member, request.data.get('files'))
 
         return Response(MemberSerializer(member).data, status=status.HTTP_201_CREATED)
 
@@ -291,10 +326,10 @@ class AddMemberView(views.APIView):
 class EditMemberView(views.APIView):
     """
     PUT /api/regis/edit_member/<int:member_id>
-    Update an existing member's data and optionally re-upload files.
+    Update an existing member's data and optionally replace their files.
+    Expects JSON, same shape as AddMemberView.
     """
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def put(self, request, member_id):
         team, err = _get_team_or_error(request)
@@ -316,15 +351,7 @@ class EditMemberView(views.APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         serializer.save()
 
-        # Re-upload files (replace existing)
-        for key, uploaded_file in request.FILES.items():
-            if key.startswith('file_'):
-                file_type = key[len('file_'):]
-                MemberFile.objects.update_or_create(
-                    member=member,
-                    file_type=file_type,
-                    defaults={'file': uploaded_file}
-                )
+        _save_member_files(member, request.data.get('files'))
 
         return Response(MemberSerializer(member).data)
 
@@ -361,13 +388,21 @@ class DeleteMemberView(views.APIView):
 # ─────────────────────────────────────────────────────────────────────────────
 # TEAM FILES
 # ─────────────────────────────────────────────────────────────────────────────
+ALLOWED_FORMATS_BY_TYPE = {
+    'pembayaran': ('pdf', 'png', 'jpg', 'jpeg'),
+}
+DEFAULT_ALLOWED_FORMATS = ('pdf',)
+
+
 class UploadTeamFileView(views.APIView):
     """
     POST /api/regis/upload/<file_type>
-    Upload a team-level file. Accepts PDF for most types; 'pembayaran' also accepts PNG/JPG.
+    Record a team-level file that was already uploaded client-side to
+    Cloudinary via the unsigned upload widget. Expects JSON:
+        { "url": "...", "public_id": "...", "format": "pdf" }
+    Accepts PDF for most types; 'pembayaran' also accepts PNG/JPG.
     """
     permission_classes = [permissions.IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, file_type):
         team, err = _get_team_or_error(request)
@@ -380,23 +415,33 @@ class UploadTeamFileView(views.APIView):
         if file_type not in VALID_TEAM_FILE_TYPES:
             return Response({"error": f"Tipe file '{file_type}' tidak valid."}, status=status.HTTP_400_BAD_REQUEST)
 
-        uploaded_file = request.FILES.get('file')
-        if not uploaded_file:
-            return Response({"error": "File wajib disertakan."}, status=status.HTTP_400_BAD_REQUEST)
+        file_url = request.data.get('url')
+        public_id = request.data.get('public_id', '')
+        file_format = (request.data.get('format') or '').lower()
 
-        # Validate file extension
-        name = uploaded_file.name.lower()
-        if file_type == 'pembayaran':
-            if not any(name.endswith(ext) for ext in ('.pdf', '.png', '.jpg', '.jpeg')):
-                return Response({"error": "Bukti pembayaran harus berupa PDF, PNG, atau JPG."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            if not name.endswith('.pdf'):
-                return Response({"error": "File harus berupa PDF."}, status=status.HTTP_400_BAD_REQUEST)
+        if not file_url:
+            return Response({"error": "URL file wajib disertakan."}, status=status.HTTP_400_BAD_REQUEST)
+
+        allowed_formats = ALLOWED_FORMATS_BY_TYPE.get(file_type, DEFAULT_ALLOWED_FORMATS)
+        if file_format and file_format not in allowed_formats:
+            return Response(
+                {"error": f"Format '{file_format}' tidak didukung untuk tipe berkas ini."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Replacing an existing file: clean up the old asset on Cloudinary
+        # first so it doesn't linger as an orphaned upload.
+        existing = TeamFile.objects.filter(team=team, file_type=file_type).first()
+        if existing and existing.public_id:
+            try:
+                cloudinary.uploader.destroy(existing.public_id, resource_type='auto')
+            except Exception:
+                pass  # don't block the new upload if cleanup fails
 
         obj, created = TeamFile.objects.update_or_create(
             team=team,
             file_type=file_type,
-            defaults={'file': uploaded_file}
+            defaults={'file_url': file_url, 'public_id': public_id, 'file_format': file_format}
         )
 
         return Response(TeamFileSerializer(obj).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
@@ -421,9 +466,14 @@ class DeleteTeamFileView(views.APIView):
         except TeamFile.DoesNotExist:
             return Response({"error": "File tidak ditemukan."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Delete from storage
-        if team_file.file:
-            team_file.file.delete(save=False)
+        # Delete the asset on Cloudinary (requires a signed API call, which
+        # is fine — the API secret lives server-side only).
+        if team_file.public_id:
+            try:
+                cloudinary.uploader.destroy(team_file.public_id, resource_type='auto')
+            except Exception:
+                pass  # don't block the DB delete if Cloudinary cleanup fails
+
         team_file.delete()
         return Response({"message": f"File '{file_type}' berhasil dihapus."})
 

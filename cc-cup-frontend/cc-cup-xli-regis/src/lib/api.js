@@ -79,27 +79,38 @@ function extractMessage(data, fallback) {
   return fallback;
 }
 
+let refreshPromise = null;
+
 async function refreshAccessToken() {
-  const refresh = getRefreshToken();
-  if (!refresh) return false;
+  if (refreshPromise) return refreshPromise;
 
-  const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh }),
-  });
+  refreshPromise = (async () => {
+    const refresh = getRefreshToken();
+    if (!refresh) return false;
 
-  if (!response.ok) {
-    clearTokens();
-    return false;
+    const response = await fetch(`${API_BASE_URL}/token/refresh/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh }),
+    });
+
+    if (!response.ok) {
+      clearTokens();
+      return false;
+    }
+
+    const data = await response.json();
+    if (!data.access) return false;
+    setAccessToken(data.access);
+    if (data.refresh) setRefreshToken(data.refresh);
+    return true;
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
   }
-
-  const data = await response.json();
-  if (!data.access) return false;
-  setAccessToken(data.access);
-  // Refresh tokens rotate — always store the new one.
-  if (data.refresh) setRefreshToken(data.refresh);
-  return true;
 }
 
 export async function apiRequest(path, options = {}) {

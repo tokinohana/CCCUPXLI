@@ -25,9 +25,9 @@ export default function Dasbor() {
     enabled: Boolean(team),
   });
 
-  useEffect(() => {
-    if (signedIn) void refreshTeam();
-  }, [signedIn, refreshTeam]);
+  // useEffect(() => {
+  //   if (signedIn) void refreshTeam();
+  // }, [signedIn, refreshTeam]);
 
   if (!ready) {
     return (
@@ -164,7 +164,7 @@ export default function Dasbor() {
                 >
                   <div>
                     <p className="font-bold text-lg">
-                      {member.nama} {member.is_representative ? "(Penanggung Jawab, Harap Diisi)" : ""}
+                      {member.nama} {member.is_representative ? "(Penanggung Jawab)" : ""}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {member.role || "Anggota"} — {member.email} | {member.nomor_telepon}
