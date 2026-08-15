@@ -11,5 +11,6 @@ urlpatterns = [
     path('tickets/verify-nik/', views.VerifyNIKView.as_view(), name='ticketing-verify-nik'),
     path('tickets/export/', views.TicketExportView.as_view(), name='ticketing-export'),
     path('tickets/<uuid:ticket_id>/', views.TicketDetailView.as_view(), name='ticketing-detail'),
+    path('tickets/<uuid:ticket_id>/resend/', views.ResendTicketEmailView.as_view(), name='ticketing-resend'),
     path('tickets/<uuid:ticket_id>/redeem/', views.RedeemTicketView.as_view(), name='ticketing-redeem'),
 ]

@@ -6,9 +6,12 @@ from admin_utils import AppGroupPermissionMixin
 from .models import Transaction, MerchantStand
 from .services import distribute_daily_funds, expire_daily_funds
 
+CCPAY_GROUP = 'admin_ccpay'
+
 
 @admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
+class TransactionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = CCPAY_GROUP
     change_list_template = 'admin/ccpay/transaction/change_list.html'
     list_display = ('id', 'type', 'sender', 'receiver', 'merchant_stand_name', 'amount', 'timestamp')
     list_filter = ('type', 'timestamp', 'merchant_stand')
@@ -64,7 +67,7 @@ class TransactionAdmin(admin.ModelAdmin):
 
 @admin.register(MerchantStand)
 class MerchantStandAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
-    # allowed_group = None  →  superuser only
+    allowed_group = CCPAY_GROUP
     list_display = ('name', 'token', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name', 'token')

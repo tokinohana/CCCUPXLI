@@ -2,6 +2,17 @@ import uuid
 from django.db import models
 
 
+class Buyer(models.Model):
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    identification_number = models.CharField(max_length=50, unique=True, db_index=True)  # NIK
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.identification_number}"
+
+
 class Ticket(models.Model):
     TICKET_STATUS = (
         ('pending', 'Pending'),
@@ -12,10 +23,9 @@ class Ticket(models.Model):
     # Unique ID for the QR code (UUID makes it impossible to guess)
     ticket_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
-    # Customer Data
-    full_name = models.CharField(max_length=255)
-    email = models.EmailField()
-    identification_number = models.CharField(max_length=50, unique=True)  # Enforces 1 ID per 1 Ticket
+    # 1 buyer <-> 1 ticket, enforced at the DB level (matches the NIK
+    # uniqueness rule: one person, one ticket)
+    buyer = models.OneToOneField(Buyer, on_delete=models.PROTECT, related_name='ticket')
 
     # Status Control
     status = models.CharField(max_length=10, choices=TICKET_STATUS, default='pending')
@@ -38,4 +48,4 @@ class Ticket(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
-        return f"{self.full_name} - {self.identification_number}"
+        return f"{self.buyer.full_name} - {self.buyer.identification_number}"

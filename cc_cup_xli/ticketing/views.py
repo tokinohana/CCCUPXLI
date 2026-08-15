@@ -1,9 +1,6 @@
 import csv
-import io
 import logging
-import qrcode
 
-from django.core.mail import EmailMessage
 from django.db import transaction
 from django.http import HttpResponse
 from django.utils import timezone
@@ -13,8 +10,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .models import Ticket
+from .models import Buyer, Ticket
 from .permissions import IsCommittee
+from .services import queue_ticket_email
 from .serializers import (
     TicketSerializer,
     CreateTicketSerializer,
@@ -23,31 +21,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _send_ticket_qr_email(ticket):
-    """Generate a QR code for the ticket and email it via Zoho SMTP (~5-10s)."""
-    try:
-        qr = qrcode.make(str(ticket.ticket_id))
-        buffer = io.BytesIO()
-        qr.save(buffer, format='PNG')
-        buffer.seek(0)
-
-        email = EmailMessage(
-            subject='Tiket Closing Event CCCUP XLI',
-            body=(
-                f'Halo {ticket.full_name}!\n\n'
-                f'Ini QR Code tiket kamu untuk Closing Event CCCUP XLI.\n'
-                f'Tunjukkan QR Code ini saat masuk ke venue.\n\n'
-                f'Terima kasih!'
-            ),
-            from_email='noreply@cccupxli.com',
-            to=[ticket.email],
-        )
-        email.attach(f'ticket_{ticket.ticket_id}.png', buffer.read(), 'image/png')
-        email.send()
-    except Exception as exc:
-        logger.error(f"Failed to send QR email for ticket {ticket.ticket_id}: {exc}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +54,7 @@ class TicketListCreateView(generics.ListCreateAPIView):
         return TicketSerializer
 
     def get_queryset(self):
-        qs = Ticket.objects.all().order_by('-created_at')
+        qs = Ticket.objects.select_related('buyer').order_by('-created_at')
         # Optional query filters
         status_filter = self.request.query_params.get('status')
         is_redeemed = self.request.query_params.get('is_redeemed')
@@ -94,11 +67,23 @@ class TicketListCreateView(generics.ListCreateAPIView):
             qs = qs.filter(terminal__iexact=terminal)
         return qs
 
+    def perform_create(self, serializer):
+        """
+        Stall flow is one action: admin enters buyer details, ticket is
+        paid immediately (cash-at-stall), and the QR email fires right
+        after — off the request thread, so the admin's browser isn't
+        blocked on Zoho SMTP (~5-10s).
+        """
+        ticket = serializer.save(status='paid')
+        queue_ticket_email(ticket)
+
 
 class TicketDetailView(generics.RetrieveUpdateAPIView):
     """
     GET   /tickets/<uuid>/  — Get ticket detail
-    PATCH /tickets/<uuid>/  — Update ticket status (mark paid / void)
+    PATCH /tickets/<uuid>/  — Update ticket status (void a ticket; tickets
+                              are already 'paid' as of creation, see
+                              TicketListCreateView.perform_create)
     """
     permission_classes = [IsCommittee]
     lookup_field = 'ticket_id'
@@ -110,14 +95,7 @@ class TicketDetailView(generics.RetrieveUpdateAPIView):
         return TicketSerializer
 
     def get_queryset(self):
-        return Ticket.objects.all()
-
-    def perform_update(self, serializer):
-        old_status = self.get_object().status
-        ticket = serializer.save()
-        # Send QR email synchronously when status changes to 'paid' (~5-10s Zoho SMTP)
-        if old_status != 'paid' and ticket.status == 'paid':
-            _send_ticket_qr_email(ticket)
+        return Ticket.objects.select_related('buyer')
 
 
 class VerifyNIKView(APIView):
@@ -134,8 +112,30 @@ class VerifyNIKView(APIView):
                 {'error': 'nik query parameter is required.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        exists = Ticket.objects.filter(identification_number=nik).exists()
+        exists = Buyer.objects.filter(identification_number=nik).exists()
         return Response({'exists': exists})
+
+
+class ResendTicketEmailView(APIView):
+    """
+    POST /tickets/<uuid>/resend/
+    Re-send the existing ticket's QR email (no token/QR regeneration).
+    """
+    permission_classes = [IsCommittee]
+
+    def post(self, request, ticket_id):
+        try:
+            ticket = Ticket.objects.select_related('buyer').get(ticket_id=ticket_id)
+        except Ticket.DoesNotExist:
+            return Response({'error': 'Ticket not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if ticket.status != 'paid':
+            return Response({'error': 'Ticket is not paid yet.'}, status=status.HTTP_400_BAD_REQUEST)
+        if ticket.is_redeemed:
+            return Response({'error': 'Ticket already redeemed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queue_ticket_email(ticket)
+        return Response({'status': 'queued'})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ class RedeemTicketView(APIView):
 
         try:
             with transaction.atomic():
-                ticket = Ticket.objects.select_for_update().get(ticket_id=ticket_id)
+                ticket = Ticket.objects.select_related('buyer').select_for_update().get(ticket_id=ticket_id)
 
                 # Validate payment status
                 if ticket.status != 'paid':
@@ -207,7 +207,7 @@ class TicketExportView(APIView):
     permission_classes = [IsCommittee]
 
     def get(self, request):
-        tickets = Ticket.objects.all().order_by('-created_at')
+        tickets = Ticket.objects.select_related('buyer').order_by('-created_at')
 
         # Apply same filters as list view
         status_filter = request.query_params.get('status')
@@ -233,9 +233,9 @@ class TicketExportView(APIView):
         for t in tickets:
             writer.writerow([
                 t.ticket_id,
-                t.full_name,
-                t.email,
-                t.identification_number,
+                t.buyer.full_name,
+                t.buyer.email,
+                t.buyer.identification_number,
                 t.status,
                 t.is_redeemed,
                 t.redeemed_at.isoformat() if t.redeemed_at else '',

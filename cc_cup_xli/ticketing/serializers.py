@@ -1,9 +1,18 @@
 from rest_framework import serializers
-from .models import Ticket
+from .models import Buyer, Ticket
 
 
 class TicketSerializer(serializers.ModelSerializer):
-    """Full ticket serializer for list/detail responses."""
+    """
+    Full ticket serializer for list/detail responses. Buyer fields are
+    exposed flat (full_name/email/identification_number) via `source=`,
+    even though they live on the related Buyer row — keeps the API
+    contract unchanged for anything already consuming it (e.g. the
+    scanner reads data.ticket.full_name on redeem).
+    """
+    full_name = serializers.CharField(source='buyer.full_name', read_only=True)
+    email = serializers.EmailField(source='buyer.email', read_only=True)
+    identification_number = serializers.CharField(source='buyer.identification_number', read_only=True)
     scanned_by = serializers.SerializerMethodField()
 
     class Meta:
@@ -22,20 +31,36 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class CreateTicketSerializer(serializers.ModelSerializer):
-    """Serializer for creating a new ticket (sales form)."""
+    """
+    Serializer for creating a new ticket (stall form). Writes both rows:
+    creates the Buyer, then the Ticket pointing at it, in one call.
+    """
+    full_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    identification_number = serializers.CharField(max_length=50)
 
     class Meta:
         model = Ticket
         fields = ['full_name', 'email', 'identification_number']
 
     def validate_identification_number(self, value):
-        if Ticket.objects.filter(identification_number=value).exists():
+        if Buyer.objects.filter(identification_number=value).exists():
             raise serializers.ValidationError("A ticket with this identification number already exists.")
         return value
 
+    def create(self, validated_data):
+        buyer = Buyer.objects.create(
+            full_name=validated_data.pop('full_name'),
+            email=validated_data.pop('email'),
+            identification_number=validated_data.pop('identification_number'),
+        )
+        # Any extra kwargs passed via serializer.save(status='paid') land
+        # in validated_data here (e.g. {'status': 'paid'}).
+        return Ticket.objects.create(buyer=buyer, **validated_data)
+
 
 class UpdateTicketSerializer(serializers.ModelSerializer):
-    """Serializer for updating ticket status (mark as paid / void)."""
+    """Serializer for updating ticket status (voiding a ticket)."""
 
     class Meta:
         model = Ticket

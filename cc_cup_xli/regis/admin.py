@@ -3,7 +3,7 @@ from admin_utils import AppGroupPermissionMixin
 from .models import Team, Member, TeamFile, MemberFile, OtherInfo, ChatDocument, ChatSession
 from . import competition_data as compdata
 
-# REGIS_GROUP = 'Registration Committee'
+REGIS_GROUP = 'admin_regis'
 
 
 class MemberInline(admin.TabularInline):
@@ -24,7 +24,8 @@ class OtherInfoInline(admin.TabularInline):
 
 
 @admin.register(Team)
-class TeamAdmin(admin.ModelAdmin):
+class TeamAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['nama_tim', 'competition', 'jenjang', 'school', 'regis_status', 'quota_flag', 'created_at']
     list_filter = ['competition', 'regis_status', 'jenjang', 'created_at']
     search_fields = ['nama_tim', 'school', 'captain__email']
@@ -62,32 +63,37 @@ class TeamAdmin(admin.ModelAdmin):
 
 
 @admin.register(Member)
-class MemberAdmin(admin.ModelAdmin):
+class MemberAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['nama', 'team', 'nisn', 'kelas', 'gender', 'user']
     list_filter = ['team__competition', 'gender']
     search_fields = ['nama', 'nisn', 'email', 'team__nama_tim', 'user__email']
 
 
 @admin.register(TeamFile)
-class TeamFileAdmin(admin.ModelAdmin):
+class TeamFileAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['team', 'file_type', 'uploaded_at']
     list_filter = ['file_type', 'uploaded_at']
 
 
 @admin.register(MemberFile)
-class MemberFileAdmin(admin.ModelAdmin):
+class MemberFileAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['member', 'file_type', 'uploaded_at']
     list_filter = ['file_type', 'uploaded_at']
 
 
 @admin.register(OtherInfo)
-class OtherInfoAdmin(admin.ModelAdmin):
+class OtherInfoAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['team', 'key', 'value']
     list_filter = ['key']
 
 
 @admin.register(ChatDocument)
-class ChatDocumentAdmin(admin.ModelAdmin):
+class ChatDocumentAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['name', 'pdf_url', 'is_active', 'has_extracted_text', 'uploaded_at']
     list_filter = ['is_active', 'uploaded_at']
     actions = ['extract_text_action']
@@ -133,7 +139,8 @@ class ChatDocumentAdmin(admin.ModelAdmin):
 
 
 @admin.register(ChatSession)
-class ChatSessionAdmin(admin.ModelAdmin):
+class ChatSessionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = REGIS_GROUP
     list_display = ['team', 'token_usage', 'token_cap', 'last_active_at']
     list_filter = ['last_active_at']
     search_fields = ['team__nama_tim']

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>CC Cup XLI — Gate Check-in</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            /* Core Neutrals */
+            --ink: #1c1917;
+            --paper: #f8f7f4;
+            --surface: #ffffff;
+            --line: #e7e5df;
+            --muted: #78716c;
+
+            /* Maya Palette */
+            --accent: #41a5b6; /* Maya Teal */
+            --ok: #458046;     /* Maya Green */
+            --fail: #822425;   /* Maya Red */
+            --warn: #ffc34e;   /* Maya Gold */
+
+            /* Subtle Tints for Result Backgrounds */
+            --ok-bg: #f4fbf5;
+            --fail-bg: #fdf6f6;
+            --warn-bg: #fffcf5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background-color: var(--paper);
+            background-image: radial-gradient(circle at top center, #ffffff 0%, var(--paper) 100%);
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            font-size: 16px;
+        }
+
+        #app {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Typography & Forms ── */
+        h1 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 0 0 6px;
+            letter-spacing: -0.02em;
+            text-align: center;
+        }
+
+        p.sub {
+            margin: 0 0 32px;
+            font-size: 0.95rem;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--muted);
+            margin: 20px 0 8px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fafaf9;
+            color: var(--ink);
+            appearance: none;
+            transition: all 0.2s ease;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2378716c%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px top 50%;
+            background-size: 12px auto;
+        }
+
+        input:focus, select:focus {
+            background: var(--surface);
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(65, 165, 182, 0.15);
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            width: 100%;
+            margin-top: 32px;
+            min-height: 54px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            background: var(--accent);
+            color: var(--surface);
+            box-shadow: 0 4px 12px rgba(65, 165, 182, 0.25);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(65, 165, 182, 0.35);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(65, 165, 182, 0.2);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .error-text {
+            margin-top: 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--fail);
+            text-align: center;
+            min-height: 1.2em;
+        }
+
+        /* ── Login view ── */
+        .login-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--surface);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 16px;
+            padding: 40px 32px;
+            box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.08), 0 4px 12px -4px rgba(0, 0, 0, 0.04);
+        }
+
+        /* ── Scanner view ── */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--line);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .topbar .terminal-tag {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--ink);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .topbar button.link {
+            background: none;
+            padding: 8px 0 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .topbar button.link:hover {
+            color: var(--ink);
+        }
+
+        #scan-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .scan-instruction {
+            text-align: center;
+            padding: 32px 20px 16px;
+            font-weight: 600;
+            font-size: 1.15rem;
+            color: var(--ink);
+            letter-spacing: -0.01em;
+        }
+
+        #reader-wrap {
+            padding: 0 24px 32px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #reader {
+            flex: 1;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 4px solid var(--surface);
+            background: var(--ink);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #reader video {
+            object-fit: cover;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #reader__dashboard_section_csr span, 
+        #reader__dashboard_section_swaplink {
+            display: none !important;
+        }
+
+        /* ── Result view ── */
+        .result-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .result-panel.ok { background: var(--ok-bg); }
+        .result-panel.warn { background: var(--warn-bg); }
+        .result-panel.fail { background: var(--fail-bg); }
+
+        #result-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+        }
+
+        .result-panel.ok #result-icon { 
+            background: rgba(69, 128, 70, 0.15); 
+            color: var(--ok); 
+        }
+        .result-panel.warn #result-icon { 
+            background: rgba(255, 195, 78, 0.2); 
+            color: #cc9728;
+        }
+        .result-panel.fail #result-icon { 
+            background: rgba(130, 36, 37, 0.1); 
+            color: var(--fail); 
+        }
+
+        .result-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin: 0 0 12px;
+            letter-spacing: -0.03em;
+        }
+
+        .result-panel.ok .result-title { color: var(--ok); }
+        .result-panel.warn .result-title { color: #a87b1e; }
+        .result-panel.fail .result-title { color: var(--fail); }
+
+        .result-sub {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--ink);
+            margin: 0 0 48px;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+
+        .btn-continue {
+            padding: 0 32px;
+            min-height: 56px;
+            width: 100%;
+            max-width: 320px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: var(--ink);
+            color: var(--surface);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .btn-continue:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- ═══ LOGIN VIEW ═══ -->
+        <div id="login-view" class="login-wrap">
+            <div class="login-card">
+                <h1>CC Cup XLI</h1>
+                <p class="sub">Gate Check-in Portal</p>
+
+                <label for="email">Email</label>
+                <input type="text" id="email" autocomplete="username" autocapitalize="off" inputmode="email">
+
+                <label for="password">Password</label>
+                <input type="password" id="password" autocomplete="current-password">
+
+                <label for="terminal-select">Gate / Stall</label>
+                <select id="terminal-select">
+                    <option value="">Select gate…</option>
+                    <option>GATE-A</option>
+                    <option>GATE-B</option>
+                    <option>GATE-C</option>
+                    <option>GATE-D</option>
+                    <option>GATE-E</option>
+                    <option>GATE-F</option>
+                    <option>GATE-G</option>
+                    <option>GATE-H</option>
+                    <option>GATE-I</option>
+                    <option>GATE-J</option>
+                    <option>GATE-K</option>
+                    <option>GATE-L</option>
+                    <option>GATE-M</option>
+                    <option>GATE-N</option>
+                    <option>GATE-O</option>
+                </select>
+
+                <button class="btn-primary" id="login-btn">Sign in</button>
+                <div class="error-text" id="login-error"></div>
+            </div>
+        </div>
+
+        <!-- ═══ SCANNER VIEW ═══ -->
+        <div id="scanner-view" class="hidden" style="display:flex; flex-direction:column; flex:1;">
+            <div class="topbar">
+                <span class="terminal-tag" id="terminal-tag"></span>
+                <button class="link" id="logout-btn">Sign out</button>
+            </div>
+
+            <div id="scan-screen">
+                <div class="scan-instruction">Scan ticket</div>
+                <div id="reader-wrap">
+                    <div id="reader"></div>
+                </div>
+            </div>
+
+            <div id="result-screen" class="result-panel hidden">
+                <div class="result-icon" id="result-icon"></div>
+                <div class="result-title" id="result-title"></div>
+                <div class="result-sub" id="result-sub"></div>
+                <button class="btn-continue" id="continue-btn">Scan next</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // const API_BASE = 'https://api.cccup.id/api/ticketing';
+        const API_BASE = 'http://localhost:8000/api/ticketing';
+
+        const el = (id) => document.getElementById(id);
+        const loginView = el('login-view');
+        const scannerView = el('scanner-view');
+        const scanScreen = el('scan-screen');
+        const resultScreen = el('result-screen');
+
+        let accessToken = null;   // memory only — never persisted
+        let html5QrCode = null;
+        let isProcessing = false;
+
+        // ── Token storage: refresh token in sessionStorage (survives reload,
+        // clears when the tab/browser closes — a lost device doesn't keep a
+        // live credential past the shift). Access token lives in memory only. ──
+        function getRefreshToken() { return sessionStorage.getItem('cccup_refresh'); }
+        function setRefreshToken(t) { sessionStorage.setItem('cccup_refresh', t); }
+        function clearTokens() {
+            accessToken = null;
+            sessionStorage.removeItem('cccup_refresh');
+            sessionStorage.removeItem('cccup_terminal');
+        }
+
+        async function login(email, password) {
+            const res = await fetch(`${API_BASE}/auth/login/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+            if (!res.ok) throw new Error('Invalid email or password.');
+            const data = await res.json();
+            accessToken = data.access;
+            setRefreshToken(data.refresh);
+        }
+
+        async function refreshAccessToken() {
+            const refresh = getRefreshToken();
+            if (!refresh) return false;
+            const res = await fetch(`${API_BASE}/auth/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh }),
+            });
+            if (!res.ok) return false;
+            const data = await res.json();
+            accessToken = data.access;
+            if (data.refresh) setRefreshToken(data.refresh); // rotation is on
+            return true;
+        }
+
+        // Wraps a fetch call, retrying once after a silent token refresh on 401.
+        async function authedFetch(path, options = {}) {
+            const doFetch = () => fetch(`${API_BASE}${path}`, {
+                ...options,
+                headers: {
+                    ...(options.headers || {}),
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            let res = await doFetch();
+            if (res.status === 401) {
+                const refreshed = await refreshAccessToken();
+                if (!refreshed) { showLogin('Session expired — please sign in again.'); throw new Error('unauthorized'); }
+                res = await doFetch();
+            }
+            return res;
+        }
+
+        function showLogin(errorMsg) {
+            clearTokens();
+            stopScanner();
+            scannerView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            el('login-error').textContent = errorMsg || '';
+        }
+
+        function showScanner() {
+            const terminal = sessionStorage.getItem('cccup_terminal') || '';
+            el('terminal-tag').textContent = `CC CUP XLI · ${terminal}`;
+            loginView.classList.add('hidden');
+            scannerView.classList.remove('hidden');
+            startScanner();
+        }
+
+        // ── Login form ──
+        el('login-btn').addEventListener('click', async () => {
+            const email = el('email').value.trim();
+            const password = el('password').value;
+            const terminal = el('terminal-select').value;
+            const btn = el('login-btn');
+            el('login-error').textContent = '';
+
+            if (!terminal) { el('login-error').textContent = 'Select a gate first.'; return; }
+            if (!email || !password) { el('login-error').textContent = 'Enter your email and password.'; return; }
+
+            btn.disabled = true; btn.textContent = 'Signing in…';
+            try {
+                await login(email, password);
+                sessionStorage.setItem('cccup_terminal', terminal);
+                showScanner();
+            } catch (e) {
+                el('login-error').textContent = e.message || 'Sign-in failed.';
+            } finally {
+                btn.disabled = false; btn.textContent = 'Sign in';
+            }
+        });
+
+        el('logout-btn').addEventListener('click', () => showLogin());
+
+        // ── Scanner ──
+        function startScanner() {
+            scanScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            isProcessing = false;
+
+            if (!html5QrCode) html5QrCode = new Html5Qrcode('reader');
+
+            html5QrCode.start(
+                { facingMode: 'environment' },
+                { fps: 10, qrbox: { width: 260, height: 260 } },
+                onScanSuccess,
+                () => {} // ignore per-frame "no QR found" noise
+            ).catch(() => {
+                el('reader').innerHTML = '<p style="padding:24px;text-align:center;color:var(--fail);font-weight:bold;">Camera unavailable<br>Check permissions.</p>';
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                return html5QrCode.stop().catch(() => {});
+            }
+            return Promise.resolve();
+        }
+
+        async function onScanSuccess(decodedText) {
+            if (isProcessing) return; // ignore repeat frames of the same code mid-request
+            isProcessing = true;
+            await stopScanner();
+
+            const terminal = sessionStorage.getItem('cccup_terminal') || '';
+            let outcome;
+            try {
+                const res = await authedFetch(`/tickets/${decodedText}/redeem/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ terminal }),
+                });
+                const data = await res.json();
+
+                if (res.status === 200 && data.success) {
+                    outcome = { type: 'ok', icon: '✓', title: 'OK', sub: `Issue bracelet\n${data.ticket.full_name}` };
+                } else if (data.error === 'ALREADY_REDEEMED') {
+                    outcome = { type: 'warn', icon: '!', title: 'Already used', sub: data.ticket ? data.ticket.full_name : '' };
+                } else if (data.error === 'UNPAID_TICKET') {
+                    outcome = { type: 'warn', icon: '!', title: 'Not paid', sub: 'This ticket has not been marked as paid.' };
+                } else if (data.error === 'INVALID_TICKET') {
+                    outcome = { type: 'fail', icon: '✕', title: 'Invalid ticket', sub: 'QR code not recognized.' };
+                } else {
+                    outcome = { type: 'fail', icon: '✕', title: 'Error', sub: data.message || 'Try again.' };
+                }
+            } catch (e) {
+                outcome = { type: 'fail', icon: '!', title: 'Network error', sub: 'Check connection and try again.' };
+            }
+
+            showResult(outcome);
+        }
+
+        function showResult({ type, icon, title, sub }) {
+            scanScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            resultScreen.className = `result-panel ${type}`;
+            el('result-icon').textContent = icon;
+            el('result-title').textContent = title;
+            el('result-sub').innerText = sub || '';
+        }
+
+        el('continue-btn').addEventListener('click', () => startScanner());
+
+        // ── Boot: if a refresh token survived a reload, try to resume silently ──
+        (async function boot() {
+            const refresh = getRefreshToken();
+            if (refresh) {
+                const ok = await refreshAccessToken();
+                if (ok) { showScanner(); return; }
+            }
+            showLogin();
+        })();
+    </script>
+</body>
+
+</html>
