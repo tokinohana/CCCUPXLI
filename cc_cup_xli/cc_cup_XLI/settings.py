@@ -229,14 +229,15 @@ cloudinary.config(
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Email Configuration (Zoho SMTP)
+# Email Configuration (Resend SMTP relay)
 # ─────────────────────────────────────────────────────────────────────────────
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.zoho.com'
+EMAIL_HOST = 'smtp.resend.com'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = os.getenv('ZOHO_EMAIL', '')
-EMAIL_HOST_PASSWORD = os.getenv('ZOHO_PASSWORD', '')
+EMAIL_HOST_USER = 'resend'  # literal string per Resend's SMTP convention, not an email address
+EMAIL_HOST_PASSWORD = os.getenv('RESEND_API_KEY', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@cccup.id')
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AI Chat Consultant (Groq LLM)
