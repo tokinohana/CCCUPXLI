@@ -3,7 +3,7 @@ from django.urls import path
 from django.shortcuts import redirect
 from django.contrib import messages
 from admin_utils import AppGroupPermissionMixin
-from .models import Transaction, MerchantStand
+from .models import Transaction, MerchantStand, WeeklyDutySchedule
 from .services import distribute_daily_funds, expire_daily_funds
 
 CCPAY_GROUP = 'admin_ccpay'
@@ -16,11 +16,9 @@ class TransactionAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     list_display = ('id', 'type', 'sender', 'receiver', 'merchant_stand_name', 'amount', 'timestamp')
     list_filter = ('type', 'timestamp', 'merchant_stand')
 
-    # FIXED: Updated lookups with double underscores to safely search related model strings
     search_fields = ('sender__email', 'receiver__email', 'reference_id', 'description')
     readonly_fields = ('timestamp',)
 
-    
     @admin.display(description='Merchant Stand')
     def merchant_stand_name(self, obj):
         return obj.merchant_stand.name if obj.merchant_stand else "-"
@@ -71,3 +69,11 @@ class MerchantStandAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     list_display = ('name', 'token', 'is_active')
     list_filter = ('is_active',)
     search_fields = ('name', 'token')
+
+
+@admin.register(WeeklyDutySchedule)
+class WeeklyDutyScheduleAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
+    allowed_group = CCPAY_GROUP
+    list_display = ('user_email', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu')
+    list_editable = ('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu')
+    search_fields = ('user_email',)

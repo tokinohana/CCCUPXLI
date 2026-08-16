@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -10,6 +12,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Transaction, MerchantStand
+from .services import grant_todays_allowance_if_owed
 from .serializers import (
     UserBalanceSerializer, 
     TransactionSerializer, 
@@ -20,6 +23,8 @@ import os
 import re
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
 
 class GoogleConfigView(views.APIView):
     """
@@ -31,12 +36,20 @@ class GoogleConfigView(views.APIView):
             return Response({"error": "Google Client ID configuration missing on server"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"client_id": client_id}, status=status.HTTP_200_OK)
 
+
 class GoogleOAuthLoginView(views.APIView):
     """
     Handles Google ID Token verification natively from GIS,
     strictly filtering by domain, automatically extracting the student's NIS from their email,
     and auto-creating the global User if they don't exist yet.
+
+    Public, unauthenticated entry point by definition — disabling Django's
+    session/CSRF machinery here is correct and safe. The real authentication
+    happens via Google's id_token verification below, not Django auth.
     """
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
         token = request.data.get('token')
         if not token:
@@ -68,16 +81,17 @@ class GoogleOAuthLoginView(views.APIView):
             first_name = id_info.get('given_name', '')
             last_name = id_info.get('family_name', '')
 
-            # 🌟 FIXED: Include 'nis' in the defaults block for seamless onboarding
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={
                     'username': email,
-                    'nis': extracted_nis,  # ✨ Saved permanently to DB here
+                    'nis': extracted_nis,
                     'first_name': first_name,
                     'last_name': last_name,
                     'is_active': True,
-                    'current_saldo': 50000  # Give new test users some starter pocket cash if needed!
+                    'is_committee': True,  # every @kanisius.sch.id account here is committee
+                    'current_saldo': 0,    # correct amount comes from grant_todays_allowance_if_owed below,
+                                            # not a flat guess — avoids the old 50000-vs-35000 mismatch
                 }
             )
 
@@ -89,6 +103,15 @@ class GoogleOAuthLoginView(views.APIView):
             if not created and not user.first_name:
                 user.first_name = first_name
                 user.save()
+
+            if not created and not user.is_committee:
+                # covers rows that existed before the is_committee default fix went in
+                user.is_committee = True
+                user.save()
+
+            # Safety net: if today's distribution already ran and this user hasn't
+            # been credited yet (new signup or otherwise missed), catch them up now.
+            grant_todays_allowance_if_owed(user)
 
             refresh = RefreshToken.for_user(user)
             
@@ -106,14 +129,17 @@ class GoogleOAuthLoginView(views.APIView):
         except ValueError:
             return Response({"error": "Token Google tidak valid atau kadaluwarsa"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({"error": f"Terjadi kesalahan sistem: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+            # Don't leak raw exception text to the client — log it server-side
+            # and return a generic message instead.
+            logger.exception("Unhandled error in GoogleOAuthLoginView")
+            return Response({"error": "Terjadi kesalahan sistem. Silahkan coba lagi."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class StudentDashboardAPIView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         user = request.user
-        # 🌟 FIXED: Use user.email string matching and select_related only on merchant_stand
         transactions = (
             Transaction.objects.filter(Q(sender=user.email) | Q(receiver=user.email))
             .select_related('merchant_stand')
@@ -146,7 +172,6 @@ class UserBalanceView(views.APIView):
 class UserTransactionListView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     def get(self, request):
-        # 🌟 FIXED: Filter using request.user.email string representation instead of the object
         transactions = (
             Transaction.objects.filter(Q(sender=request.user.email) | Q(receiver=request.user.email))
             .select_related('merchant_stand')
@@ -157,8 +182,7 @@ class UserTransactionListView(views.APIView):
 
 class ProcessPaymentView(views.APIView):
     """
-    Handles student balance deductions by securely extracting the student's NIS 
-    from their authenticated Google email token context with descriptive error tracking.
+    Handles student balance deductions for an authenticated student paying at a merchant stand.
     """
     permission_classes = [permissions.IsAuthenticated]
 
@@ -171,35 +195,15 @@ class ProcessPaymentView(views.APIView):
         token = serializer.validated_data['merchant_token']
         reference_id = serializer.validated_data['reference_id']
         
-        # 1. Secure Access Control: Pull user from request context
-        user_email = request.user.email 
+        user = request.user  # already the authenticated student via JWT — no need to re-derive
         
-        # 2. Extract the NIS prefix from email string
-        match = re.match(r'^(\d+)', user_email)
-        if not match:
-            return Response(
-                {"error": f"Format email '{user_email}' tidak valid. NIS gagal diekstrak."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        extracted_nis = match.group(1)
-        
-        # 3. Defensive Database Queries (Goodbye blind 404s!)
         merchant = MerchantStand.objects.filter(token=token, is_active=True).first()
         if not merchant:
             return Response(
                 {"error": f"Merchant tidak ditemukan! Token yang dikirim: '{token}' salah atau tidak aktif."},
-                status=status.HTTP_400_BAD_REQUEST # Changed to 400 so we read it easily
-            )
-            
-        user = User.objects.filter(nis=extracted_nis).first()
-        if not user:
-            return Response(
-                {"error": f"User dengan NIS '{extracted_nis}' belum terdaftar di database."},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # 4. Atomic Execution Pipeline Block
         try:
             with transaction.atomic():
                 locked_user = User.objects.select_for_update().get(pk=user.pk)
@@ -243,6 +247,7 @@ class ProcessPaymentView(views.APIView):
             "merchant": merchant.name
         })
 
+
 class MerchantDashboardView(views.APIView):
     def get(self, request):
         token = request.query_params.get('token')
@@ -256,10 +261,8 @@ class MerchantDashboardView(views.APIView):
         today_revenue = today_txns.aggregate(total=Sum('amount'))['total'] or 0
         today_count = today_txns.count()
         
-        # 🌟 OPTIMIZATION: Slice the query first before processing to keep memory low
         recent_today_txns = today_txns.order_by('-timestamp')[:50]
         
-        # 🌟 OPTIMIZATION: Bulk look up student names in ONE query to avoid N+1 issues
         sender_emails = [t.sender for t in recent_today_txns if t.sender]
         user_map = {
             u.email: u.first_name for u in User.objects.filter(email__in=sender_emails)
@@ -267,20 +270,16 @@ class MerchantDashboardView(views.APIView):
         
         live_feed = []
         for t in recent_today_txns:
-            # Look up the clean first name from our map. 
-            # If not found, use the email. If email is missing, default to "Anonymous"
             friendly_name = user_map.get(t.sender, t.sender if t.sender else "Anonymous")
             
-            # Capitalize it nicely for the merchant dashboard UI
             if friendly_name and "@" in friendly_name:
-                # Fallback if it's a raw email: strip the domain and capitalize
                 friendly_name = friendly_name.split('@')[0].capitalize()
             elif friendly_name:
                 friendly_name = friendly_name.title()
 
             live_feed.append({
                 "id": f"{t.id}-ID",
-                "name": friendly_name,  # ✨ Displays "Benedict" instead of "2415517benedict@kanisius.sch.id"
+                "name": friendly_name,
                 "time": timezone.localtime(t.timestamp).strftime("%H:%M"),
                 "amount": t.amount
             })
@@ -309,6 +308,7 @@ class MerchantDashboardView(views.APIView):
             "live_transactions": live_feed,
             "daily_history": daily_history
         })
+
 
 class MerchantStatusView(views.APIView):
     def get(self, request):
@@ -354,4 +354,3 @@ class MerchantLookupView(views.APIView):
             "name": merchant.name,
             "token": merchant.token
         }, status=status.HTTP_200_OK)
-
