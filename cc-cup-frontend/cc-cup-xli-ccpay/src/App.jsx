@@ -44,9 +44,7 @@ const router = createBrowserRouter([
     path: "/merchant/dashboard",
     element: <MerchantDashboard />,
   }
-], {
-  basename: "/ccpay/"
-});
+]);
 
 function App() {
   // 🌟 Render the single provider tracking point
