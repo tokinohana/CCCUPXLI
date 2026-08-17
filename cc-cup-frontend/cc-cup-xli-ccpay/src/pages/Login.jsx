@@ -36,7 +36,7 @@ const Login = () => {
             setIsAuthenticating(true);
             setAuthError(null);
 
-            const response = await fetch('/api/ccpay/auth/google/', {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/auth/google/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: googleCredentialToken }),
@@ -68,7 +68,7 @@ const Login = () => {
 
         const fetchConfigAndInit = async () => {
             try {
-                const response = await fetch('/api/ccpay/auth/google/config/', {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/auth/google/config/`, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' }
                 });

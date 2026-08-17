@@ -30,7 +30,7 @@ const ConfirmPayment = () => {
     const fetchFreshBalance = async () => {
       try {
         setIsPageLoading(true);
-        const response = await fetch('/api/ccpay/balance/', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/balance/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const ConfirmPayment = () => {
       const token = localStorage.getItem('access_token');
       const uniqueReferenceId = `CC-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      const response = await fetch('/api/ccpay/payment/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/payment/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

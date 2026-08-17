@@ -28,7 +28,7 @@ const MerchantDashboard = () => {
       // Safely fetch the terminal token stored inside the client browser instance context
       const token = localStorage.getItem('merchant_token') || 'YOUR_DEFAULT_MERCHANT_TOKEN';
       
-      const response = await fetch(`/api/ccpay/merchant/dashboard/?token=${token}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/merchant/dashboard/?token=${token}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

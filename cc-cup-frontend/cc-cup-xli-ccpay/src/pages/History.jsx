@@ -23,7 +23,7 @@ const History = () => {
     const fetchTransactionHistory = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/ccpay/transactions/', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/transactions/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -19,7 +19,7 @@ const PaymentInput = () => {
     try {
       const token = localStorage.getItem('access_token');
       
-      const response = await fetch('/api/ccpay/balance/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/balance/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

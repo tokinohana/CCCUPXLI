@@ -15,7 +15,7 @@ const MerchantSelection = () => {
   const fetchMerchants = async () => {
     try {
       // Points to your backend list view. Adjust the URL path if your URL router differs
-      const response = await fetch('/api/ccpay/merchants/list/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/merchants/list/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

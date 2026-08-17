@@ -41,7 +41,7 @@ const Scanner = () => {
       try {
         const accessToken = localStorage.getItem('access_token');
         const response = await fetch(
-          `/api/ccpay/merchants/lookup/?name=${encodeURIComponent(cleanedText)}`,
+          `${import.meta.env.VITE_API_BASE_URL}/api/ccpay/merchants/lookup/?name=${encodeURIComponent(cleanedText)}`,
           { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` } }
         );
 

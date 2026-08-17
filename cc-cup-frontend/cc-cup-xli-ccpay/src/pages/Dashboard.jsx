@@ -36,7 +36,7 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/ccpay/student/dashboard/', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ccpay/student/dashboard/`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
