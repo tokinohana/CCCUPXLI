@@ -12,10 +12,10 @@ export const endpoints = {
   competitions: () => apiRequest("/competitions/", { auth: false }),
 
   addMember: (form) =>
-    apiRequest("/add_member/", { method: "POST", body: form, multipart: true }),
+    apiRequest("/add_member/", { method: "POST", body: form }),
 
   editMember: (id, form) =>
-    apiRequest(`/edit_member/${id}/`, { method: "PUT", body: form, multipart: true }),
+    apiRequest(`/edit_member/${id}/`, { method: "PUT", body: form }),
 
   deleteMember: (id) => apiRequest(`/delete_member/${id}/`, { method: "DELETE" }),
 
