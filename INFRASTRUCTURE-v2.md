@@ -29,7 +29,7 @@
                                  │                 │  Neon PostgreSQL (external) │
                                  │  CORS + shared  │  Cloudinary (media)         │
                                  └────cookie domain│  Groq API (AI chat)         │
-                                    (.cccup.id)    │  Zoho SMTP (email)          │
+                                    (.cccup.id)    │  Resend API (email)         │
                                                     └─────────────────────────────┘
 ```
 
@@ -163,13 +163,21 @@ pip install gunicorn whitenoise
 
 ### 4.2 Production Environment Variables
 
-Same `.env` as v1 (Neon, Cloudinary, Google OAuth, Google Vision, Groq, Zoho — unchanged), but update:
+Same `.env` as v1 (Neon, Cloudinary, Google OAuth, Google Vision, Groq — unchanged), but note the email provider is Resend, not Zoho, and mail is sent via Resend's **HTTPS API**, not SMTP:
 
 ```bash
 ALLOWED_HOSTS=api.cccup.id,admin.cccup.id
+RESEND_API_KEY=<from Resend dashboard>
+DEFAULT_FROM_EMAIL=no-reply@cccup.id
 ```
 
 Drop `cccup.id` from `ALLOWED_HOSTS` — Gunicorn never receives requests with that Host header anymore; only `api.cccup.id` and `admin.cccup.id` hit the droplet.
+
+Drop `ZOHO_EMAIL`/`ZOHO_PASSWORD` if they're still in `.env` — nothing reads them anymore.
+
+**Why HTTP API instead of SMTP relay:** the app connects to Resend via `ticketing/email_backends.py` (a custom Django email backend hitting `https://api.resend.com/emails` over port 443), not `django.core.mail.backends.smtp.EmailBackend`. This was originally adopted because DigitalOcean is known to block outbound SMTP ports 25/465/587 on Droplets by default — worth knowing regardless of provider. On this specific droplet, `nc -zv smtp.resend.com 465` actually succeeded, so that block wasn't the cause of the mail failure encountered during setup; the root cause of that original failure was still being tracked down via `gunicorn-error.log` as of this doc's last edit. The HTTP API backend was kept regardless, since it's the more robust choice independent of whether SMTP happens to be open on a given account — no dependency on a port that a cloud provider could block (or unblock) at any time.
+
+Requires `requests` in `requirements.txt` — the only new dependency the custom backend needs.
 
 ### 4.3 `settings.py` changes
 
@@ -359,6 +367,7 @@ No frontend steps here at all — those 4 projects redeploy themselves on `git p
 - [ ] Test registration flow end-to-end (regis.cccup.id → api.cccup.id)
 - [ ] Test CCPay Google OAuth — confirm redirect URI in Google Cloud Console is `https://api.cccup.id/api/ccpay/auth/google/callback/`, and add `https://pay.cccup.id` as an authorized JavaScript origin
 - [ ] Confirm session/CSRF cookies persist correctly across `pay.cccup.id` ↔ `api.cccup.id` (this is what `SESSION_COOKIE_DOMAIN = ".cccup.id"` is for)
+- [ ] Confirm ticket emails actually send: create a test ticket via `admin.cccup.id/admin/` and confirm the QR email arrives, or run the shell snippet in Troubleshooting below. Don't assume this works just because the domain shows verified in Resend's dashboard — that only confirms DNS, not that the droplet can reach Resend or that `RESEND_API_KEY`/`DEFAULT_FROM_EMAIL` are actually set correctly on the host.
 - [ ] `sudo ufw status` — only 22 and 443 open (80 closed unless mid-renewal)
 - [ ] Rotate any secrets exposed in `.env` that made it into git history
 
@@ -405,4 +414,18 @@ sudo systemctl restart gunicorn
 
 # Admin panel loads unstyled
 #   → whitenoise isn't installed/configured, or collectstatic wasn't run after deploy
+
+# Tickets create fine but no email arrives
+#   → send_ticket_qr_email() catches all exceptions and only logs them —
+#     the ticket creation request still succeeds either way, so this fails
+#     completely silently unless you check the log yourself.
+#   → tail -100 gunicorn-error.log right after triggering a test send —
+#     the actual exception (bad API key, unverified sender domain, network
+#     error) will be there even though nothing else surfaces it.
+#   → quick isolated test, no ticket creation needed:
+#     python manage.py shell
+#     >>> from django.core.mail import send_mail
+#     >>> send_mail('Test', 'Hello', None, ['you@example.com'])
+#   → confirm connectivity from the droplet itself if the above hangs:
+#     nc -zv api.resend.com 443
 ```
