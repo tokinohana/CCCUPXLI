@@ -85,12 +85,18 @@ class MemberSerializer(serializers.ModelSerializer):
         extra_fields = compdata.extra_member_fields(team.competition, team.jenjang)
         dynamic_data = attrs.get('dynamic_data') or {}
 
+        # tempat_lahir, berat_badan, tinggi_badan, role, and subkategori are
+        # promoted out of dynamic_data into real Member model fields (see
+        # _SPORT_SPECIFIC_FIELDS in views.py / namedExtras in member-form.jsx),
+        # so they live on attrs directly, not inside dynamic_data.
+        named_extra_fields = {'tempat_lahir', 'berat_badan', 'tinggi_badan', 'role', 'subkategori'}
+
         errors = {}
         for field_name, type_hint in extra_fields.items():
             if type_hint == 'File':
                 # Files are validated separately (multipart, checked in the view)
                 continue
-            value = dynamic_data.get(field_name)
+            value = attrs.get(field_name) if field_name in named_extra_fields else dynamic_data.get(field_name)
             if value in (None, ''):
                 errors[field_name] = f"Wajib diisi untuk cabang ini ({type_hint})."
                 continue
