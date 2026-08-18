@@ -68,7 +68,7 @@ export const TEAM_FILE_TYPES = [
 /**
  * Registration statuses where modification is frozen/locked.
  */
-export const FROZEN_STATUSES = ["SUBMITTED", "ACCEPTED"];
+export const FROZEN_STATUSES = ["SUBMITTED", "ACCEPTED", "PENDINGTF", "REJECTED"];
 
 /**
  * Human-readable status labels.
