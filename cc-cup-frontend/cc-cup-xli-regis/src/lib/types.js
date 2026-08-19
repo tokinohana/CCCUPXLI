@@ -53,10 +53,58 @@
  * List of required team files to be uploaded.
  */
 export const TEAM_FILE_TYPES = [
-  { key: "kartuPelajar", label: "Kartu Pelajar", accept: ".pdf", hint: "PDF" },
-  { key: "selfie", label: "Foto Selfie", accept: ".pdf", hint: "PDF" },
-  { key: "suratPernyataan", label: "Surat Pernyataan", accept: ".pdf", hint: "PDF" },
-  { key: "suratIzin", label: "Surat Izin", accept: ".pdf", hint: "PDF" },
+  {
+    key: "kartuPelajar",
+    label: "Kartu Pelajar",
+    accept: ".pdf",
+    hint: "PDF",
+    templates: [
+      {
+        label: "Template Kartu Pelajar Kelompok",
+        url: "https://s.id/TemplateKartuPelajarKelompokCCCUPXLI",
+      },
+      {
+        label: "Surat Pengganti Kartu Pelajar",
+        url: "https://s.id/SuratPenggantiKartuPelajarCCCUPXLI",
+      },
+    ],
+  },
+  {
+    key: "selfie",
+    label: "Foto Selfie",
+    accept: ".pdf",
+    hint: "PDF",
+    templates: [
+      {
+        label: "Template Foto Selfie Kelompok",
+        url: "https://s.id/TemplateFotoSelfieKelompokCCCUPXLI",
+      },
+    ],
+  },
+  {
+    key: "suratPernyataan",
+    label: "Surat Pernyataan",
+    accept: ".pdf",
+    hint: "PDF",
+    templates: [
+      {
+        label: "Surat Pernyataan Peserta",
+        url: "https://s.id/SuratPernyataanPesertaCCCUPXLI",
+      },
+    ],
+  },
+  {
+    key: "suratIzin",
+    label: "Surat Izin",
+    accept: ".pdf",
+    hint: "PDF",
+    templates: [
+      {
+        label: "Surat Izin Kepala Sekolah",
+        url: "https://s.id/SuratIzinKepalaSekolahCCCUPXLI",
+      },
+    ],
+  },
   {
     key: "pembayaran",
     label: "Bukti Pembayaran",

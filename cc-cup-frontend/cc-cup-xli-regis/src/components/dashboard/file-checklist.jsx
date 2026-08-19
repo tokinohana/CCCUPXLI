@@ -16,7 +16,7 @@ function formatsFromAccept(accept) {
     .filter(Boolean);
 }
 
-export function FileChecklist({ files, frozen, onChanged }) {
+export function FileChecklist({ files, status, frozen, onChanged }) {
   const [busyKey, setBusyKey] = useState(null);
 
   const upload = (fileType, allowedFormats) => {
@@ -51,10 +51,21 @@ export function FileChecklist({ files, frozen, onChanged }) {
     }
   };
 
+  // Hide 'pembayaran' unless status is PENDINGTF
+  const visibleFileTypes = TEAM_FILE_TYPES.filter((type) => {
+    if (type.key === "pembayaran") {
+      return status === "PENDINGTF";
+    }
+    return true;
+  });
+
   return (
     <ul className="space-y-4">
-      {TEAM_FILE_TYPES.map((type) => {
+      {visibleFileTypes.map((type) => {
         const existing = files.find((file) => file.file_type === type.key);
+        // Allow uploading payment proof specifically during PENDINGTF status even if overall form is frozen
+        const isItemFrozen = type.key === "pembayaran" && status === "PENDINGTF" ? false : frozen;
+
         return (
           <li key={type.key} className="border-2 border-foreground p-4">
             <div className="flex items-start gap-3">
@@ -64,6 +75,23 @@ export function FileChecklist({ files, frozen, onChanged }) {
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg uppercase">{type.label}</p>
                 <p className="text-sm text-muted-foreground">Format: {type.hint}</p>
+
+                {type.templates?.length ? (
+                  <div className="mt-2 flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-3">
+                    {type.templates.map((template) => (
+                      <a
+                        key={template.url}
+                        href={template.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-medium text-primary underline underline-offset-4 hover:opacity-80"
+                      >
+                        {template.label} ↗
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+
                 {existing ? (
                   <p className="mt-1 text-sm font-semibold text-primary">Sudah diunggah</p>
                 ) : (
@@ -72,7 +100,7 @@ export function FileChecklist({ files, frozen, onChanged }) {
               </div>
             </div>
 
-            {!frozen ? (
+            {!isItemFrozen ? (
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <Button
                   type="button"

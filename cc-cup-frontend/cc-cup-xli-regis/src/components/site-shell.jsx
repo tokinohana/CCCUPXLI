@@ -19,7 +19,7 @@ export function SiteShell({ children }) {
             <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
                 <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
                     <Link to="/" className="flex items-center gap-3">
-                        <img src={logo} className="h-8 w-8"/>
+                        <img src={logo} className="h-8 w-8" />
                         <span className="font-display text-xl uppercase tracking-wider">CC Cup XLI</span>
                     </Link>
 
@@ -38,6 +38,11 @@ export function SiteShell({ children }) {
                                 {item.label}
                             </NavLink>
                         ))}
+                        <a href="https://docs.google.com/document/d/1a18O9IuwhO8TMa2ZD0_RUMAvQjoVgQuZI1O8h13NMxY/edit?usp=sharing" target="_blank">
+                            <button className="border-2 border-transparent px-4 py-2 font-display text-base uppercase tracking-wide hover:border-foreground">
+                                Mekanisme
+                            </button>
+                        </a>
                         {signedIn ? (
                             <button
                                 onClick={() => void signOut()}
@@ -60,18 +65,18 @@ export function SiteShell({ children }) {
                         )}
                     </nav>
                 </div>
-            </header>
+            </header >
 
             {/* Stepped decorative band */}
-            <div className="stepped-rule w-full" />
+            < div className="stepped-rule w-full" />
 
             {/* Content area */}
-            <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8">
+            < main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 pb-24 sm:pb-8" >
                 {children}
-            </main>
+            </main >
 
             {/* Maya frieze footer */}
-            <footer className="mt-auto border-t-2 border-foreground bg-secondary">
+            < footer className="mt-auto border-t-2 border-foreground bg-secondary" >
                 <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 px-4 py-6 text-center sm:flex-row sm:text-left">
                     <div className="flex items-center gap-2">
                         <GlyphPyramid className="h-5 w-5 text-primary" />
@@ -83,49 +88,53 @@ export function SiteShell({ children }) {
                         Sistem Pendaftaran Terpadu • Dikelola oleh Panitia CC Cup XLI
                     </p>
                 </div>
-            </footer>
+            </footer >
 
             {/* Mobile bottom navigation bar */}
-            <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t-2 border-foreground bg-background sm:hidden">
-                {NAV_ITEMS.map(({ to, label, Icon }) => (
-                    <NavLink
-                        key={to}
-                        to={to}
-                        className={({ isActive }) =>
-                            cn(
-                                "flex flex-1 flex-col items-center gap-1 py-3 text-foreground",
-                                isActive && "bg-secondary font-bold"
-                            )
-                        }
-                    >
-                        <Icon className="h-6 w-6" />
-                        <span className="font-display text-xs uppercase tracking-wide">{label}</span>
-                    </NavLink>
-                ))}
-                {signedIn ? (
-                    <button
-                        onClick={() => void signOut()}
-                        className="flex flex-1 flex-col items-center gap-1 py-3 text-foreground"
-                    >
-                        <GlyphPyramid className="h-6 w-6" />
-                        <span className="font-display text-xs uppercase tracking-wide">Keluar</span>
-                    </button>
-                ) : (
-                    <NavLink
-                        to="/masuk"
-                        className={({ isActive }) =>
-                            cn(
-                                "flex flex-1 flex-col items-center gap-1 py-3 text-foreground",
-                                isActive && "bg-secondary font-bold"
-                            )
-                        }
-                    >
-                        <GlyphPyramid className="h-6 w-6" />
-                        <span className="font-display text-xs uppercase tracking-wide">Masuk</span>
-                    </NavLink>
-                )}
-            </nav>
-        </div>
+            < nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t-2 border-foreground bg-background sm:hidden" >
+                {
+                    NAV_ITEMS.map(({ to, label, Icon }) => (
+                        <NavLink
+                            key={to}
+                            to={to}
+                            className={({ isActive }) =>
+                                cn(
+                                    "flex flex-1 flex-col items-center gap-1 py-3 text-foreground",
+                                    isActive && "bg-secondary font-bold"
+                                )
+                            }
+                        >
+                            <Icon className="h-6 w-6" />
+                            <span className="font-display text-xs uppercase tracking-wide">{label}</span>
+                        </NavLink>
+                    ))
+                }
+                {
+                    signedIn ? (
+                        <button
+                            onClick={() => void signOut()}
+                            className="flex flex-1 flex-col items-center gap-1 py-3 text-foreground"
+                        >
+                            <GlyphPyramid className="h-6 w-6" />
+                            <span className="font-display text-xs uppercase tracking-wide">Keluar</span>
+                        </button>
+                    ) : (
+                        <NavLink
+                            to="/masuk"
+                            className={({ isActive }) =>
+                                cn(
+                                    "flex flex-1 flex-col items-center gap-1 py-3 text-foreground",
+                                    isActive && "bg-secondary font-bold"
+                                )
+                            }
+                        >
+                            <GlyphPyramid className="h-6 w-6" />
+                            <span className="font-display text-xs uppercase tracking-wide">Masuk</span>
+                        </NavLink>
+                    )
+                }
+            </nav >
+        </div >
     );
 }
 

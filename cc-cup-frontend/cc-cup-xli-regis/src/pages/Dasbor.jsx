@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -24,10 +24,6 @@ export default function Dasbor() {
     queryFn: endpoints.competitions,
     enabled: Boolean(team),
   });
-
-  // useEffect(() => {
-  //   if (signedIn) void refreshTeam();
-  // }, [signedIn, refreshTeam]);
 
   if (!ready) {
     return (
@@ -63,7 +59,10 @@ export default function Dasbor() {
   const rosterOk = range ? memberCount >= range.min && memberCount <= range.max : true;
 
   const uploadedKeys = new Set(team.files.map((f) => f.file_type));
-  const missingFiles = TEAM_FILE_TYPES.filter((type) => !uploadedKeys.has(type.key));
+  const requiredFiles = TEAM_FILE_TYPES.filter(
+    (type) => type.key !== "pembayaran" || team.regis_status === "PENDINGTF"
+  );
+  const missingFiles = requiredFiles.filter((type) => !uploadedKeys.has(type.key));
   const canSubmit = rosterOk && missingFiles.length === 0;
 
   const reload = async () => {
@@ -195,7 +194,12 @@ export default function Dasbor() {
 
       {/* 2. Berkas Syarat */}
       <Panel title="Berkas Persyaratan" description="Unggah berkas yang diperlukan.">
-        <FileChecklist files={team.files} frozen={frozen} onChanged={reload} />
+        <FileChecklist
+          files={team.files}
+          status={team.regis_status}
+          frozen={frozen}
+          onChanged={reload}
+        />
       </Panel>
 
       {/* 3. Informasi Tambahan */}
