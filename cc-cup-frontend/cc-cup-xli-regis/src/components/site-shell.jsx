@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router-dom";
 import { GlyphPyramid, GlyphStepBlock, GlyphSun } from "@/components/glyphs";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import logo from "/favicon.png";
 
 const NAV_ITEMS = [
     { to: "/", label: "Beranda", Icon: GlyphSun },
@@ -18,7 +19,7 @@ export function SiteShell({ children }) {
             <header className="sticky top-0 z-40 border-b-2 border-foreground bg-background">
                 <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
                     <Link to="/" className="flex items-center gap-3">
-                        <GlyphPyramid className="h-7 w-7 text-primary" />
+                        <img src={logo} className="h-8 w-8"/>
                         <span className="font-display text-xl uppercase tracking-wider">CC Cup XLI</span>
                     </Link>
 
