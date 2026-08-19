@@ -56,7 +56,7 @@ export function MemberForm({ level, member, onDone, onCancel }) {
 
   const uploadDynamicFile = (key) => {
     setUploadingKey(key);
-    openCloudinaryWidget({}, (info) => {
+    openCloudinaryWidget({ allowedFormats: ["pdf"] }, (info) => {
       setFiles((prev) => ({
         ...prev,
         [key]: { url: info.secure_url, public_id: info.public_id, format: info.format },

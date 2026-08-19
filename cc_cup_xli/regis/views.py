@@ -1,7 +1,7 @@
 from .competition_data import COMPETITIONS
 import os
 import json
-import cloudinary.uploader
+from .cloudinary_utils import destroy_asset
 from django.db import transaction
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
@@ -98,7 +98,6 @@ def _extract_member_payload(data, existing=None):
     payload['dynamicFields'] = dynamic_data
     return payload
 
-
 def _save_member_files(member, files_payload):
     """
     Record member-level files that were already uploaded client-side to
@@ -120,10 +119,7 @@ def _save_member_files(member, files_payload):
         # first so it doesn't linger as an orphaned upload.
         existing = MemberFile.objects.filter(member=member, file_type=file_type).first()
         if existing and existing.public_id and existing.public_id != info.get('public_id'):
-            try:
-                cloudinary.uploader.destroy(existing.public_id, resource_type='auto')
-            except Exception:
-                pass
+            destroy_asset(existing.public_id)
 
         MemberFile.objects.update_or_create(
             member=member,
@@ -310,6 +306,10 @@ class AddMemberView(views.APIView):
         if freeze:
             return freeze
 
+        file_errors = _validate_member_files_payload(request.data.get('files'))
+        if file_errors:
+           return Response({'files': file_errors}, status=status.HTTP_400_BAD_REQUEST)
+
         payload = _extract_member_payload(request.data)
 
         serializer = MemberSerializer(data=payload, context={'team': team})
@@ -338,6 +338,10 @@ class EditMemberView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+
+        file_errors = _validate_member_files_payload(request.data.get('files'))
+        if file_errors:
+           return Response({'files': file_errors}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             member = Member.objects.get(id=member_id, team=team)
@@ -433,10 +437,7 @@ class UploadTeamFileView(views.APIView):
         # first so it doesn't linger as an orphaned upload.
         existing = TeamFile.objects.filter(team=team, file_type=file_type).first()
         if existing and existing.public_id:
-            try:
-                cloudinary.uploader.destroy(existing.public_id, resource_type='auto')
-            except Exception:
-                pass  # don't block the new upload if cleanup fails
+            destroy_asset(existing.public_id)
 
         obj, created = TeamFile.objects.update_or_create(
             team=team,
@@ -785,3 +786,20 @@ class ChatClearView(views.APIView):
 
         ChatSession.objects.filter(team=team).update(chat_history=[])
         return Response({'ok': True})
+
+def _validate_member_files_payload(files_payload):
+    """
+    Member-level files are PDF-only — unlike team files, no member file
+    type has an image-format exception (that's only 'pembayaran', which
+    is team-level). Returns {file_type: error_message} or None if all valid.
+    """
+    if not isinstance(files_payload, dict):
+        return None
+    errors = {}
+    for file_type, info in files_payload.items():
+        if not isinstance(info, dict):
+            continue
+        file_format = (info.get('format') or '').lower()
+        if file_format and file_format != 'pdf':
+            errors[file_type] = f"Format '{file_format}' tidak didukung. Hanya PDF yang diperbolehkan."
+    return errors or None
