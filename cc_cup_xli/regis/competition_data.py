@@ -54,7 +54,6 @@ COMPETITIONS = {
             "players": [5,12],
             "subkategori": [],
             "kuota": 12,
-            "status": "closed",
             "extra": {
                 "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
@@ -99,7 +98,6 @@ COMPETITIONS = {
             "gender": ["M"],
             "players": [6, 12],
             "subkategori": [],
-            "status": "closed",
             "kuota": 12,
             "extra": {
                 "tim": {},
@@ -110,7 +108,6 @@ COMPETITIONS = {
             "gender": ["M"],
             "players": [6, 12],
             "subkategori": [],
-            "status": "closed",
             "kuota": 12,
             "extra": {
                 "tim": {},
@@ -162,7 +159,6 @@ COMPETITIONS = {
                 }
         },
         "SMA": {
-            "status": "closed",
             "gender": ["M"],
             "players": [5,8],
             "subkategori": [],
