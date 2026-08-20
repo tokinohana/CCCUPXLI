@@ -467,13 +467,12 @@ class DeleteTeamFileView(views.APIView):
         except TeamFile.DoesNotExist:
             return Response({"error": "File tidak ditemukan."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Delete the asset on Cloudinary (requires a signed API call, which
-        # is fine — the API secret lives server-side only).
+        # Delete the asset on Cloudinary (uses the same signed helper as
+        # everywhere else — `cloudinary.uploader` was never imported in this
+        # module, so calling it directly here raised a NameError and the
+        # cleanup silently failed).
         if team_file.public_id:
-            try:
-                cloudinary.uploader.destroy(team_file.public_id, resource_type='auto')
-            except Exception:
-                pass  # don't block the DB delete if Cloudinary cleanup fails
+            destroy_asset(team_file.public_id)
 
         team_file.delete()
         return Response({"message": f"File '{file_type}' berhasil dihapus."})
@@ -534,8 +533,14 @@ class SubmitRegistrationView(views.APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Validate: all 5 team files must be uploaded
+        # Validate: required team files must be uploaded. 'pembayaran' (proof
+        # of payment) is only required once the team reaches PENDINGTF — it
+        # can't have been uploaded yet at PENDING/REVIEWED, since the upload
+        # UI only offers it once the team is in PENDINGTF. Mirrors the
+        # frontend's requiredFiles filter in Dasbor.jsx.
         required_file_types = {c[0] for c in TeamFile.FILE_TYPE_CHOICES}
+        if team.regis_status != 'PENDINGTF':
+            required_file_types.discard('pembayaran')
         uploaded_types = set(TeamFile.objects.filter(team=team).values_list('file_type', flat=True))
         missing_files = required_file_types - uploaded_types
         if missing_files:
