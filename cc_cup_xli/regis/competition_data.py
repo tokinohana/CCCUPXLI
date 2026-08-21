@@ -42,7 +42,7 @@ COMPETITIONS = {
             "gender": ["M"],
             "players": [5,12],
             "subkategori": [],
-            "kuota": "",
+            "kuota": 12,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
@@ -71,7 +71,7 @@ COMPETITIONS = {
             "gender": ["F"],
             "players": [5,12],
             "subkategori": [],
-            "kuota": "",
+            "kuota": 6,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
@@ -81,7 +81,7 @@ COMPETITIONS = {
             "gender": ["F"],
             "players": [5,12],
             "subkategori": [],
-            "kuota": "",
+            "kuota": 6,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
@@ -150,21 +150,21 @@ COMPETITIONS = {
         "sop": "https://docs.google.com/document/d/1YV7maBmBjsc3qdrI1ANj0RXZT29rdwumbCa7h5bVaEc/pub?embedded=true",
         "SMP": {
             "gender": ["M"],
-            "players": [5,8],
+            "players": [6,8],
             "subkategori": [],
             "kuota": 16,
             "extra": {
-                "tim": {},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
                 }
         },
         "SMA": {
             "gender": ["M"],
-            "players": [5,8],
+            "players": [6,8],
             "subkategori": [],
             "kuota": 16,
             "extra": {
-                "tim": {},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
                 }
         }
@@ -269,7 +269,7 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [5,15],
             "subkategori": [],
-            "kuota": 10,
+            "kuota": 15,
             "extra": {
                 "tim": {},
                 "anggota": {}
@@ -279,7 +279,7 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [5,15],
             "subkategori": [],
-            "kuota": 10,
+            "kuota": 15,
             "extra": {
                 "tim": {},
                 "anggota": {}
@@ -296,9 +296,9 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [3,8],
             "subkategori": [],
-            "kuota": "120",
+            "kuota": 15,
             "extra": {
-                "tim": {},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
                 }
         },
@@ -306,9 +306,9 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [3,8],
             "subkategori": [],
-            "kuota": "160",
+            "kuota": 20,
             "extra": {
-                "tim": {},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
                 }
         },
@@ -336,7 +336,7 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [1, 2],
             "subkategori": [],
-            "kuota": "",
+            "kuota": 32,
             "extra": {
                 "tim": {},
                 "anggota": {
@@ -380,14 +380,18 @@ COMPETITIONS = {
         "jenjang": ["SMA"],
         "sop": "https://docs.google.com/document/d/1FzPA6etvuUUVPbppSC6EveaWN84puXBACRhW_8k7lys/pub?embedded=true",
         "SMA": {
-            "gender": ["M"],
+            "gender": ["M", "F"],
             "players": [1, 6],
             "subkategori": [
-                "Cowo(kyorugi) Under 55",
-                "Cowo(kyorugi) Under 59",
-                "Cowo(kyorugi) Under 63",
-                "Cowo(kyorugi) Under 78",
-                "Cowo(kyorugi) Above 78"
+                "Men Under 55kg",
+                "Men Under 59kg",
+                "Men Under 63kg",
+                "Men Under 78kg",
+                "Men Above 78kg",
+                "Women Under 49kg",
+                "Women Under 52kg",
+                "Women Under 55kg",
+                "Women Under 59kg"
             ],
             "kuota": 96,
             "extra": {
@@ -435,7 +439,7 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [1,100],
             "subkategori": [],
-            "kuota": 16,
+            "kuota": 30,
             "extra": {
                 "tim": {},
                 "anggota": {
@@ -475,7 +479,7 @@ COMPETITIONS = {
             "kuota": 100,
             "extra": {
                 "tim": {
-                    "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 one handed', 'Pyraminx', 'Skewb', 'clock']}
+                    "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 One Handed', 'Pyraminx', 'Skewb', 'Clock']}
                 },
                 "anggota": {}
                 }
@@ -487,7 +491,7 @@ COMPETITIONS = {
             "kuota": 100,
             "extra": {
                 "tim": {
-                    "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 one handed', 'Pyraminx', 'Skewb', 'clock']}
+                    "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 One Handed', 'Pyraminx', 'Skewb', 'Clock']}
                 },
                 "anggota": {}
                 }
@@ -528,9 +532,9 @@ COMPETITIONS = {
         "sop": "https://docs.google.com/document/d/1UfLYnLnjX-RHJpg-VoFKAvNP2O0sggYWbuUfWHymmvI/pub?embedded=true",
         "SMP": {
             "gender": ["U"],
-            "players": [2, 3],
+            "players": [3, 3],
             "subkategori": [],
-            "kuota": 12,
+            "kuota": 16,
             "extra": {
                 "tim": {},
                 "anggota": {}
@@ -545,9 +549,9 @@ COMPETITIONS = {
         "sop": "https://docs.google.com/document/d/1vlq0-HdJ3c7KKwW_pOl7N0mGVsylthWJR4aLIQ9aQOY/pub?embedded=true",
         "SMP": {
             "gender": ["U"],
-            "players": [16, 23],
+            "players": [15, 20],
             "subkategori": [],
-            "kuota": 20,
+            "kuota": 12,
             "extra": {
                 "tim": {},
                 "anggota": {
@@ -565,7 +569,7 @@ COMPETITIONS = {
             "gender": ["U"],
             "players": [1, 1],
             "subkategori": [],
-            "kuota": 40,
+            "kuota": 25,
             "extra": {
                 "tim": {},
                 "anggota": {"akte_kelahiran": "File"}
