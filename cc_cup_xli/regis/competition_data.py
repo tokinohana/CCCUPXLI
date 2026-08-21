@@ -180,8 +180,8 @@ COMPETITIONS = {
             "players": [1, 2],
             "subkategori": [
                 "A:DIATAS 51KG-55,5KG",
-                "B:DIATAS 55,5KG-61KG",
-                "C:DIATAS 61,5KG-65,1KG",
+                "B:DIATAS 55,6KG-61KG",
+                "C:DIATAS 61,1KG-65,1KG",
                 "Bebas:DIATAS 65,2KG",
             ],
             "kuota": 24,
