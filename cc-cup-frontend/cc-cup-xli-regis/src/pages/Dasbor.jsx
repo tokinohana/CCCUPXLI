@@ -214,7 +214,13 @@ export default function Dasbor() {
 
       {/* 4. Rekening */}
       <Panel title="Data Rekening" description="Untuk kebutuhan pengembalian/pembayaran.">
-        <RekeningForm team={team} frozen={frozen} onChanged={reload} />
+        <RekeningForm
+          bankName={team.bank_name}
+          accountNumber={team.account_number}
+          accountHolder={team.account_holder}
+          frozen={frozen}
+          onChanged={reload}
+        />
       </Panel>
 
       {/* 5. Kirim Pendaftaran */}
