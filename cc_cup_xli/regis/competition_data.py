@@ -179,10 +179,9 @@ COMPETITIONS = {
             "gender": ["M"],
             "players": [1, 2],
             "subkategori": [
-                "A:DIATAS 51KG-55,5KG",
-                "B:DIATAS 55,6KG-61KG",
-                "C:DIATAS 61,1KG-65,1KG",
-                "Bebas:DIATAS 65,2KG",
+                "H:DIATAS 51KG-54KG",
+                "I:DIATAS 54KG-57KG",
+                "J:DIATAS 57KG-60KG"
             ],
             "kuota": 24,
             "extra": {
