@@ -6,6 +6,7 @@ import HomePage from "@/pages/Home.jsx";
 import DaftarPage from "@/pages/Daftar.jsx";
 import DasborPage from "@/pages/Dasbor.jsx";
 import MasukPage from "@/pages/Masuk.jsx";
+import RegistrationClosed from "@/pages/Closed.jsx";
 
 function RootLayout() {
   return (
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: "/dasbor", element: <DasborPage /> },
       { path: "/masuk", element: <MasukPage /> },
       { path: "*", element: <NotFound /> },
+      { path: "/closed", element: <RegistrationClosed /> },
     ],
   },
 ]);
