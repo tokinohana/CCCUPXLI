@@ -8,7 +8,8 @@ import { ApiError } from "@/lib/api";
 import { endpoints } from "@/lib/endpoints";
 
 export function TeamInfoForm({ level, otherInfo, frozen, onChanged }) {
-  const keys = Object.keys(level?.extra?.tim ?? {});
+  const fieldConfigs = level?.extra?.tim ?? {};
+  const keys = Object.keys(fieldConfigs);
   const [values, setValues] = useState(() => {
     const initial = {};
     for (const key of keys) {
@@ -45,18 +46,63 @@ export function TeamInfoForm({ level, otherInfo, frozen, onChanged }) {
   return (
     <form onSubmit={submit} className="space-y-6">
       <FormError message={error} />
-      {keys.map((key) => (
-        <Field key={key} id={`info-${key}`} label={key}>
-          <Input
-            id={`info-${key}`}
-            value={values[key] ?? ""}
-            disabled={frozen}
-            onChange={(event) =>
-              setValues((prev) => ({ ...prev, [key]: event.target.value }))
-            }
-          />
-        </Field>
-      ))}
+      {keys.map((key) => {
+        const config = fieldConfigs[key];
+        const options = config && typeof config === "object" ? config.multiple : null;
+
+        if (Array.isArray(options)) {
+          const selected = values[key] ? values[key].split(",").filter(Boolean) : [];
+          const toggle = (option) => {
+            setValues((prev) => {
+              const current = prev[key] ? prev[key].split(",").filter(Boolean) : [];
+              const next = current.includes(option)
+                ? current.filter((o) => o !== option)
+                : [...current, option];
+              return { ...prev, [key]: next.join(",") };
+            });
+          };
+
+          return (
+            <Field key={key} id={`info-${key}`} label={key}>
+              <div className="space-y-2 border-2 border-input bg-card p-3">
+                {options.map((option) => {
+                  const optionId = `info-${key}-${option}`;
+                  return (
+                    <label
+                      key={option}
+                      htmlFor={optionId}
+                      className="flex items-center gap-2 text-sm font-medium"
+                    >
+                      <input
+                        id={optionId}
+                        type="checkbox"
+                        className="h-4 w-4 rounded-none border-2 border-input accent-primary"
+                        checked={selected.includes(option)}
+                        disabled={frozen}
+                        onChange={() => toggle(option)}
+                      />
+                      {option}
+                    </label>
+                  );
+                })}
+              </div>
+            </Field>
+          );
+        }
+
+        return (
+          <Field key={key} id={`info-${key}`} label={key}>
+            <Input
+              id={`info-${key}`}
+              value={values[key] ?? ""}
+              disabled={frozen}
+              onChange={(event) =>
+                setValues((prev) => ({ ...prev, [key]: event.target.value }))
+              }
+            />
+          </Field>
+        );
+      })}
       {!frozen ? (
         <Button type="submit" disabled={busy}>
           {busy ? "Menyimpan…" : "Simpan Data Tim"}
