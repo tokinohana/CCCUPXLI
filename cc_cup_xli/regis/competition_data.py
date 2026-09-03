@@ -372,35 +372,35 @@ COMPETITIONS = {
                 }
         },
     },
-    "taekwondo": {
-        "name": "Taekwondo",
-        "short-id": "TA",
-        "icon-filename": "",
-        "jenjang": ["SMA"],
-        "sop": "https://docs.google.com/document/d/1FzPA6etvuUUVPbppSC6EveaWN84puXBACRhW_8k7lys/pub?embedded=true",
-        "SMA": {
-            "gender": ["M", "F"],
-            "players": [1, 6],
-            "subkategori": [
-                "Men Under 55kg",
-                "Men Under 59kg",
-                "Men Under 63kg",
-                "Men Under 78kg",
-                "Men Above 78kg",
-                "Women Under 49kg",
-                "Women Under 52kg",
-                "Women Under 55kg",
-                "Women Under 59kg"
-            ],
-            "kuota": 96,
-            "extra": {
-                "tim": {"coach_name": "String",
-                    "coach_email": "String",
-                    "coach_phone": "String"},
-                "anggota": {"akte_kelahiran": "File", "sertifikat_sabuk": "File"}
-                }
-        }
-    },
+    # "taekwondo": {
+    #     "name": "Taekwondo",
+    #     "short-id": "TA",
+    #     "icon-filename": "",
+    #     "jenjang": ["SMA"],
+    #     "sop": "https://docs.google.com/document/d/1FzPA6etvuUUVPbppSC6EveaWN84puXBACRhW_8k7lys/pub?embedded=true",
+    #     "SMA": {
+    #         "gender": ["M", "F"],
+    #         "players": [1, 6],
+    #         "subkategori": [
+    #             "Men Under 55kg",
+    #             "Men Under 59kg",
+    #             "Men Under 63kg",
+    #             "Men Under 78kg",
+    #             "Men Above 78kg",
+    #             "Women Under 49kg",
+    #             "Women Under 52kg",
+    #             "Women Under 55kg",
+    #             "Women Under 59kg"
+    #         ],
+    #         "kuota": 96,
+    #         "extra": {
+    #             "tim": {"coach_name": "String",
+    #                 "coach_email": "String",
+    #                 "coach_phone": "String"},
+    #             "anggota": {"akte_kelahiran": "File", "sertifikat_sabuk": "File"}
+    #             }
+    #     }
+    # },
     "english-debate": {
         "name": "English Debate",
         "short-id": "ED",
