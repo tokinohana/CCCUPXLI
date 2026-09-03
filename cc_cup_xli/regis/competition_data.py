@@ -548,7 +548,7 @@ COMPETITIONS = {
         "sop": "https://docs.google.com/document/d/1vlq0-HdJ3c7KKwW_pOl7N0mGVsylthWJR4aLIQ9aQOY/pub?embedded=true",
         "SMP": {
             "gender": ["U"],
-            "players": [15, 20],
+            "players": [15, 23],
             "subkategori": [],
             "kuota": 12,
             "extra": {
