@@ -146,18 +146,19 @@ COMPETITIONS = {
         "name": "Bulu Tangkis",
         "short-id": "BT",
         "icon-filename": "",
-        "jenjang": ["SMP", "SMA"],
+        # "jenjang": ["SMP", "SMA"],
+        "jenjang": ["SMA"],
         "sop": "https://docs.google.com/document/d/1YV7maBmBjsc3qdrI1ANj0RXZT29rdwumbCa7h5bVaEc/pub?embedded=true",
-        "SMP": {
-            "gender": ["M"],
-            "players": [6,8],
-            "subkategori": [],
-            "kuota": 16,
-            "extra": {
-                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
-                "anggota": {}
-                }
-        },
+        # "SMP": {
+        #     "gender": ["M"],
+        #     "players": [6,8],
+        #     "subkategori": [],
+        #     "kuota": 16,
+        #     "extra": {
+        #         "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
+        #         "anggota": {}
+        #         }
+        # },
         "SMA": {
             "gender": ["M"],
             "players": [6,8],
