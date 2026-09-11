@@ -2,7 +2,7 @@ from .competition_data import COMPETITIONS
 import os
 import json
 from .cloudinary_utils import destroy_asset
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from django.contrib.auth import authenticate, get_user_model
@@ -188,7 +188,6 @@ class LoginView(views.APIView):
             "team": team_data
         })
 
-
 class RegisterView(views.APIView):
     """
     POST /api/regis/register
@@ -213,33 +212,43 @@ class RegisterView(views.APIView):
 
         # User + Team + the representative's own roster row are created
         # together — if any step fails, none of it should be left behind.
-        with transaction.atomic():
-            user = User.objects.create_user(
-                email=email,
-                password=d['password'],
-                phone_number=d['phone'],
-                is_external=True,
-                username=email.split('@')[0],
-            )
+        # Wrapped in try/except: the .exists() check above has a TOCTOU gap
+        # (two near-simultaneous submits with the same email can both pass
+        # it before either commits) — IntegrityError from the DB's unique
+        # constraint is the real backstop.
+        try:
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    email=email,
+                    password=d['password'],
+                    phone_number=d['phone'],
+                    is_external=True,
+                    username=email,
+                )
 
-            team = Team.objects.create(
-                captain=user,
-                nama_tim=d['nama_tim'],
-                school=d['school'],
-                phone=d['phone'],
-                competition=d['competition'],
-                jenjang=d['jenjang'],
-            )
+                team = Team.objects.create(
+                    captain=user,
+                    nama_tim=d['nama_tim'],
+                    school=d['school'],
+                    phone=d['phone'],
+                    competition=d['competition'],
+                    jenjang=d['jenjang'],
+                )
 
-            # The person who signed up is automatically part of the roster.
-            # `user` links this row back to their account so it can't be
-            # deleted by its own owner (see DeleteMemberView) and can't be
-            # duplicated (OneToOneField enforces one representative row).
-            Member.objects.create(
-                team=team,
-                user=user,
-                email=email,
-                nomor_telepon=d['phone'],
+                # The person who signed up is automatically part of the roster.
+                # `user` links this row back to their account so it can't be
+                # deleted by its own owner (see DeleteMemberView) and can't be
+                # duplicated (OneToOneField enforces one representative row).
+                Member.objects.create(
+                    team=team,
+                    user=user,
+                    email=email,
+                    nomor_telepon=d['phone'],
+                )
+        except IntegrityError:
+            return Response(
+                {"error": "Email ini sudah terdaftar. Silakan masuk atau gunakan email lain."},
+                status=status.HTTP_409_CONFLICT
             )
 
         refresh = RefreshToken.for_user(user)
@@ -249,7 +258,6 @@ class RegisterView(views.APIView):
             "refresh": str(refresh),
             "team": TeamSerializer(team).data,
         }, status=status.HTTP_201_CREATED)
-
 
 class LogoutView(views.APIView):
     """
