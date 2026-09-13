@@ -327,8 +327,8 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {
-                    "akte_kelahiran": "File",
-                    "fotocopy_rapor": "File"
+                    # "akte_kelahiran": "File",
+                    # "fotocopy_rapor": "File"
                 }
                 }
         },
@@ -340,8 +340,8 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {
-                    "akte_kelahiran": "File",
-                    "fotocopy_rapor": "File"
+                    # "akte_kelahiran": "File",
+                    # "fotocopy_rapor": "File"
                 }
                 }
         },
