@@ -1,12 +1,12 @@
 // src/App.jsx
-import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Outlet, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth"; // Ensure this import path matches your project structure
 
 import HomePage from "@/pages/Home.jsx";
 import DaftarPage from "@/pages/Daftar.jsx";
 import DasborPage from "@/pages/Dasbor.jsx";
 import MasukPage from "@/pages/Masuk.jsx";
-import RegistrationClosed from "@/pages/Closed.jsx";
+import ClosedRegistration from "@/pages/Closed.jsx";
 
 function RootLayout() {
   return (
@@ -33,12 +33,12 @@ const router = createBrowserRouter([
     element: <RootLayout />,
     errorElement: <NotFound />,
     children: [
-      { path: "/", element: <HomePage /> },
-      { path: "/daftar", element: <DaftarPage /> },
+      { path: "/", element: <ClosedRegistration /> },
+      // { path: "/daftar", element: <DaftarPage /> },
+      { path: "/daftar", element: <Navigate to="/" replace /> },
       { path: "/dasbor", element: <DasborPage /> },
       { path: "/masuk", element: <MasukPage /> },
       { path: "*", element: <NotFound /> },
-      { path: "/closed", element: <RegistrationClosed /> },
     ],
   },
 ]);

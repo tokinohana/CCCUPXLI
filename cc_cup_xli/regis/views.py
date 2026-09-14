@@ -20,6 +20,24 @@ User = get_user_model()
 
 VALID_TEAM_FILE_TYPES = [c[0] for c in TeamFile.FILE_TYPE_CHOICES]
 
+# ─────────────────────────────────────────────────────────────────────────────
+# REGISTRATION LOCK
+# ─────────────────────────────────────────────────────────────────────────────
+# Single switch to close the whole regis system to new/changed data.
+# Flip to False to reopen. Login/dashboard (read) stay open regardless —
+# this only gates account creation and every write/edit endpoint below.
+REGISTRATION_CLOSED = True
+
+
+def _registration_closed_check():
+    """Return a 423 LOCKED Response if registration is closed, else None."""
+    if REGISTRATION_CLOSED:
+        return Response(
+            {"error": "Pendaftaran sudah ditutup. Data Anda masih bisa dilihat, tetapi tidak dapat diubah lagi."},
+            status=status.HTTP_423_LOCKED
+        )
+    return None
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper: get the authenticated user's team or return 404 Response
@@ -196,6 +214,10 @@ class RegisterView(views.APIView):
     Returns JWT tokens so the user is auto-logged-in.
     """
     def post(self, request):
+        closed = _registration_closed_check()
+        if closed:
+            return closed
+
         serializer = RegisterSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -313,6 +335,9 @@ class AddMemberView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         file_errors = _validate_member_files_payload(request.data.get('files'))
         if file_errors:
@@ -346,6 +371,9 @@ class EditMemberView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         file_errors = _validate_member_files_payload(request.data.get('files'))
         if file_errors:
@@ -381,6 +409,9 @@ class DeleteMemberView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         try:
             member = Member.objects.get(id=member_id, team=team)
@@ -423,6 +454,9 @@ class UploadTeamFileView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         if file_type not in VALID_TEAM_FILE_TYPES:
             return Response({"error": f"Tipe file '{file_type}' tidak valid."}, status=status.HTTP_400_BAD_REQUEST)
@@ -469,6 +503,9 @@ class DeleteTeamFileView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         try:
             team_file = TeamFile.objects.get(team=team, file_type=file_type)
@@ -504,6 +541,9 @@ class SaveTeamInfoView(views.APIView):
         freeze = _freeze_check(team)
         if freeze:
             return freeze
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         data = request.data
         if not isinstance(data, dict):
@@ -534,6 +574,9 @@ class SubmitRegistrationView(views.APIView):
         team, err = _get_team_or_error(request)
         if err:
             return err
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         if team.regis_status not in ('PENDING', 'REVIEWED'):
             return Response(
@@ -593,6 +636,10 @@ class UnsubmitRegistrationView(views.APIView):
         if err:
             return err
 
+        closed = _registration_closed_check()
+        if closed:
+            return closed
+
         if team.regis_status not in ('SUBMITTED', 'REVIEWED'):
             return Response(
                 {"error": f"Status '{team.regis_status}' tidak dapat ditarik kembali."},
@@ -619,6 +666,9 @@ class UpdateRekeningView(views.APIView):
         team, err = _get_team_or_error(request)
         if err:
             return err
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         if team.regis_status != 'PENDINGTF':
             return Response(
@@ -653,6 +703,9 @@ class SaveSubkategoriView(views.APIView):
         team, err = _get_team_or_error(request)
         if err:
             return err
+        closed = _registration_closed_check()
+        if closed:
+            return closed
 
         member_id = request.data.get('member_id')
         subkategori = request.data.get('subkategori', '')

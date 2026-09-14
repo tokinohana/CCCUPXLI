@@ -4,6 +4,12 @@ Single source of truth for roster size, gender restriction, subkategori options,
 quota, open/closed status, and dynamic team/member field requirements.
 """
 
+"""
+Per-competition registration rules, sourced from last year's official event metadata.
+Single source of truth for roster size, gender restriction, subkategori options,
+quota, open/closed status, and dynamic team/member field requirements.
+"""
+
 COMPETITIONS = {
     "mini-soccer": {
         "name": "Mini Soccer",
@@ -12,16 +18,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1zMu1v5MVLLf0MxMExzgyru4aJK_i3zroUDuLhInVRhI/pub?embedded=true",
         "SMP": {
-            "gender": ["M"],
-            "players": [7,14],
-            "subkategori": [],
-            "kuota": 12,
-            "extra": {
-                "tim": {},
-                "anggota": {}
-                }
-        },
-        "SMA": {
+            "status": "closed",
             "gender": ["M"],
             "players": [7, 14],
             "subkategori": [],
@@ -29,7 +26,18 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
+        },
+        "SMA": {
+            "status": "closed",
+            "gender": ["M"],
+            "players": [7, 14],
+            "subkategori": [],
+            "kuota": 12,
+            "extra": {
+                "tim": {},
+                "anggota": {}
+            }
         },
     },
     "basket-putra": {
@@ -39,26 +47,26 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1-KLWRMp-53UI4s5QA8BmBtfPONorHzUgg5_7xb5XSR0/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["M"],
-            "players": [5,12],
+            "players": [5, 12],
             "subkategori": [],
             "kuota": 12,
             "extra": {
-                "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
-
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["M"],
-            "players": [5,12],
+            "players": [5, 12],
             "subkategori": [],
             "kuota": 12,
             "extra": {
-                "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
-
-                }
+            }
         },
     },
     "basket-putri": {
@@ -68,24 +76,26 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1-KLWRMp-53UI4s5QA8BmBtfPONorHzUgg5_7xb5XSR0/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["F"],
-            "players": [5,12],
+            "players": [5, 12],
             "subkategori": [],
             "kuota": 6,
             "extra": {
-                "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["F"],
-            "players": [5,12],
+            "players": [5, 12],
             "subkategori": [],
             "kuota": 6,
             "extra": {
-                "tim": {"coach_name": "String", "coach_email" : "String", "coach_phone": "String"},
+                "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {"tempat_lahir": "String", "Berat": "String", "Tinggi": "String"}
-                }
+            }
         },
     },
     "voli-putra": {
@@ -95,6 +105,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1JgrnsoSFBfww5ejXT3hQ8oLbWkPqahdy8XybrKTSOoM/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["M"],
             "players": [6, 12],
             "subkategori": [],
@@ -102,9 +113,10 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["M"],
             "players": [6, 12],
             "subkategori": [],
@@ -112,7 +124,7 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         }
     },
     "voli-putri": {
@@ -122,6 +134,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1JgrnsoSFBfww5ejXT3hQ8oLbWkPqahdy8XybrKTSOoM/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["F"],
             "players": [6, 12],
             "subkategori": [],
@@ -129,9 +142,10 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["F"],
             "players": [6, 12],
             "subkategori": [],
@@ -139,35 +153,25 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         }
     },
     "bulu-tangkis": {
         "name": "Bulu Tangkis",
         "short-id": "BT",
         "icon-filename": "",
-        # "jenjang": ["SMP", "SMA"],
         "jenjang": ["SMA"],
         "sop": "https://docs.google.com/document/d/1YV7maBmBjsc3qdrI1ANj0RXZT29rdwumbCa7h5bVaEc/pub?embedded=true",
-        # "SMP": {
-        #     "gender": ["M"],
-        #     "players": [6,8],
-        #     "subkategori": [],
-        #     "kuota": 16,
-        #     "extra": {
-        #         "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
-        #         "anggota": {}
-        #         }
-        # },
         "SMA": {
+            "status": "closed",
             "gender": ["M"],
-            "players": [6,8],
+            "players": [6, 8],
             "subkategori": [],
             "kuota": 16,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
-                }
+            }
         }
     },
     "pencak-silat": {
@@ -177,6 +181,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/11fcJ8gMbmvUs48L57PURl07l6hw1pgGu/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["M"],
             "players": [1, 2],
             "subkategori": [
@@ -199,6 +204,7 @@ COMPETITIONS = {
             }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["M"],
             "players": [1, 2],
             "subkategori": [
@@ -231,6 +237,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1ZU0YI3EQMtC_tDgKnJvVQRZIaNjJOSko/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["M"],
             "players": [3, 8],
             "subkategori": [],
@@ -240,11 +247,12 @@ COMPETITIONS = {
                     "coach_name": "String",
                     "coach_email": "String",
                     "coach_phone": "String"
-                        },
+                },
                 "anggota": {},
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["M"],
             "players": [3, 5],
             "subkategori": [],
@@ -254,9 +262,9 @@ COMPETITIONS = {
                     "coach_name": "String",
                     "coach_email": "String",
                     "coach_phone": "String"
-                        },
+                },
                 "anggota": {},
-                }
+            }
         }
     },
     "modern-dance": {
@@ -266,24 +274,26 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1E6isZAmhTHBMA7JXLzyrYw_jOrucYXbE/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [5,15],
+            "players": [5, 15],
             "subkategori": [],
             "kuota": 15,
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [5,15],
+            "players": [5, 15],
             "subkategori": [],
             "kuota": 15,
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
     },
     "band": {
@@ -293,24 +303,26 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1TcSVjOR_so544b9Wr7BvR4d6qi9Er9DC/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [3,8],
+            "players": [3, 8],
             "subkategori": [],
             "kuota": 15,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [3,8],
+            "players": [3, 8],
             "subkategori": [],
             "kuota": 20,
             "extra": {
                 "tim": {"coach_name": "String", "coach_email": "String", "coach_phone": "String"},
                 "anggota": {}
-                }
+            }
         },
     },
     "catur": {
@@ -320,30 +332,26 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1-eqEz4OzGUNMrSgV4UefQX_Kv_MlxpGHBrv8GrM7WrU/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [1, 2],
             "subkategori": [],
             "kuota": 32,
             "extra": {
                 "tim": {},
-                "anggota": {
-                    # "akte_kelahiran": "File",
-                    # "fotocopy_rapor": "File"
-                }
-                }
+                "anggota": {}
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
             "players": [1, 2],
             "subkategori": [],
             "kuota": 32,
             "extra": {
                 "tim": {},
-                "anggota": {
-                    # "akte_kelahiran": "File",
-                    # "fotocopy_rapor": "File"
-                }
-                }
+                "anggota": {}
+            }
         },
     },
     "fotografi": {
@@ -353,55 +361,28 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1FrrbYm2ObhmcnnurvCUFfcpGYOe_VMpalMk5rikXSyQ/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [1,1],
+            "players": [1, 1],
             "subkategori": [],
             "kuota": "",
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [1,1],
+            "players": [1, 1],
             "subkategori": [],
             "kuota": "",
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
     },
-    # "taekwondo": {
-    #     "name": "Taekwondo",
-    #     "short-id": "TA",
-    #     "icon-filename": "",
-    #     "jenjang": ["SMA"],
-    #     "sop": "https://docs.google.com/document/d/1FzPA6etvuUUVPbppSC6EveaWN84puXBACRhW_8k7lys/pub?embedded=true",
-    #     "SMA": {
-    #         "gender": ["M", "F"],
-    #         "players": [1, 6],
-    #         "subkategori": [
-    #             "Men Under 55kg",
-    #             "Men Under 59kg",
-    #             "Men Under 63kg",
-    #             "Men Under 78kg",
-    #             "Men Above 78kg",
-    #             "Women Under 49kg",
-    #             "Women Under 52kg",
-    #             "Women Under 55kg",
-    #             "Women Under 59kg"
-    #         ],
-    #         "kuota": 96,
-    #         "extra": {
-    #             "tim": {"coach_name": "String",
-    #                 "coach_email": "String",
-    #                 "coach_phone": "String"},
-    #             "anggota": {"akte_kelahiran": "File", "sertifikat_sabuk": "File"}
-    #             }
-    #     }
-    # },
     "english-debate": {
         "name": "English Debate",
         "short-id": "ED",
@@ -409,6 +390,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1osmua7_JQOjP36I7k54r7FO8cIz0DCiVAizlqv_o3Dw/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [3, 3],
             "subkategori": [],
@@ -416,9 +398,10 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
             "players": [3, 3],
             "subkategori": [],
@@ -426,7 +409,7 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         }
     },
     "short-movie": {
@@ -436,8 +419,9 @@ COMPETITIONS = {
         "jenjang": ["SMA"],
         "sop": "https://docs.google.com/document/d/1RSu1qa3vFrvyh8jHI57grVySxnz59CsHvGR2fF_9s5M/pub?embedded=true",
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [1,100],
+            "players": [1, 100],
             "subkategori": [],
             "kuota": 30,
             "extra": {
@@ -445,7 +429,7 @@ COMPETITIONS = {
                 "anggota": {
                     "Role": "String"
                 }
-                }
+            }
         },
     },
     "wall-climbing": {
@@ -455,15 +439,15 @@ COMPETITIONS = {
         "jenjang": ["SMA"],
         "sop": "https://docs.google.com/document/d/1Hn32hW2i3SY9Cu0Cm9yFoNgoIDJfMeEH/pub?embedded=true",
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [1,6],
+            "players": [1, 6],
             "subkategori": [],
             "kuota": 60,
             "extra": {
                 "tim": {},
-                "anggota": {
-                }
-                }
+                "anggota": {}
+            }
         },
     },
     "cubing": {
@@ -473,6 +457,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/19YkVo7_-GJY1PJWfmf1T1b4iBjoY_fm2/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [1, 1],
             "subkategori": [],
@@ -482,11 +467,12 @@ COMPETITIONS = {
                     "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 One Handed', 'Pyraminx', 'Skewb', 'Clock']}
                 },
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
-            "players": [1,1],
+            "players": [1, 1],
             "subkategori": [],
             "kuota": 100,
             "extra": {
@@ -494,7 +480,7 @@ COMPETITIONS = {
                     "Cube": {"multiple": ['2x2', '3x3', '4x4', '3x3 One Handed', 'Pyraminx', 'Skewb', 'Clock']}
                 },
                 "anggota": {}
-                }
+            }
         },
     },
     "debat": {
@@ -504,6 +490,7 @@ COMPETITIONS = {
         "jenjang": ["SMP", "SMA"],
         "sop": "https://docs.google.com/document/d/1NFyFNC4Os7PI7i5UGYd_Z5HqIM9o0pY3chUb-h8A_rc/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [3, 3],
             "subkategori": [],
@@ -511,9 +498,10 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
         "SMA": {
+            "status": "closed",
             "gender": ["U"],
             "players": [3, 3],
             "subkategori": [],
@@ -521,7 +509,7 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         },
     },
     "cerdas-cermat": {
@@ -531,6 +519,7 @@ COMPETITIONS = {
         "jenjang": ["SMP"],
         "sop": "https://docs.google.com/document/d/1UfLYnLnjX-RHJpg-VoFKAvNP2O0sggYWbuUfWHymmvI/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [3, 3],
             "subkategori": [],
@@ -538,7 +527,7 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {}
-                }
+            }
         }
     },
     "paduan-suara": {
@@ -548,15 +537,15 @@ COMPETITIONS = {
         "jenjang": ["SMP"],
         "sop": "https://docs.google.com/document/d/1vlq0-HdJ3c7KKwW_pOl7N0mGVsylthWJR4aLIQ9aQOY/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [15, 23],
             "subkategori": [],
             "kuota": 12,
             "extra": {
                 "tim": {},
-                "anggota": {
-                }
-                }
+                "anggota": {}
+            }
         }
     },
     "digital-painting": {
@@ -566,6 +555,7 @@ COMPETITIONS = {
         "jenjang": ["SMP"],
         "sop": "https://docs.google.com/document/d/1SQ5MOD-TWeQz0-ALfr4JGUqpB9zVSrR1/pub?embedded=true",
         "SMP": {
+            "status": "closed",
             "gender": ["U"],
             "players": [1, 1],
             "subkategori": [],
@@ -573,7 +563,7 @@ COMPETITIONS = {
             "extra": {
                 "tim": {},
                 "anggota": {"akte_kelahiran": "File"}
-                }
+            }
         }
     },
     "karate-kyokushin": {
@@ -583,6 +573,7 @@ COMPETITIONS = {
         "jenjang": ["SMA"],
         "sop": "",
         "SMA": {
+            "status": "closed",
             "gender": ["M", "F"],
             "players": [1, 5],
             "subkategori": [
