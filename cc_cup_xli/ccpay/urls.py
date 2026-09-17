@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path('auth/google/config/', views.GoogleConfigView.as_view(), name='google-config'),
     path('auth/google/', views.GoogleOAuthLoginView.as_view(), name='google-auth-login'),
+    path('auth/logout/', views.LogoutView.as_view(), name='logout'),
 
     path('balance/', views.UserBalanceView.as_view(), name='user-balance'),
     path('transactions/', views.UserTransactionListView.as_view(), name='user-transactions'),

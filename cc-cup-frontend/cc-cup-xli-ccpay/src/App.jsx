@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Login from './pages/Login';
+import Logout from './pages/Logout';
 import Dashboard from './pages/Dashboard';
 import Scanner from './pages/Scanner';
 import PaymentInput from './pages/PaymentInput';
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/logout",
+    element: <Logout />,
   },
   {
     path: "/scanner",

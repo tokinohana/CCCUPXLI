@@ -134,6 +134,38 @@ class GoogleOAuthLoginView(views.APIView):
             logger.exception("Unhandled error in GoogleOAuthLoginView")
             return Response({"error": "Terjadi kesalahan sistem. Silahkan coba lagi."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class LogoutView(views.APIView):
+    """
+    Blacklists the user's refresh token.
+
+    Logout is intentionally idempotent:
+    if the token is already expired or blacklisted, the client
+    is still considered logged out.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh')
+
+        if not refresh_token:
+            return Response(
+                {"error": "Refresh token is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            refresh.blacklist()
+
+        except Exception:
+            # The token may already be blacklisted or expired.
+            # Either way, the client should proceed with logout.
+            logger.info("Refresh token already invalid during logout.")
+
+        return Response(
+            {"message": "Logout berhasil."},
+            status=status.HTTP_200_OK
+        )
 
 class StudentDashboardAPIView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]

@@ -172,7 +172,7 @@ const Login = () => {
                 {/* Footer Boundary Block */}
                 <footer className="w-full flex flex-col items-center pt-4 flex-shrink-0">
                     <div className="bg-[#122b1c] border border-[#1b4d2e] px-3 py-1 rounded text-[9px] font-bold text-[#69ff87] uppercase tracking-widest pointer-events-none shadow-sm">
-                        @kanisius.sch.id ONLY
+                        LOGIN USING SCHOOL ACCOUNT (@kanisius.sch.id)
                     </div>
                 </footer>
 
