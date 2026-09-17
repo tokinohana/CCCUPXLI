@@ -74,6 +74,6 @@ class MerchantStandAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
 @admin.register(WeeklyDutySchedule)
 class WeeklyDutyScheduleAdmin(AppGroupPermissionMixin, admin.ModelAdmin):
     allowed_group = CCPAY_GROUP
-    list_display = ('user_email', 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu')
-    list_editable = ('senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu')
+    list_display = ('user_email', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8')
+    list_editable = ('h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8')
     search_fields = ('user_email',)

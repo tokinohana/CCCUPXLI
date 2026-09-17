@@ -7,3 +7,4 @@ deployment.md
 *.sh
 
 .env.production
+.DS_Store

@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 class MerchantStand(models.Model):
     name = models.CharField(max_length=100)
@@ -59,7 +60,7 @@ class Transaction(models.Model):
 
 class WeeklyDutySchedule(models.Model):
     """
-    Per-weekday eligibility for a committee member's daily coupon distribution.
+    Per-event-day eligibility for a committee member's daily coupon distribution.
     Keyed by email (not a ForeignKey) to stay consistent with Transaction's
     isolation-from-the-user-app design.
 
@@ -67,28 +68,46 @@ class WeeklyDutySchedule(models.Model):
     yet (schedule data hasn't arrived), distribute_daily_funds() falls back to
     including them every day — this keeps today's blanket-distribution behavior
     working unchanged until the real schedule spreadsheet is imported.
+
+    H1..H8 = "Hari 1".."Hari 8" of the event (8 specific calendar dates), not
+    weekdays. is_scheduled_on() needs a way to turn an actual date into an
+    event-day number (1-8) — see EVENT_DAY_MAP below, which you MUST fill in
+    with the real calendar dates for CC Cup XLI before this is usable.
     """
     user_email = models.CharField(
         max_length=255,
         unique=True,
         help_text="Email of the committee member this schedule applies to"
     )
-    senin = models.BooleanField(default=False)
-    selasa = models.BooleanField(default=False)
-    rabu = models.BooleanField(default=False)
-    kamis = models.BooleanField(default=False)
-    jumat = models.BooleanField(default=False)
-    sabtu = models.BooleanField(default=False)
-    minggu = models.BooleanField(default=False)
+    h1 = models.BooleanField(default=False)
+    h2 = models.BooleanField(default=False)
+    h3 = models.BooleanField(default=False)
+    h4 = models.BooleanField(default=False)
+    h5 = models.BooleanField(default=False)
+    h6 = models.BooleanField(default=False)
+    h7 = models.BooleanField(default=False)
+    h8 = models.BooleanField(default=False)
 
-    # Maps Python's date.weekday() (Mon=0 .. Sun=6) to the field name above
-    WEEKDAY_FIELD_MAP = {
-        0: 'senin', 1: 'selasa', 2: 'rabu', 3: 'kamis',
-        4: 'jumat', 5: 'sabtu', 6: 'minggu',
+    # Maps event-day number (1-8) to the field name above
+    DAY_FIELD_MAP = {
+        1: 'h1', 2: 'h2', 3: 'h3', 4: 'h4',
+        5: 'h5', 6: 'h6', 7: 'h7', 8: 'h8',
     }
 
-    def is_scheduled_on(self, date):
-        field_name = self.WEEKDAY_FIELD_MAP[date.weekday()]
+    # TODO: fill in the real calendar dates for CC Cup XLI's 8 event days,
+    # e.g. {date(2026, 10, 5): 1, date(2026, 10, 6): 2, ...}. Populate this
+    # once you have the schedule, or swap it for a lookup against another
+    # model if the event dates live in the DB instead of in code.
+    EVENT_DAY_MAP = {
+        # date(YYYY, M, D): day_number,
+    }
+
+    def is_scheduled_on(self, target_date):
+        day_number = self.EVENT_DAY_MAP.get(target_date)
+        if day_number is None:
+            # Date falls outside the known event days — treat as not scheduled.
+            return False
+        field_name = self.DAY_FIELD_MAP[day_number]
         return getattr(self, field_name)
 
     def __str__(self):
