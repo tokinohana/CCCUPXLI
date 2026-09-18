@@ -82,8 +82,7 @@ class WeeklyDutySchedule(models.Model):
 
     H1..H8 = "Hari 1".."Hari 8" of the event (8 specific calendar dates), not
     weekdays. is_scheduled_on() needs a way to turn an actual date into an
-    event-day number (1-8) — see EVENT_DAY_MAP below, which you MUST fill in
-    with the real calendar dates for CC Cup XLI before this is usable.
+    event-day number (1-8).
     """
     user_email = models.CharField(
         max_length=255,
@@ -105,16 +104,8 @@ class WeeklyDutySchedule(models.Model):
         5: 'h5', 6: 'h6', 7: 'h7', 8: 'h8',
     }
 
-    # TODO: fill in the real calendar dates for CC Cup XLI's 8 event days,
-    # e.g. {date(2026, 10, 5): 1, date(2026, 10, 6): 2, ...}. Populate this
-    # once you have the schedule, or swap it for a lookup against another
-    # model if the event dates live in the DB instead of in code.
-    EVENT_DAY_MAP = {
-        # date(YYYY, M, D): day_number,
-    }
-
     def is_scheduled_on(self, target_date):
-        day_number = self.EVENT_DAY_MAP.get(target_date)
+        day_number = EVENT_DAY_MAP.get(target_date)
         if day_number is None:
             # Date falls outside the known event days — treat as not scheduled.
             return False
