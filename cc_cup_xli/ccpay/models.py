@@ -1,6 +1,17 @@
 from django.db import models
 from datetime import date
 
+EVENT_DAY_MAP = {
+    date(2026, 9, 19): 1,
+    date(2026, 9, 20): 2,
+    date(2026, 9, 21): 3,
+    date(2026, 9, 22): 4,
+    date(2026, 9, 23): 5,
+    date(2026, 9, 24): 6,
+    date(2026, 9, 25): 7,
+    date(2026, 9, 26): 8,
+}
+
 class MerchantStand(models.Model):
     name = models.CharField(max_length=100)
     token = models.CharField(max_length=64, unique=True, help_text="Secret token assigned to the merchant terminal")
