@@ -226,7 +226,7 @@ const Dashboard = () => {
               </h3>
             </div>
 
-            <a
+            {/* <a
               className="text-[11px] font-bold text-[#69ff87] bg-[#122b1c] border border-[#1b4d2e] px-2 py-1 rounded transition-colors hover:bg-[#1b4d2e]"
               href="#"
               onClick={(e) => {
@@ -235,7 +235,7 @@ const Dashboard = () => {
               }}
             >
               View All
-            </a>
+            </a> */}
           </div>
 
           <div className="divide-y divide-[#16191d]">
