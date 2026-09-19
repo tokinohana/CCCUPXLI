@@ -107,10 +107,10 @@ const Dashboard = () => {
           <LogOut className="h-4 w-4" />
         </button>
 
-        <button className="p-2 text-[#8a939e] hover:text-white bg-[#131619] rounded-full border border-[#1e2226] transition-all relative">
+        {/* <button className="p-2 text-[#8a939e] hover:text-white bg-[#131619] rounded-full border border-[#1e2226] transition-all relative">
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#69ff87] rounded-full ring-2 ring-[#090a0b]" />
           <Bell className="h-4 w-4" />
-        </button>
+        </button> */}
 
         <Avatar className="h-8 w-8 ring-2 ring-[#1e2226]">
           <AvatarImage
