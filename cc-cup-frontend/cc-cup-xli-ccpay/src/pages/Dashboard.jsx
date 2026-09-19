@@ -176,7 +176,7 @@ const Dashboard = () => {
         </section>
 
         <section className="lg:col-span-5 bg-[#131619] border border-[#1e2226] p-5 rounded-2xl flex flex-col justify-between shadow-xl gap-4">
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <div className="flex items-center space-x-2 text-[#8a939e]">
               <CalendarCheck className="h-4 w-4 text-[#69ff87]" />
               <h3 className="font-bold tracking-wider text-[11px] uppercase">
@@ -196,7 +196,7 @@ const Dashboard = () => {
                 </span>
               </div>
             </div>
-          </div>
+          </div> */}
 
           <div className="flex items-center p-3 bg-[#090a0b] border border-[#1e2226] rounded-xl">
             <div className="h-8 w-8 rounded-lg bg-[#1a1d21] border border-[#2a2f35] flex items-center justify-center mr-3 flex-shrink-0">
