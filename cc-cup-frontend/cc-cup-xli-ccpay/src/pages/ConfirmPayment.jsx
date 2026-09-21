@@ -11,6 +11,7 @@ const ConfirmPayment = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [userBalance, setUserBalance] = useState(0);
+  const [userEmail, setUserEmail] = useState("");
 
   // Extract contextual data sent from PaymentInput safely
   const { merchant, amount } = location.state || {};
@@ -48,6 +49,7 @@ const ConfirmPayment = () => {
         if (response.ok) {
           const data = await response.json();
           setUserBalance(data.current_saldo || 0);
+          setUserEmail(data.email || "");
         }
       } catch (err) {
         console.error("Failed fetching context metrics for confirmation screen:", err);
@@ -159,6 +161,19 @@ const ConfirmPayment = () => {
         {/* Detailed Receipt Breakdown Layout */}
         <div className="w-full bg-[#131619] border border-[#1e2226] rounded-2xl p-4 space-y-3.5">
           
+          <div className="flex justify-between items-start border-b border-[#1e2226]/60 pb-3">
+            <span className="text-[11px] font-bold text-[#535c66] uppercase tracking-wider mt-0.5">Pengirim</span>
+            <div className="text-right max-w-[65%] min-w-0">
+              {isPageLoading ? (
+                <Skeleton className="h-4 w-32 bg-[#1e2226] ml-auto" />
+              ) : (
+                <span className="text-xs font-bold text-white block truncate">
+                  {userEmail || 'EMAIL_UNKNOWN'}
+                </span>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-between items-start border-b border-[#1e2226]/60 pb-3">
             <span className="text-[11px] font-bold text-[#535c66] uppercase tracking-wider mt-0.5">Penerima</span>
             <div className="text-right max-w-[65%] min-w-0">
