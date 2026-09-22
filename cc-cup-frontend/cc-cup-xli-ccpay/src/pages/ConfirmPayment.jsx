@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react'; // Removed CheckCircle2 and ShieldCheck
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -121,7 +121,7 @@ const ConfirmPayment = () => {
   };
 
   return (
-    <div className="bg-[#090a0b] font-sans text-[#8a939e] min-h-screen flex flex-col antialiased select-none w-full max-w-md mx-auto justify-between p-4 pb-safe overflow-hidden">
+    <div className="bg-[#090a0b] font-sans text-[#8a939e] min-h-screen flex flex-col antialiased select-none w-full max-w-md mx-auto p-4 pb-safe overflow-hidden">
       
       {/* 1. Header Area Block */}
       <div className="w-full">
@@ -138,15 +138,9 @@ const ConfirmPayment = () => {
         </header>
       </div>
 
-      {/* 2. Primary Invoice Presentation Core View */}
-      <main className="flex-1 flex flex-col justify-center items-center px-2 space-y-8">
+      {/* 2. Primary Invoice Presentation Core View - Centered overall */}
+      <main className="flex-1 flex flex-col justify-center items-center px-2 space-y-6 w-full">
         
-        {/* Dynamic Verification Icon Wrapper */}
-        <div className="w-16 h-16 rounded-2xl bg-[#131619] border border-[#2a2f35] flex items-center justify-center text-[#69ff87] shadow-xl relative">
-          <ShieldCheck className="w-8 h-8" />
-          <div className="absolute inset-0 rounded-2xl border border-[#69ff87]/20 animate-pulse" />
-        </div>
-
         {/* Amount Display Blocks */}
         <div className="text-center space-y-1">
           <span className="text-xs font-bold text-[#535c66] uppercase tracking-widest block">Total Pembayaran</span>
@@ -226,32 +220,29 @@ const ConfirmPayment = () => {
           </div>
         )}
 
-      </main>
-
-      {/* 3. Bottom Button Controls Wrapper */}
-      <div className="w-full pt-4 space-y-2">
-        <Button
-          disabled={isPageLoading || isSubmitting || isBalanceInsufficient}
-          onClick={handleExecutePayment}
-          className="w-full h-12 bg-[#69ff87] hover:bg-[#5ade78] disabled:opacity-10 disabled:pointer-events-none text-[#090a0b] font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 border-none shadow-lg shadow-[#69ff87]/5"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin text-[#090a0b]" />
-              <span>Memproses Pembayaran...</span>
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-4 w-4 text-[#090a0b]" />
+        {/* 3. Button Controls - Moved inside the main view for better centralization */}
+        <div className="w-full pt-4 space-y-3">
+          <Button
+            disabled={isPageLoading || isSubmitting || isBalanceInsufficient}
+            onClick={handleExecutePayment}
+            className="w-full h-16 bg-[#69ff87] hover:bg-[#5ade78] disabled:opacity-10 disabled:pointer-events-none text-[#090a0b] font-bold text-sm sm:text-base uppercase tracking-wider rounded-xl transition-all flex items-center justify-center space-x-2 border-none shadow-lg shadow-[#69ff87]/5"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin text-[#090a0b]" />
+                <span>Memproses Pembayaran...</span>
+              </>
+            ) : (
               <span>Konfirmasi & Bayar</span>
-            </>
-          )}
-        </Button>
-        
-        <p className="text-center text-[10px] font-bold tracking-tight text-[#535c66] px-4">
-          Pastikan nominal merchant stand sudah sesuai sebelum menekan tombol konfirmasi.
-        </p>
-      </div>
+            )}
+          </Button>
+          
+          <p className="text-center text-[11px] font-medium tracking-tight text-[#535c66] px-4">
+            Pastikan nominal merchant stand sudah sesuai sebelum menekan tombol konfirmasi.
+          </p>
+        </div>
+
+      </main>
 
     </div>
   );
