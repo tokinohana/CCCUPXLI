@@ -142,7 +142,7 @@ const Dashboard = () => {
               </div>
 
               <Badge className="bg-[#122b1c] border border-[#1b4d2e] px-2 py-0.5 rounded text-[10px] font-bold text-[#69ff87] uppercase tracking-wider whitespace-nowrap">
-                Active until 22:00
+                Active until 20:00
               </Badge>
             </div>
 
