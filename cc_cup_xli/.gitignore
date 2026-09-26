@@ -23,7 +23,6 @@ media/
 
 # === Environment Variables ===
 .env
-.env.*
 *.env
 
 # === Static Files ===
